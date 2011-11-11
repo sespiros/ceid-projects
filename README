@@ -1,7 +1,2 @@
-This readme is to readyou
-changed the readme too
-
-made a change in line 4 and commited, we should try the merge conflicts
-
-THIS IS NOT A CHANGELOG!!!1
-(jk it could be)
+Fri Nov 11 22:49:21 GTBST 2011
+Stroustrup, pg. 405-406: Ενημέρωσα constructors σύμφωνα με το πρότυπο της C++. Επίσης πλεον η global_count δουλεύει.

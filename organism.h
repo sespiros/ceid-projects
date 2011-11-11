@@ -5,12 +5,13 @@ class Organism
 {
 
 public:
-    static unsigned int global_count;
     enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NATTY};
+    Organism(int, int, int, int, float, int, int, fishtype);
+    static unsigned int global_count;
 
 protected:
     int x, y;
-    int age, size;
+    int size, age;
     const float growthRate;
     const int foodRequired;
     int foodConsumed;

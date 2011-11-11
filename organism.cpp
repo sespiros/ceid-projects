@@ -1,57 +1,49 @@
 #include "organism.h"
 
-ZPlankton::ZPlankton(int x, int y):growthRate(1),foodRequired(5),velocity(1),type(ZPL){
-    size=1;
-    age=0;
+unsigned int Organism::global_count = 0;
+
+Organism::Organism(int x, int y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
+    size(s),age(a),growthRate(gr),foodRequired(fr),velocity(v),type(t)
+{
+    global_count++;
 }
 
-PPlankton::PPlankton(int x, int y):growthRate(0),foodRequired(0),velocity(1),type(PPL){
-    size=1;
-    age=0;
+ZPlankton::ZPlankton(int x, int y):Organism(x, y, 1, 0, 1.0f, 5, 1, ZPL){
+
 }
 
-Shrimp::Shrimp(int x, int y):growthRate(1),foodRequired(4),velocity(2),type(SHRIMP){
-    size=1;
-    age=0;
+PPlankton::PPlankton(int x, int y):Organism(x, y, 1, 0, 0, 0, 1, PPL){
+
 }
 
-Jelly::Jelly(int x, int y):growthRate(1),foodRequired(4),velocity(1),type(JELLY){
-    size=1;
-    age=0;
+Shrimp::Shrimp(int x, int y):Organism(x, y, 1, 0, 1.0f, 4, 2, SHRIMP){
+
 }
 
-Eel::Eel(int x, int y):growthRate(2),foodRequired(4),velocity(5),type(EEL){
-    size=1;
-    age=0;
+Jelly::Jelly(int x, int y):Organism(x, y, 1, 0, 1.0f, 4, 1, JELLY){
+
 }
 
-Balloon::Balloon(int x, int y):growthRate(3),foodRequired(3),velocity(3),type(BALLOON){
-    size=1;
-    age=0;
+Eel::Eel(int x, int y):Organism(x, y, 1, 0, 2.0f, 4, 5, EEL){
+
 }
 
-Clown::Clown(int x, int y):growthRate(2),foodRequired(3),velocity(4),type(CLOWN){
-    size=1;
-    age=0;
+Balloon::Balloon(int x, int y):Organism(x, y, 1, 0, 3.0f, 3, 3, BALLOON){
+
 }
 
-Gtp::Gtp(int x, int y):growthRate(2),foodRequired(3),velocity(3),type(GTP){
-    size=1;
-    age=0;
+Clown::Clown(int x, int y):Organism(x, y, 1, 0, 2.0f, 3, 4, CLOWN){
+
 }
 
-Magikarp::Magikarp(int x, int y):growthRate(2),foodRequired(3),velocity(4),type(MAGIKARP){
-    size=1;
-    age=0;
+Gtp::Gtp(int x, int y):Organism(x, y, 1, 0, 2.0f, 3, 3, GTP){
+
 }
 
-Natty::Natty(int x, int y):growthRate(4),foodRequired(8),velocity(6),type(NATTY){
-    size=1;
-    age=0;
+Magikarp::Magikarp(int x, int y):Organism(x, y, 1, 0, 2.0f, 3, 4, MAGIKARP){
+
 }
 
+Natty::Natty(int x, int y):Organism(x, y, 1, 0, 4.0f, 8, 6, NATTY){
 
-
-
-
-
+}

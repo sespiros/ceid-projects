@@ -1,2 +1,5 @@
 Fri Nov 11 22:49:21 GTBST 2011
 Stroustrup, pg. 405-406: Ενημέρωσα constructors σύμφωνα με το πρότυπο της C++. Επίσης πλεον η global_count δουλεύει.
+
+Mon Nov 14 23:37:48 GTBST 2011
+Αρχική μορφή του Ocean, νέα μέθοδος getType του Organism, μικρές αλλαγές στο test.cpp για να δείξουν τις αλλαγές. Ερώτημα: global_count deprecated?

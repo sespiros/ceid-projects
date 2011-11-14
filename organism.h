@@ -6,8 +6,9 @@ class Organism
 
 public:
     enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NATTY};
-    Organism(int, int, int, int, float, int, int, fishtype);
     static unsigned int global_count;
+    fishtype getType();
+    Organism(int, int, int, int, float, int, int, fishtype);
 
 protected:
     int x, y;

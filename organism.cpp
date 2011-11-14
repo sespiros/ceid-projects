@@ -8,6 +8,10 @@ Organism::Organism(int x, int y, int a, int s, float gr, int fr, int v, Organism
     global_count++;
 }
 
+Organism::fishtype Organism::getType() {
+    return type;
+}
+
 ZPlankton::ZPlankton(int x, int y):Organism(x, y, 1, 0, 1.0f, 5, 1, ZPL){
 
 }

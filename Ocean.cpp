@@ -47,7 +47,7 @@ void Ocean::info() {
 	std::cout << Ocean::count << " fish.\n";
 	for (unsigned int i = 0; i < fish.size(); i++){
 		std::cout << "Fish " << i << " is of type " << (fish.at(i))->getType() << std::endl;
-		std::cout << "Position: " << (fish.at(i))->x << " " << (fish.at(i))->y << std::endl;
+		std::cout << "Position: " << (fish.at(i))->getX() << " " << (fish.at(i))->getY() << std::endl;
 	}
 	std::cout << "***************\n";
 }

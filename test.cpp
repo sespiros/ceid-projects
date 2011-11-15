@@ -12,6 +12,9 @@ int main() {
     Ocean::add(&c);
     Ocean::info();
 
+	Ocean::update();
+	Ocean::info();
+
     std::cout << "Deleting a fish...\n";
 
     Ocean::kill(0);

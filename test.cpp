@@ -1,11 +1,17 @@
 #include "organism.h"
 #include <iostream>
 
+using namespace std;
+
 int main() {
-    Gtp g(2, 2);
-    Clown c(5, 5);
+    ZPlankton g(2, 2);
+    ZPlankton c(5, 5);
+    Eel fuck(0, 0);
 
-    std::cout << Organism::global_count << std::endl;
+    cout<< g.getX()<<endl;
 
+    g.setX(7);
+
+    cout<< g.getX()<<endl;
     return 0;
 }

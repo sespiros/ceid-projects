@@ -13,8 +13,8 @@ Ocean::Ocean() {
 
 }
 
-void Ocean::create(Organism *toCreate) {
-    Ocean::fish.push_back(toCreate);
+void Ocean::add(Organism *toAdd) {
+    Ocean::fish.push_back(toAdd);
     count++;
 }
 

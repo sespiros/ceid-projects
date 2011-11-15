@@ -6,10 +6,11 @@
 
 class Ocean {
 public:
-    static int count;
+	static int count;
 
 	static void add(Organism *toAdd);
     static void kill(int idx);
+	static void update();
     static void info();
 
     Ocean();

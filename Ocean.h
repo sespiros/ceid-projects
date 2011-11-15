@@ -8,7 +8,7 @@ class Ocean {
 public:
     static int count;
 
-    static void create(Organism *toCreate);
+    static void add(Organism *toCreate);
     static void kill(int idx);
     static void info();
 

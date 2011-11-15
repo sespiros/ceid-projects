@@ -6,8 +6,8 @@ int main() {
     Gtp g(2, 2);
     Eel c(5, 5);
 
-    Ocean::create(&g);
-    Ocean::create(&c);
+    Ocean::add(&g);
+    Ocean::add(&c);
     Ocean::info();
 
     std::cout << "Deleting a fish...\n";

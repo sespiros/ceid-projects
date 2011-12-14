@@ -1,18 +1,23 @@
 #ifndef ORGANISM_H
 #define ORGANISM_H
+#include <SFML/Graphics.hpp>
 
 class Organism
 {
 
 public:
-	enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NATTY};
+    enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NARWHAL};
 
-	fishtype getType();
+    fishtype getType();
     virtual int getCount()=0;
+    //virtual sf::Sprite getSprite()=0;
     int getX();
     int getY();
-    int setX(int );
-	int setY(int );
+    void setX(int );
+    void setY(int );
+
+    sf::Image image;
+    sf::Sprite sprite;
 
     Organism(int, int, int, int, float, int, int, fishtype);
 
@@ -24,6 +29,7 @@ private:
     int foodConsumed;
     const int velocity;
     const fishtype type;
+
 };
 
 class ZPlankton:public Organism
@@ -32,6 +38,7 @@ class ZPlankton:public Organism
 public:
     ZPlankton(int,int);
     static int count;
+
     int getCount(){
         return count;
     };
@@ -125,11 +132,11 @@ public:
     };
 };
 
-class Natty:public Organism
+class Narwhal:public Organism
 {
 
 public:
-    Natty(int,int);
+    Narwhal(int,int);
     static int count;
     int getCount(){
         return count;

@@ -6,16 +6,18 @@
 
 class Ocean {
 public:
-	static int count;
+    static int count;
 
-	static void add(Organism *toAdd);
+    static void add(Organism *toAdd);
     static void kill(int idx);
-	static void update();
+    static void update();
     static void info();
+    static void render();
+    static void init();
 
     Ocean();
 
-private:
+//private:
     /* Can't use Organism as the vector type;
      * the vector assignment process tries to
      * write on our const members

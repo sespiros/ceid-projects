@@ -11,18 +11,18 @@ public:
     fishtype getType();
     virtual int getCount()=0;
     //virtual sf::Sprite getSprite()=0;
-    int getX();
-    int getY();
-    void setX(int );
-    void setY(int );
+    float getX();
+    float getY();
+    void setX(float );
+    void setY(float );
 
     sf::Image image;
     sf::Sprite sprite;
 
-    Organism(int, int, int, int, float, int, int, fishtype);
+    Organism(float, float, int, int, float, int, int, fishtype);
 
 private:
-    int x, y;
+    float x, y;
     int size, age;
     const float growthRate;
     const int foodRequired;
@@ -32,11 +32,23 @@ private:
 
 };
 
-class ZPlankton:public Organism
+class Plankton:public Organism
+{
+public:
+     Plankton(float, float, int, int, float, int, int, fishtype);
+     static int familyCount;
+
+     int getFcount(){
+         return familyCount;
+     }
+};
+
+
+class ZPlankton:public Plankton
 {
 
 public:
-    ZPlankton(int,int);
+    ZPlankton(float,float);
     static int count;
 
     int getCount(){
@@ -44,99 +56,110 @@ public:
     };
 };
 
-class PPlankton:public Organism
+class PPlankton:public Plankton
 {
 
 public:
-    PPlankton(int,int);
+    PPlankton(float,float);
     static int count;
     int getCount(){
         return count;
     };
 };
 
-class Shrimp:public Organism
+class nonPlankton:public Organism
+{
+public:
+     nonPlankton(float,float, int, int, float, int, int, fishtype);
+     static int familyCount;
+
+     int getFcount(){
+         return familyCount;
+     }
+};
+
+class Shrimp:public nonPlankton
 {
 
 public:
-    Shrimp(int,int);
+    Shrimp(float,float);
     static int count;
     int getCount(){
         return count;
     };
 };
 
-class Jelly:public Organism
+class Jelly:public nonPlankton
 {
 
 public:
-    Jelly(int,int);
+    Jelly(float,float);
     static int count;
     int getCount(){
         return count;
     };
 };
 
-class Eel:public Organism
+class Eel:public nonPlankton
 {
 
 public:
-    Eel(int,int);
+    Eel(float,float);
     static int count;
     int getCount(){
         return count;
     };
 };
 
-class Balloon:public Organism
+class Balloon:public nonPlankton
 {
 
 public:
-    Balloon(int,int);
+    Balloon(float,float);
     static int count;
     int getCount(){
         return count;
     };
 };
 
-class Clown:public Organism
+class Clown:public nonPlankton
 {
 
 public:
-    Clown(int,int);
+    Clown(float,float);
     static int count;
     int getCount(){
         return count;
     };
 };
 
-class Gtp:public Organism
+class Gtp:public nonPlankton
 {
 
 public:
-    Gtp(int,int);
+    Gtp(float,float);
     static int count;
     int getCount(){
         return count;
     };
 };
 
-class Magikarp:public Organism
+class Magikarp:public nonPlankton
 {
 
 public:
-    Magikarp(int,int);
+    Magikarp(float,float);
     static int count;
     int getCount(){
         return count;
     };
 };
 
-class Narwhal:public Organism
+class Narwhal:public nonPlankton
 {
 
 public:
-    Narwhal(int,int);
+    Narwhal(float,float);
     static int count;
     int getCount(){
         return count;

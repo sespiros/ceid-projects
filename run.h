@@ -26,8 +26,9 @@ int run::Run(sf::RenderWindow &App)
     sf::Sprite runSprite;
     sf::Sprite backSprite;
 
-    sf::View view(sf::FloatRect(10, 5, 817, 517));
-
+    sf::View view(sf::FloatRect(0,0,1024,600));
+    //617 350 center
+    //635 372 halfsize
 
     /* Drawable area (15,10)----------(780,10)
                         |                 |
@@ -37,7 +38,7 @@ int run::Run(sf::RenderWindow &App)
     */
     //ZPlankton asdf(15,10);
 
-    if (!runImage.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/run.png")){
+    if (!runImage.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/run2.png")){
         std::cerr<<"Error loading background image"<<std::endl;
         return(-1);
     }
@@ -76,12 +77,26 @@ int run::Run(sf::RenderWindow &App)
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Right){
                 Ocean::fish.at(0)->sprite.SetX((Ocean::fish.at(0))->sprite.GetPosition().x+37.0f);
             }
-            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Q){
                 view.Zoom(1.050f);
             }
-            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::S){
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::E){
                 view.Zoom(0.950f);
             }
+
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::A){
+                view.Move(-5.0f,0);
+            }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::D){
+                view.Move(5.0f,0);
+            }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){
+                view.Move(0,-5.0f);
+            }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::S){
+                view.Move(0,5.0f);
+            }
+
         }
 
         App.SetView(view);
@@ -96,7 +111,8 @@ int run::Run(sf::RenderWindow &App)
 
         App.Display();
         //asdf.sprite.SetY(asdf.sprite.GetPosition().y+32.0f);
-
+        //std::cout<<view.GetCenter().x<<"   "<<view.GetCenter().y<<std::endl;
+        //std::cout<<view.GetHalfSize().x<<"|   "<<view.GetHalfSize().y<<std::endl;
         App.Clear();
     }
     return(-1);

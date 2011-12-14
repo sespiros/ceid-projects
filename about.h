@@ -29,7 +29,7 @@ int about::Run(sf::RenderWindow &App)
     sf::String Names;
     sf::View view(sf::FloatRect(10, 5, 817, 517));
 
-    if (!aboutImage.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/about2.png")){
+    if (!aboutImage.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/about.png")){
         std::cerr<<"Error loading background image"<<std::endl;
         return(-1);
     }
@@ -61,7 +61,7 @@ int about::Run(sf::RenderWindow &App)
         }
 
         App.SetView(view);
-        for(int i=0;i<20;i++){
+        for(int i=0;i<Ocean::count;i++){
             App.Draw((Ocean::fish.at(i))->sprite);
         }
         App.SetView(App.GetDefaultView());

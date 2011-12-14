@@ -7,10 +7,12 @@
 #include <fstream>
 #include "screens.h"
 #include "Ocean.h"
+#include <map>
 
 
 using namespace std;
 using namespace sf;
+
 
 Vector2f** ArrayCon(const int x, const int y, const float w,const float h){
 
@@ -63,6 +65,51 @@ Vector2f** ArrayCon(const int x, const int y, const float w,const float h){
     }
 
     return conv;
+}
+
+/*      CORE ORGANISM CREATION FUNCTIONS
+
+
+*/
+
+//returns custom constructor
+template<class T> Organism* organism_factory(float x, float y)
+{
+        return new T(x, y);
+}
+
+//pointer to function which returns pointer to Organism
+typedef Organism* (*organism_creator)(float, float);
+
+//FUCKING AWESOME CLASS::
+class ClassRegistry {
+private:
+        //map with enum as a key and pointer to function which returns pointer to Organism
+        static std::map<int, organism_creator> assocMap;
+
+        //easy access to above map for searching
+        typedef std::map<int, organism_creator>::iterator iter;
+public:
+        //returns constructor based on enum type
+        static organism_creator getConstructor(int s);
+
+        //....add comment
+        template<class className> static void associate(Organism::fishtype);
+};
+
+//defines the map
+std::map<int, organism_creator> ClassRegistry::assocMap;
+
+organism_creator ClassRegistry::getConstructor(int s) {
+        iter i = assocMap.find(s);
+        if (i != assocMap.end()) {
+                return i->second;
+        }
+        return NULL;
+}
+
+template<class className> void ClassRegistry::associate(Organism::fishtype code){
+        assocMap.insert(std::pair<int, organism_creator>(code, &organism_factory<className>));
 }
 
 

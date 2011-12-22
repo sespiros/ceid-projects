@@ -10,10 +10,12 @@ public:
 
     static void add(Organism *toAdd);
     static void kill(int idx);
+    static void createAndAddFish(int t, int x, int y);
+    static void populate();
+
     static void update();
+    static void move(Organism&);
     static void info();
-    static void render();
-    static void init();
 
     Ocean();
 

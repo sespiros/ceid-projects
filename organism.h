@@ -2,6 +2,7 @@
 #define ORGANISM_H
 #include <SFML/Graphics.hpp>
 
+
 class Organism
 {
 
@@ -11,18 +12,18 @@ public:
     fishtype getType();
     virtual int getCount()=0;
     //virtual sf::Sprite getSprite()=0;
-    float getX();
-    float getY();
-    void setX(float );
-    void setY(float );
+    int getX();
+    int getY();
+    void setX(int );
+    void setY(int );
 
     sf::Image image;
     sf::Sprite sprite;
 
-    Organism(float, float, int, int, float, int, int, fishtype);
+    Organism(int, int, int, int, float, int, int, fishtype);
 
 private:
-    float x, y;
+    int x, y;
     int size, age;
     const float growthRate;
     const int foodRequired;
@@ -35,7 +36,7 @@ private:
 class Plankton:public Organism
 {
 public:
-     Plankton(float, float, int, int, float, int, int, fishtype);
+     Plankton(int, int, int, int, float, int, int, fishtype);
      static int familyCount;
 
      int getFcount(){
@@ -48,7 +49,7 @@ class ZPlankton:public Plankton
 {
 
 public:
-    ZPlankton(float,float);
+    ZPlankton(int,int);
     static int count;
 
     int getCount(){
@@ -60,7 +61,7 @@ class PPlankton:public Plankton
 {
 
 public:
-    PPlankton(float,float);
+    PPlankton(int,int);
     static int count;
     int getCount(){
         return count;
@@ -70,7 +71,7 @@ public:
 class nonPlankton:public Organism
 {
 public:
-     nonPlankton(float,float, int, int, float, int, int, fishtype);
+     nonPlankton(int,int, int, int, float, int, int, fishtype);
      static int familyCount;
 
      int getFcount(){
@@ -82,7 +83,7 @@ class Shrimp:public nonPlankton
 {
 
 public:
-    Shrimp(float,float);
+    Shrimp(int,int);
     static int count;
     int getCount(){
         return count;
@@ -93,7 +94,7 @@ class Jelly:public nonPlankton
 {
 
 public:
-    Jelly(float,float);
+    Jelly(int,int);
     static int count;
     int getCount(){
         return count;
@@ -104,7 +105,7 @@ class Eel:public nonPlankton
 {
 
 public:
-    Eel(float,float);
+    Eel(int,int);
     static int count;
     int getCount(){
         return count;
@@ -115,7 +116,7 @@ class Balloon:public nonPlankton
 {
 
 public:
-    Balloon(float,float);
+    Balloon(int,int);
     static int count;
     int getCount(){
         return count;
@@ -126,7 +127,7 @@ class Clown:public nonPlankton
 {
 
 public:
-    Clown(float,float);
+    Clown(int,int);
     static int count;
     int getCount(){
         return count;
@@ -137,7 +138,7 @@ class Gtp:public nonPlankton
 {
 
 public:
-    Gtp(float,float);
+    Gtp(int,int);
     static int count;
     int getCount(){
         return count;
@@ -148,7 +149,7 @@ class Magikarp:public nonPlankton
 {
 
 public:
-    Magikarp(float,float);
+    Magikarp(int,int);
     static int count;
     int getCount(){
         return count;
@@ -159,7 +160,7 @@ class Narwhal:public nonPlankton
 {
 
 public:
-    Narwhal(float,float);
+    Narwhal(int,int);
     static int count;
     int getCount(){
         return count;

@@ -1,5 +1,6 @@
 #include "organism.h"
 #include <SFML/Graphics.hpp>
+#include "helper.h"
 
 
 int ZPlankton::count=0;
@@ -15,7 +16,7 @@ int Narwhal::count=0;
 
 
 
-Organism::Organism(float x, float y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
+Organism::Organism(int x, int y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
     size(s),age(a),growthRate(gr),foodRequired(fr),velocity(v),type(t)
 {
     (*this).x=x;
@@ -27,13 +28,13 @@ Organism::fishtype Organism::getType() {
     return type;
 }
 
-Plankton::Plankton(float x, float y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
+Plankton::Plankton(int x, int y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
     Organism(x, y, a, s, gr, fr, v, t)
 {
     //familyCount++;
 }
 
-ZPlankton::ZPlankton(float x, float y):Plankton(x, y, 1, 0, 1.0f, 5, 1, ZPL){
+ZPlankton::ZPlankton(int x, int y):Plankton(x, y, 1, 0, 1.0f, 5, 1, ZPL){
     count++;
 
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/ZPlankton.png");
@@ -41,127 +42,127 @@ ZPlankton::ZPlankton(float x, float y):Plankton(x, y, 1, 0, 1.0f, 5, 1, ZPL){
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-PPlankton::PPlankton(float x, float y):Plankton(x, y, 1, 0, 0, 0, 1, PPL){
+PPlankton::PPlankton(int x, int y):Plankton(x, y, 1, 0, 0, 0, 1, PPL){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/PPlankton.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-nonPlankton::nonPlankton(float x, float y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
+nonPlankton::nonPlankton(int x, int y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
     Organism(x, y, a, s, gr, fr, v, t)
 {
     //familyCount++;
 }
 
-Shrimp::Shrimp(float x, float y):nonPlankton(x, y, 1, 0, 1.0f, 4, 2, SHRIMP){
+Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 1, 0, 1.0f, 4, 2, SHRIMP){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Shrimp.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-Jelly::Jelly(float x, float y):nonPlankton(x, y, 1, 0, 1.0f, 4, 1, JELLY){
+Jelly::Jelly(int x, int y):nonPlankton(x, y, 1, 0, 1.0f, 4, 1, JELLY){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Jelly.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-Eel::Eel(float x, float y):nonPlankton(x, y, 1, 0, 2.0f, 4, 5, EEL){
+Eel::Eel(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 4, 5, EEL){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Eel.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-Balloon::Balloon(float x, float y):nonPlankton(x, y, 1, 0, 3.0f, 3, 3, BALLOON){
+Balloon::Balloon(int x, int y):nonPlankton(x, y, 1, 0, 3.0f, 3, 3, BALLOON){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Baloon.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-Clown::Clown(float x, float y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, CLOWN){
+Clown::Clown(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, CLOWN){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Clown.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-Gtp::Gtp(float x, float y):nonPlankton(x, y, 1, 0, 2.0f, 3, 3, GTP){
+Gtp::Gtp(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 3, GTP){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Gtp.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-Magikarp::Magikarp(float x, float y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, MAGIKARP){
+Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, MAGIKARP){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Magikarp.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-Narwhal::Narwhal(float x, float y):nonPlankton(x, y, 1, 0, 4.0f, 8, 6, NARWHAL){
+Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 1, 0, 4.0f, 8, 6, NARWHAL){
     count++;
     image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Narwhal.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
 
-    sprite.SetX(x);
-    sprite.SetY(y);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
-float Organism::getX(){
+int Organism::getX(){
     return x;
 }
-float Organism::getY(){
+int Organism::getY(){
     return y;
 }
-void Organism::setX(float x){
+void Organism::setX(int x){
     (*this).x=x;
-    sprite.SetX(x*1.0f);
+    sprite.SetX(Helper::worldToPixel[x][y].x);
 }
-void Organism::setY(float y){
+void Organism::setY(int y){
     (*this).y=y;
-    sprite.SetY(y*1.0f);
+    sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 

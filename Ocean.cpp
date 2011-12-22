@@ -1,17 +1,17 @@
 #include "Ocean.h"
 #include "organism.h"
-
+#include "ClassRegistry.h"
 #include <vector>
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
 
-#define MAX_WIDTH 32
-#define MAX_HEIGHT 32
+#define MAX_WIDTH 15
+#define MAX_HEIGHT 26
 
 /*
-* static declarations
-*/
+ * static declarations
+ */
 int Ocean::count = 0;
 std::vector<Organism *> Ocean::fish;
 
@@ -23,27 +23,37 @@ void Ocean::add(Organism *toAdd) {
     count++;
 }
 
-void Ocean::init(){
-
-
-}
-
 void Ocean::kill(int idx) {
     Ocean::fish.erase(Ocean::fish.begin()+idx);
     count--;
 }
 
+void Ocean::createAndAddFish(int t, int x, int y) {
+    organism_creator f = ClassRegistry::getConstructor(t);
+
+    Ocean::add(f(x, y));
+}
+
+void Ocean::move(Organism& fish) {
+    int curX = fish.getX();
+    int curY = fish.getY();
+    std::cout<<curX<<" "<<curY<<std::endl;
+
+    int dx, dy;
+
+    do {
+        dx = rand()%3 - 1;
+        dy = rand()%3 - 1;
+    } while (((curX + dx < 0) || (curX + dx >= MAX_WIDTH)) || ((curY + dy < 0) || (curY + dy >= MAX_HEIGHT)));
+
+    fish.setX(curX + dx);
+    fish.setY(curY + dy);
+}
+
 void Ocean::update() {
     srand(time(0));
     for (unsigned int i = 0; i < fish.size(); i++) {
-        int dx, dy;
-        int curX = (fish.at(i))->getX(), curY = (fish.at(i))->getY();
-        do {
-            dx = rand()%3 - 1;
-            dy = rand()%3 - 1;
-        } while ((curX + dx < 0) && (curX + dx >= MAX_WIDTH) && (curY + dy < 0) && (curY + dy >= MAX_HEIGHT));
-        (fish.at(i))->setX(curX + dx);
-        (fish.at(i))->setY(curY + dy);
+        move(*fish.at(i));
     }
 }
 

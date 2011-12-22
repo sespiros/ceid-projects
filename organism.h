@@ -1,18 +1,24 @@
 #ifndef ORGANISM_H
 #define ORGANISM_H
+#include <SFML/Graphics.hpp>
+
 
 class Organism
 {
 
 public:
-    enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NATTY};
+    enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NARWHAL};
 
     fishtype getType();
     virtual int getCount()=0;
+    //virtual sf::Sprite getSprite()=0;
     int getX();
     int getY();
-    int setX(int );
-    int setY(int );
+    void setX(int );
+    void setY(int );
+
+    sf::Image image;
+    sf::Sprite sprite;
 
     Organism(int, int, int, int, float, int, int, fishtype);
 
@@ -24,20 +30,34 @@ private:
     int foodConsumed;
     const int velocity;
     const fishtype type;
+
 };
 
-class ZPlankton:public Organism
+class Plankton:public Organism
+{
+public:
+     Plankton(int, int, int, int, float, int, int, fishtype);
+     static int familyCount;
+
+     int getFcount(){
+         return familyCount;
+     }
+};
+
+
+class ZPlankton:public Plankton
 {
 
 public:
     ZPlankton(int,int);
     static int count;
+
     int getCount(){
         return count;
     };
 };
 
-class PPlankton:public Organism
+class PPlankton:public Plankton
 {
 
 public:
@@ -48,7 +68,18 @@ public:
     };
 };
 
-class Shrimp:public Organism
+class nonPlankton:public Organism
+{
+public:
+     nonPlankton(int,int, int, int, float, int, int, fishtype);
+     static int familyCount;
+
+     int getFcount(){
+         return familyCount;
+     }
+};
+
+class Shrimp:public nonPlankton
 {
 
 public:
@@ -59,7 +90,7 @@ public:
     };
 };
 
-class Jelly:public Organism
+class Jelly:public nonPlankton
 {
 
 public:
@@ -70,7 +101,7 @@ public:
     };
 };
 
-class Eel:public Organism
+class Eel:public nonPlankton
 {
 
 public:
@@ -81,7 +112,7 @@ public:
     };
 };
 
-class Balloon:public Organism
+class Balloon:public nonPlankton
 {
 
 public:
@@ -92,7 +123,7 @@ public:
     };
 };
 
-class Clown:public Organism
+class Clown:public nonPlankton
 {
 
 public:
@@ -103,7 +134,7 @@ public:
     };
 };
 
-class Gtp:public Organism
+class Gtp:public nonPlankton
 {
 
 public:
@@ -114,7 +145,7 @@ public:
     };
 };
 
-class Magikarp:public Organism
+class Magikarp:public nonPlankton
 {
 
 public:
@@ -125,11 +156,11 @@ public:
     };
 };
 
-class Natty:public Organism
+class Narwhal:public nonPlankton
 {
 
 public:
-    Natty(int,int);
+    Narwhal(int,int);
     static int count;
     int getCount(){
         return count;

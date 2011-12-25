@@ -29,13 +29,13 @@ int about::Run(sf::RenderWindow &App)
     sf::String Names;
     sf::View view(sf::FloatRect(10, 5, 817, 517));
 
-    if (!aboutImage.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/about.png")){
+	if (!aboutImage.LoadFromFile("artwork/about.png")){
         std::cerr<<"Error loading background image"<<std::endl;
         return(-1);
     }
     aboutSprite.SetImage(aboutImage);
 
-    if (!runImage.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/run2.png")){
+	if (!runImage.LoadFromFile("artwork/run2.png")){
         std::cerr<<"Error loading background image"<<std::endl;
         return(-1);
     }

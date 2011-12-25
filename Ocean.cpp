@@ -6,16 +6,15 @@
 #include <cstdlib>
 #include <ctime>
 
-#define MAX_WIDTH 15
-#define MAX_HEIGHT 26
-
 /*
  * static declarations
  */
 int Ocean::count = 0;
 std::vector<Organism *> Ocean::fish;
 
-Ocean::Ocean() {
+void Ocean::init() {
+	ClassRegistry::registerClasses();
+	Ocean::populate();
 }
 
 void Ocean::add(Organism *toAdd) {
@@ -34,17 +33,25 @@ void Ocean::createAndAddFish(int t, int x, int y) {
     Ocean::add(f(x, y));
 }
 
+void Ocean::populate() {
+	for (int i = 0; i < Ocean::MAX_COUNT; i++) {
+		int x = rand()%(Ocean::MAX_X - 1);
+		int y = rand()%(Ocean::MAX_Y - 1);
+		int id = rand()%10;
+		Ocean::createAndAddFish(id, x, y);
+	}
+}
+
 void Ocean::move(Organism& fish) {
     int curX = fish.getX();
-    int curY = fish.getY();
-    std::cout<<curX<<" "<<curY<<std::endl;
+	int curY = fish.getY();
 
     int dx, dy;
 
     do {
         dx = rand()%3 - 1;
         dy = rand()%3 - 1;
-    } while (((curX + dx < 0) || (curX + dx >= MAX_WIDTH)) || ((curY + dy < 0) || (curY + dy >= MAX_HEIGHT)));
+	} while (((curX + dx < 0) || (curX + dx >= Ocean::MAX_X)) || ((curY + dy < 0) || (curY + dy >= Ocean::MAX_Y)));
 
     fish.setX(curX + dx);
     fish.setY(curY + dy);

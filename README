@@ -3,3 +3,6 @@ Stroustrup, pg. 405-406: Ενημέρωσα constructors σύμφωνα με το πρότυπο της C++. Ε
 
 Mon Nov 14 23:37:48 GTBST 2011
 Αρχική μορφή του Ocean, νέα μέθοδος getType του Organism, μικρές αλλαγές στο test.cpp για να δείξουν τις αλλαγές. Ερώτημα: global_count deprecated?
+
+Sun Dec 25 23:31:59 GTBST 2011
+Tried to encapsulate graphics initialization, but multiple includes FUCKING EVERYWHERE wouldn't allow me. screens.h should be deprecated.

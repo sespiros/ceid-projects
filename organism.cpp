@@ -37,7 +37,7 @@ Plankton::Plankton(int x, int y, int a, int s, float gr, int fr, int v, Organism
 ZPlankton::ZPlankton(int x, int y):Plankton(x, y, 1, 0, 1.0f, 5, 1, ZPL){
     count++;
 
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/ZPlankton.png");
+	image.LoadFromFile("artwork/ZPlankton.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -48,7 +48,7 @@ ZPlankton::ZPlankton(int x, int y):Plankton(x, y, 1, 0, 1.0f, 5, 1, ZPL){
 
 PPlankton::PPlankton(int x, int y):Plankton(x, y, 1, 0, 0, 0, 1, PPL){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/PPlankton.png");
+	image.LoadFromFile("artwork/PPlankton.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -65,7 +65,7 @@ nonPlankton::nonPlankton(int x, int y, int a, int s, float gr, int fr, int v, Or
 
 Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 1, 0, 1.0f, 4, 2, SHRIMP){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Shrimp.png");
+	image.LoadFromFile("artwork/Shrimp.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -76,7 +76,7 @@ Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 1, 0, 1.0f, 4, 2, SHRIMP){
 
 Jelly::Jelly(int x, int y):nonPlankton(x, y, 1, 0, 1.0f, 4, 1, JELLY){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Jelly.png");
+	image.LoadFromFile("artwork/Jelly.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -87,7 +87,7 @@ Jelly::Jelly(int x, int y):nonPlankton(x, y, 1, 0, 1.0f, 4, 1, JELLY){
 
 Eel::Eel(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 4, 5, EEL){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Eel.png");
+	image.LoadFromFile("artwork/Eel.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -98,7 +98,7 @@ Eel::Eel(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 4, 5, EEL){
 
 Balloon::Balloon(int x, int y):nonPlankton(x, y, 1, 0, 3.0f, 3, 3, BALLOON){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Baloon.png");
+	image.LoadFromFile("artwork/Baloon.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -109,7 +109,7 @@ Balloon::Balloon(int x, int y):nonPlankton(x, y, 1, 0, 3.0f, 3, 3, BALLOON){
 
 Clown::Clown(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, CLOWN){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Clown.png");
+	image.LoadFromFile("artwork/Clown.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -120,7 +120,7 @@ Clown::Clown(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, CLOWN){
 
 Gtp::Gtp(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 3, GTP){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Gtp.png");
+	image.LoadFromFile("artwork/Gtp.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -131,7 +131,7 @@ Gtp::Gtp(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 3, GTP){
 
 Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, MAGIKARP){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Magikarp.png");
+	image.LoadFromFile("artwork/Magikarp.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);
@@ -142,7 +142,7 @@ Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, MAGIKARP){
 
 Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 1, 0, 4.0f, 8, 6, NARWHAL){
     count++;
-    image.LoadFromFile("C:/Users/Spiros/Qt Projects/ocean_life/artwork/Narwhal.png");
+	image.LoadFromFile("artwork/Narwhal.png");
     sprite.SetImage(image);
     sprite.SetScaleX(0.25f);
     sprite.SetScaleY(0.25f);

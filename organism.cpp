@@ -13,7 +13,7 @@ int Gtp::count=0;
 int Magikarp::count=0;
 int Narwhal::count=0;
 
-
+const std::map<Organism::fishtype, int> Organism::weightMap = Organism::createWeightMap();
 
 Organism::Organism(int x, int y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
     size(s),age(a),growthRate(gr),foodRequired(fr),velocity(v),type(t)
@@ -21,6 +21,23 @@ Organism::Organism(int x, int y, int a, int s, float gr, int fr, int v, Organism
     (*this).x=x;
     (*this).y=y;
 
+}
+
+std::map<Organism::fishtype, int> Organism::createWeightMap() {
+	std::map<Organism::fishtype, int> tmp;
+
+	tmp.insert(std::pair<Organism::fishtype, int>(PPL, 25));
+	tmp.insert(std::pair<Organism::fishtype, int>(ZPL, 20));
+	tmp.insert(std::pair<Organism::fishtype, int>(SHRIMP, 9));
+	tmp.insert(std::pair<Organism::fishtype, int>(JELLY, 8));
+	tmp.insert(std::pair<Organism::fishtype, int>(EEL, 8));
+	tmp.insert(std::pair<Organism::fishtype, int>(BALLOON, 8));
+	tmp.insert(std::pair<Organism::fishtype, int>(CLOWN, 7));
+	tmp.insert(std::pair<Organism::fishtype, int>(GTP, 9));
+	tmp.insert(std::pair<Organism::fishtype, int>(MAGIKARP, 4));
+	tmp.insert(std::pair<Organism::fishtype, int>(NARWHAL, 2));
+
+	return tmp;
 }
 
 Organism::fishtype Organism::getType() {

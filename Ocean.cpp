@@ -32,12 +32,32 @@ void Ocean::createAndAddFish(int t, int x, int y) {
     Ocean::add(f(x, y));
 }
 
+void Ocean::createAndAddRandFish(int x, int y) {
+	organism_creator f = ClassRegistry::getConstructor(genRandType());
+
+	Ocean::add(f(x, y));
+}
+
 void Ocean::populate() {
 	for (int i = 0; i < Ocean::MAX_COUNT; i++) {
 		int x = rand()%(Ocean::MAX_X - 1);
 		int y = rand()%(Ocean::MAX_Y - 1);
-		int id = rand()%10;
-		Ocean::createAndAddFish(id, x, y);
+		Ocean::createAndAddRandFish(x, y);
+	}
+}
+
+Organism::fishtype Ocean::genRandType() {
+	std::map<Organism::fishtype, int>::const_iterator it;
+	int sum = 0;
+	for (it = Organism::weightMap.begin(); it != Organism::weightMap.end(); it++) {
+		sum += it->second;
+	}
+
+	int rnd = rand()%(sum + 1);
+	for (it = Organism::weightMap.begin(); it != Organism::weightMap.end(); it++) {
+		rnd -= it->second;
+		if (rnd < 0)
+			return it->first;
 	}
 }
 

@@ -17,12 +17,15 @@ public:
     void setX(int );
     void setY(int );
 
+	static const std::map<fishtype, int> weightMap;
     sf::Image image;
     sf::Sprite sprite;
 
     Organism(int, int, int, int, float, int, int, fishtype);
 
 private:
+	static std::map<fishtype, int> createWeightMap();
+
     int x, y;
     int size, age;
     const float growthRate;

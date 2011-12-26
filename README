@@ -6,3 +6,8 @@ Mon Nov 14 23:37:48 GTBST 2011
 
 Sun Dec 25 23:31:59 GTBST 2011
 Tried to encapsulate graphics initialization, but multiple includes FUCKING EVERYWHERE wouldn't allow me. screens.h should be deprecated.
+
+Mon Dec 26 19:29:32 GTBST 2011
+I [Petros] created a static const map to connect fish types with their generation weights; the map creation itself is defined in organism's private createWeightMap()
+one can tinker with the fish weights there. The rest is implemented in the Ocean class, as genRandType() & createAndAddRandFish().
+One could also transfer genRandType() to the Helper class.

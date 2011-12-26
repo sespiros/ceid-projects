@@ -1,5 +1,4 @@
 #include "organism.h"
-#include <SFML/Graphics.hpp>
 #include "helper.h"
 
 

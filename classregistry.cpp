@@ -1,7 +1,6 @@
 #include <map>
 
 #include "ClassRegistry.h"
-#include "organism.h"
 
 using std::map;
 using std::pair;

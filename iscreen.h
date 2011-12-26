@@ -1,7 +1,11 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 #include "SFML/Graphics.hpp"
-class cScreen
+
+/**
+ * A Screen Interface.
+ */
+class IScreen
 {
 public:
     virtual int Run (sf::RenderWindow &App) = 0;

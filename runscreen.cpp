@@ -1,23 +1,6 @@
-#include <iostream>
-#include "screen.h"
-#include "organism.h"
-#include "Ocean.h"
+#include "runscreen.h"
 
-class run : public cScreen
-{
-private:
-	bool playing;
-public:
-	run (void);
-	virtual int Run (sf::RenderWindow &App);
-};
-
-run::run(void)
-{
-	playing = false;
-}
-
-int run::Run(sf::RenderWindow &App)
+int RunScreen::Run(sf::RenderWindow &App)
 {
 	sf::Event Event;
 	bool Running = true;
@@ -83,16 +66,16 @@ int run::Run(sf::RenderWindow &App)
 				}
 
 				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::A){
-					view.Move(-5.0f,0);
-				}
-				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::D){
 					view.Move(5.0f,0);
 				}
+				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::D){
+					view.Move(-5.0f,0);
+				}
 				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){
-					view.Move(0,-5.0f);
+					view.Move(0,5.0f);
 				}
 				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::S){
-					view.Move(0,5.0f);
+					view.Move(0,-5.0f);
 				}
 			}
 
@@ -128,3 +111,4 @@ int run::Run(sf::RenderWindow &App)
 
 	return(-1);
 }
+

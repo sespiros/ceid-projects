@@ -30,5 +30,6 @@ DONE|   *change Ocean::kill instead idx to use a pointer to organism
 ****|   *fix occasional bug
             http://www.qtforum.org/article/31803/passing-pointer-of-object-into-function-crashes.html
             edit: SERIOUS BUG IN COMMIT 41b8a...we should check the code after this commit
+            ammend: after debugging it seems that createAndAddRandFish causes sometimes sigsegv.
 ****|   *find a way to publish TODO file without commits........:P
 ****|   *<add todo>

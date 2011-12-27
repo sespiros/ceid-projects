@@ -1,37 +1,34 @@
-*change Ocean::kill instead idx to use a pointer to organism
-
-*change Ocean::move so before setting new x,y check Ocean::fishMap :
-    -if conlict:
-       _call checker function
-       (*skype*)
-    -if not sets new x,y
-
-*change blue sea texture to match view resolution
-
-*optimize textures dimensions in general
-
-*limit zoom and move
-
-*decide about the world size
-    -standard size and just zoom in
-    -VAST WORLD see only a part and we may choose what to draw
-
-*clock and render timing
-
-*implement user actions
-    -fishnet
-        _retexture
-        _behavior
-        _placing & interface in general
-    -pollution
-        _retexture
-        _behavior
-        _placing & interface in general
-    -adding Organisms
-        _possible drag&drop?
-
-*add stats
-
-*implement dynamic(*skype*) stats tab in the top-right corner
-
-*<add todo>
+DONE|   *change Ocean::kill instead idx to use a pointer to organism
+****|   *change Ocean::move so before setting new x,y check Ocean::fishMap :
+             -if conlict:
+                 _call checker function
+                    (*skype*)
+             -if not sets new x,y
+****|   *change blue sea texture to match view resolution
+****|   *optimize textures dimensions in general
+****|   *limit zoom and move
+****|   *decide about the world size
+            -standard size and just zoom in
+            -VAST WORLD see only a part and we may choose what to draw
+****|   *clock and render timing
+****|   *implement user actions
+            -fishnet
+                _retexture
+                _behavior
+                _placing & interface in general
+            -pollution
+                _retexture
+                _behavior
+                _placing & interface in general
+            -adding Organisms
+                _possible drag&drop?
+****|   *add stats
+****|   *implement dynamic(*skype*) stats tab in the top-right corner
+****|   *fix pause screen
+****|   *add a checkedSprite version of every class
+****|   *add general itiles and jtiles as in getWorldScreenMapping
+****|   *fix occasional bug
+            http://www.qtforum.org/article/31803/passing-pointer-of-object-into-function-crashes.html
+            edit: SERIOUS BUG IN COMMIT 41b8a...we should check the code after this commit
+****|   *find a way to publish TODO file without commits........:P
+****|   *<add todo>

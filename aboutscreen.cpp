@@ -43,7 +43,7 @@ int AboutScreen::Run(sf::RenderWindow &App)
 			}
 		}
 
-		App.SetView(view);
+        //App.SetView(view);
 		for(int i=0;i<Ocean::count;i++){
 			App.Draw((Ocean::fish.at(i))->sprite);
 		}

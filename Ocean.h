@@ -7,7 +7,7 @@
 class Ocean {
 public:
 	static const int MAX_COUNT = 100;
-	static const int MAX_X = 15;
+    static const int MAX_X = 16;
 	static const int MAX_Y = 26;
 
     static int count;

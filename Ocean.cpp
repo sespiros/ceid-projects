@@ -23,6 +23,7 @@ void Ocean::add(Organism *toAdd) {
 }
 
 void Ocean::kill(int idx) {
+    Ocean::fishMap[(Ocean::fish[idx])->getX()][(Ocean::fish[idx])->getY()] = 0;
     Ocean::fish.erase(Ocean::fish.begin()+idx);
     count--;
 }

@@ -2,113 +2,119 @@
 
 int RunScreen::Run(sf::RenderWindow &App)
 {
-	sf::Event Event;
-	bool Running = true;
-	sf::Image runImage;
-	sf::Image back;
-	sf::Sprite runSprite;
-	sf::Sprite backSprite;
-	sf::Clock runner;
+    sf::Event Event;
+    bool Running = true;
+    sf::Image runImage;
+    sf::Image back;
+    sf::Sprite runSprite;
+    sf::Sprite backSprite;
+    sf::Clock runner;
 
-	sf::View view(sf::FloatRect(0,0,1024,600));
-	//617 350 center
-	//635 372 halfsize
+    //adjusted view
+    sf::View view(sf::FloatRect(-10.7823,-6.66833,1190.67,690.782));
 
-	/* Drawable area (15,10)----------(780,10)
-						|                 |
-						|                 |
-						|                 |
-					 (15,480)----------(780,480)
-	*/
-	//ZPlankton asdf(15,10);
+    //617 350 center
+    //635 372 halfsize
 
-	if (!runImage.LoadFromFile("artwork/run2.png")){
-		std::cerr<<"Error loading background image"<<std::endl;
-		return(-1);
-	}
-	runSprite.SetImage(runImage);
+    /* Drawable area (15,10)----------(780,10)
+                        |                 |
+                        |                 |
+                        |                 |
+                     (15,480)----------(780,480)
+    */
+    //ZPlankton asdf(15,10);
 
-	if (!back.LoadFromFile("artwork/test.jpg")){
-		std::cerr<<"Error loading background image"<<std::endl;
-		return(-1);
-	}
+    if (!runImage.LoadFromFile("artwork/run2.png")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+    runSprite.SetImage(runImage);
 
-	backSprite.SetImage(back);
+    if (!back.LoadFromFile("artwork/test.jpg")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
 
-	//App.Clear();
+    backSprite.SetImage(back);
 
-	float dt=1.f/8.f;          //change game rate
-	float accumulator = 0.f;
-	bool drawn= false;
+    //App.Clear();
 
-	while (Running)
-	{
-		accumulator+=runner.GetElapsedTime();
-		runner.Reset();
+    float dt=1.f/8.f;          //change game rate
+    float accumulator = 0.f;
+    bool drawn= false;
 
-		while(accumulator>=dt){
+    while (Running)
+    {
+        accumulator+=runner.GetElapsedTime();
+        runner.Reset();
 
-			while(App.GetEvent(Event))
-			{
-				if (Event.Type == sf::Event::Closed)
-				{
-					return (-1);
-				}
-				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Escape){
-					playing = true;
-					return(0);
-				}
-				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Q){
-					view.Zoom(1.050f);
-				}
-				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::E){
-					view.Zoom(0.950f);
-				}
+        while(accumulator>=dt){
 
-				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::A){
-					view.Move(5.0f,0);
-				}
-				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::D){
-					view.Move(-5.0f,0);
-				}
-				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){
-					view.Move(0,5.0f);
-				}
-				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::S){
-					view.Move(0,-5.0f);
-				}
-			}
+            while(App.GetEvent(Event))
+            {
+                if (Event.Type == sf::Event::Closed)
+                {
+                    return (-1);
+                }
+                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Escape){
+                    playing = true;
+                    return(0);
+                }
+                //FIX THE ZOOM AND MOVE CONTROLS-------------------------------------------------------
+                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Q){   //view.Zoom(1.050f);
 
-			Ocean::update();
+                }
+                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::E){   //view.Zoom(0.950f);
 
-			accumulator-=dt;
-			drawn=false;
+                }
 
-		}
+                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::A){   //view.Move(5.0f,0);
 
-		if(drawn){
-			sf::Sleep(0.01);
-		}
-		else{
-			App.SetView(view);
+                }
+                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::D){   //view.Move(-5.0f,0);
 
-			App.Draw(backSprite);
-			for(int i=0;i<Ocean::count;i++){
-				App.Draw((Ocean::fish.at(i))->sprite);
-			}
+                }
+                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){   //view.Move(0,5.0f);
 
-			App.SetView(App.GetDefaultView());
-			App.Draw(runSprite);
+                }
+                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::S){   //view.Move(0,-5.0f);
 
-			App.Display();
-			App.Clear();
+                }
+                //--------------------------------------------------------------------------------------
+            }
 
-			drawn=true;
-		}
+            Ocean::update();
+
+            accumulator-=dt;
+            drawn=false;
+
+        }
+
+        if(drawn){
+            sf::Sleep(0.01);
+        }
+        else{
+            App.SetView(view);
+
+            App.Draw(backSprite);
+            for(int i=0;i<Ocean::count;i++){
+                App.Draw((Ocean::fish.at(i))->sprite);
+            }
+
+            App.SetView(App.GetDefaultView());
+            App.Draw(runSprite);
+
+            App.Display();
+            App.Clear();
+
+            drawn=true;
+            //debug for placing view
+            std::cout<<view.GetRect().Right<<","<<view.GetRect().Top<<" "<<view.GetRect().Left<<","<<view.GetRect().Bottom<<std::endl;
+        }
 
 
-	}
+    }
 
-	return(-1);
+    return(-1);
 }
 

@@ -18,6 +18,7 @@ void Ocean::init() {
 
 void Ocean::add(Organism *toAdd) {
     Ocean::fish.push_back(toAdd);
+    Ocean::fishMap[toAdd->getX()][toAdd->getY()] = toAdd;
     count++;
 }
 
@@ -91,4 +92,26 @@ void Ocean::info() {
         std::cout << "Position: " << (fish.at(i))->getX() << " " << (fish.at(i))->getY() << std::endl;
     }
     std::cout << "***************\n";
+}
+
+Organism*** Ocean::fishMap = Ocean::initMap(1024, 600, 32, 32);
+
+Organism*** Ocean::initMap(const int x, const int y, const int w, const int h){
+    int jtiles = x/(w+5);
+    int itiles = y/(h+5);
+    Organism*** tempMap;
+
+
+    //buffer allocation
+    tempMap = new Organism**[itiles];
+    for (int i=0;i<itiles;++i)
+        tempMap[i] = new Organism*[jtiles];
+
+    for(int i; i<itiles;i++){
+        for(int j; j<jtiles;j++){
+            tempMap[i][j] = 0;
+        }
+    }
+
+    return tempMap;
 }

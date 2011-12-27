@@ -24,7 +24,7 @@ public:
     static void info();
 
 	static Organism::fishtype genRandType();
-
+    static Organism*** initMap(const int x, const int y, const int w, const int h);
     Ocean();
 
 //private:
@@ -33,6 +33,7 @@ public:
      * write on our const members
      */
     static std::vector<Organism *> fish;
+    static Organism*** fishMap;
 };
 
 #endif // OCEAN_H

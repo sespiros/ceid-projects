@@ -18,4 +18,5 @@ Ocean::kill also delete the Organism from fishMap.
 Modified TODO file, easier to read. We add whatever need to be done even the simple ones...
 Bug found after commit 41b8aa
 
-
+Wed De 28 16:27:57 GTBST 2011
+"It's funny, how a single line can introduce such a serious bug."

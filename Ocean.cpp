@@ -55,7 +55,7 @@ Organism::fishtype Ocean::genRandType() {
 		sum += it->second;
 	}
 
-	int rnd = rand()%(sum + 1);
+	int rnd = rand()%sum;
 	for (it = Organism::weightMap.begin(); it != Organism::weightMap.end(); it++) {
 		rnd -= it->second;
 		if (rnd < 0)

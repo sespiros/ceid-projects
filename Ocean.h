@@ -6,7 +6,7 @@
 
 class Ocean {
 public:
-	static const int MAX_COUNT = 100;
+    static const int MAX_COUNT = 100;
     static const int MAX_X = 16;
 	static const int MAX_Y = 26;
 
@@ -17,10 +17,12 @@ public:
     static void createAndAddFish(int t, int x, int y);
 	static void createAndAddRandFish(int x, int y);
     static void populate();
+    static void collide(int idx);
 
 	static void init();
     static void update();
     static void move(Organism&);
+    static void move(Organism&, int x, int y);//temporary move
     static void info();
 
 	static Organism::fishtype genRandType();

@@ -20,3 +20,7 @@ Bug found after commit 41b8aa
 
 Wed De 28 16:27:57 GTBST 2011
 "It's funny, how a single line can introduce such a serious bug."
+
+Thu De 29 02:40:57 GTBST 2011
+Fixed Ocean::initMap implementation, added collide, a temporary move old one is deprecated now...
+Added some todos..αυτά

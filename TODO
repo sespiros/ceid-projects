@@ -1,9 +1,9 @@
 DONE|   *change Ocean::kill instead idx to use a pointer to organism
 DONE|   *change Ocean::move so before setting new x,y check Ocean::fishMap :
-             -if conlict:
-                 _call checker function
+            -if conlict:
+                _call checker function
                     (*skype*)
-             -if not sets new x,y
+            -if not sets new x,y
 DONE|   *change blue sea texture to match view resolution
 ****|   *optimize textures dimensions in general
 ****|   *limit zoom and move
@@ -34,4 +34,5 @@ DONE|   *fix occasional bug
 ****|   *find a way to publish TODO file without commits........:P
 ****|   *Complete Ocean.cpp in comments
 ****|   *Optimize rand selection
+****|   *THE FUCKING INTERPOLATION FTW!!!!
 ****|   *<add todo>

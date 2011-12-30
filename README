@@ -12,15 +12,19 @@ I [Petros] created a static const map to connect fish types with their generatio
 one can tinker with the fish weights there. The rest is implemented in the Ocean class, as genRandType() & createAndAddRandFish().
 One could also transfer genRandType() to the Helper class.
 
-Tue Dec 27 20:39:90 GTBST 2011
+Tue Dec 27 20:39:90 GTBST 2011 <--EASTER EGG
 I [Spiros] changed the blue texture to match the view dimension and 16*25 objects,the resolution of 1024*600 does not match actual background dimensions.
 Ocean::kill also delete the Organism from fishMap.
 Modified TODO file, easier to read. We add whatever need to be done even the simple ones...
 Bug found after commit 41b8aa
 
-Wed De 28 16:27:57 GTBST 2011
+Wed Dec 28 16:27:57 GTBST 2011
 "It's funny, how a single line can introduce such a serious bug."
 
-Thu De 29 02:40:57 GTBST 2011
+Thu Dec 29 02:40:57 GTBST 2011
 Fixed Ocean::initMap implementation, added collide, a temporary move old one is deprecated now...
 Added some todos..αυτά
+
+Fri Dec 30 04:53:20 GTBST 2011
+Changed fish and fishMap into the ultimate fishMap std::map, updated all the methods to use the new format.
+Notice how fast it is...everything works..check TODO for next goals..

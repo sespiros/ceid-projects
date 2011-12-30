@@ -44,9 +44,10 @@ int AboutScreen::Run(sf::RenderWindow &App)
 		}
 
         //App.SetView(view);
-		for(int i=0;i<Ocean::count;i++){
-			App.Draw((Ocean::fish.at(i))->sprite);
-		}
+        std::map<int, Organism*>::iterator it;
+        for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
+            App.Draw(it->second->sprite);
+        }
 		App.SetView(App.GetDefaultView());
 		App.Draw(runSprite);
 		App.Draw(aboutSprite);

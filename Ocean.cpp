@@ -5,40 +5,37 @@
 #include <cstdlib>
 #include <ctime>
 
+using  std::map;
+using  std::pair;
 /*
  * static declarations
  */
 int Ocean::count = 0;
-std::vector<Organism *> Ocean::fish;
-Organism*** Ocean::fishMap;
+std::map<int, Organism*> Ocean::fishMap;
 
 void Ocean::init() {
     ClassRegistry::registerClasses();
-    fishMap = Ocean::initMap(1024, 600, 32, 32);
     Ocean::populate();
 }
 
 void Ocean::add(Organism *toAdd) {
-    Ocean::fish.push_back(toAdd);
-    Ocean::fishMap[toAdd->getX()][toAdd->getY()] = toAdd;
+    int hash = toAdd->getX() + toAdd->getY() * MAX_X;
+    fishMap.insert(pair<int, Organism*>(hash, toAdd));
     count++;
 }
 
-void Ocean::kill(int idx) {
-    Ocean::fishMap[(Ocean::fish[idx])->getX()][(Ocean::fish[idx])->getY()] = 0;
-    Ocean::fish.erase(Ocean::fish.begin()+idx);
+void Ocean::kill(int key) {
+    fishMap.erase(key);
     count--;
 }
 
 void Ocean::createAndAddFish(int t, int x, int y) {
     organism_creator f = ClassRegistry::getConstructor(t);
-
     Ocean::add(f(x, y));
 }
 
 void Ocean::createAndAddRandFish(int x, int y) {
     organism_creator f = ClassRegistry::getConstructor(genRandType());
-
     Ocean::add(f(x, y));
 }
 
@@ -63,116 +60,80 @@ Organism::fishtype Ocean::genRandType() {
         if (rnd < 0)
             return it->first;
     }
+    return (Organism::fishtype)0;
 }
 
-void Ocean::move(Organism& fish) {
-    int curX = fish.getX();
-    int curY = fish.getY();
+void Ocean::move(int key, int x, int y) {
+    int hash = x + y * MAX_X;
 
-    int dx, dy;
+    fishMap[key]->setX(x);
+    fishMap[key]->setY(y);
 
-    do {
-        dx = rand()%3 - 1;
-        dy = rand()%3 - 1;
-    } while (((curX + dx < 0) || (curX + dx >= Ocean::MAX_X)) || ((curY + dy < 0) || (curY + dy >= Ocean::MAX_Y)));
-
-    fish.setX(curX + dx);
-    fish.setY(curY + dy);
+    fishMap.insert(pair<int, Organism*>(hash, fishMap[key]));
+    //not Ocean::kill because in Ocean::we move an object and we don't want count--
+    fishMap.erase(key);
 }
 
-//temporary move
-void Ocean::move(Organism& fish, int x, int y) {
-    fish.setX(x);
-    fish.setY(y);
-}
+void Ocean::collide(int key){
+    int curX = fishMap[key]->getX();
+    int curY = fishMap[key]->getY();
 
-void Ocean::collide(int idx){
-    int curX = Ocean::fish.at(idx)->getX();
-    int curY = Ocean::fish.at(idx)->getY();
-
-    int dx, dy, x, y;
+    int dx, dy, x, y, hash;
     bool hasMoved = false;
-    bool hasDied = false;
     bool hasEat = false;
     bool hasBred = false;
 
     do {
-        //optimize rand selection
-        do {
-            dx = rand()%3 - 1;
-            dy = rand()%3 - 1;
-        } while (((curX + dx < 0) || (curX + dx >= Ocean::MAX_X)) || ((curY + dy < 0) || (curY + dy >= Ocean::MAX_Y)));
-
+        //optimize rand selection-------------------------------------------------------------------------------------------//
+        do {                                                                                                                //
+            dx = rand()%3 - 1;                                                                                              //
+            dy = rand()%3 - 1;                                                                                              //
+        } while (((curX + dx < 0) || (curX + dx >= Ocean::MAX_X)) || ((curY + dy < 0) || (curY + dy >= Ocean::MAX_Y)));     //
+        //------------------------------------------------------------------------------------------------------------------//
         x = curX + dx;
         y = curY + dy;
 
-        if(fishMap[x][y] != (Organism*)0 && fishMap[curX][curY] != (Organism*)0){   //after && temporary fix cause of the vector has deleted entries
-            if(fishMap[x][y]->getType() < fishMap[curX][curY]->getType()){
+        hash = x + y * MAX_X;
+        if(fishMap.find(hash) != fishMap.end()){
+            if(fishMap[hash]->getType() < fishMap[key]->getType()){
                 hasEat = true;
-            }else if(fishMap[x][y]->getType() > fishMap[curX][curY]->getType()){
-                hasDied = true;
-            }else{
+            }else if(fishMap[hash]->getType() == fishMap[key]->getType()){
                 hasBred = true;
             }
         }else{
             hasMoved = true;
         }
-    }while(!hasEat && !hasDied && !hasBred && !hasMoved);
+    }while(!hasEat && !hasBred && !hasMoved);
 
     if(hasEat){
-        move(*fish.at(idx), x, y); //change move first so only sets x and y and not generating
-        //find a way to kill Ocean::fishMap[x][y] from Ocean::fish
-        fishMap[x][y] = fish.at(idx);
+        kill(hash);
+        move(key, x, y);
         //add stats print
-    }else if(hasDied){
-        fishMap[curX][curY] = 0;
-        kill(idx);
-        //add stats print
-    }
-    else if(hasBred){
-
+    }else if(hasBred){
+        //to be added
         //add stats print
     }else{
-        move(*fish.at(idx), x, y); //change move first so only sets x and y and not generating
-        fishMap[x][y] = fish.at(idx);
+        move(key, x, y);
         //add stats print
     }
-
 }
 
 void Ocean::update() {
     srand(time(0));
-    for (unsigned int i = 0; i < fish.size(); i++) {
-        //move(*fish.at(i));
-        collide(i);
+    map<int, Organism*>::const_iterator it;
+    for (it = fishMap.begin(); it != fishMap.end(); it++) {
+        collide(it->first);
     }
 }
 
 void Ocean::info() {
     std::cout << "***************\n";
     std::cout << Ocean::count << " fish.\n";
-    for (unsigned int i = 0; i < fish.size(); i++){
-        std::cout << "Fish " << i << " is of type " << (fish.at(i))->getType() << std::endl;
-        std::cout << "Position: " << (fish.at(i))->getX() << " " << (fish.at(i))->getY() << std::endl;
+    int i=0;
+    std::map<int, Organism*>::iterator it;
+    for (it = fishMap.begin(); it != fishMap.end(); it++){
+        std::cout << "Fish " << i++ << " is of type " << it->second->getType() << std::endl;
+        std::cout << "Position: " << it->second->getX() << " " << it->second->getY() << std::endl;
     }
     std::cout << "***************\n";
-}
-
-Organism*** Ocean::initMap(const int x, const int y, const int w, const int h){
-    int jtiles = x/(w+5);
-    int itiles = y/(h+5);
-    Organism*** tempMap;
-
-    //buffer allocation
-    tempMap = new Organism**[itiles];
-    for (int i=0;i<itiles;++i)
-        tempMap[i] = new Organism*[jtiles];
-
-    for(int i = 0; i<itiles;i++){
-        for(int j = 0; j<jtiles;j++){
-            tempMap[i][j] = 0;
-        }
-    }
-
-    return tempMap;
 }

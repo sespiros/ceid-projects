@@ -6,6 +6,17 @@ using namespace sf;
 
 sf::Vector2f** Helper::worldToPixel= Helper::getWorldScreenMapping(1024, 600, 32, 32);;
 
+int Helper::dir[8][2] = {
+	{-1, -1},
+	{-1, 0},
+	{-1, 1},
+	{0, -1},
+	{0, 1},
+	{1, -1},
+	{1, 0},
+	{1, 1},
+};
+
 Vector2f** Helper::getWorldScreenMapping(const int x, const int y, const int w, const int h) {
 
     /*
@@ -60,3 +71,12 @@ Vector2f** Helper::getWorldScreenMapping(const int x, const int y, const int w, 
     return conv;
 }
 
+void Helper::swapDir(int* a, int* b) {
+	a[0] -= b[0];
+	b[0] += a[0];
+	a[0] = b[0] - a[0];
+
+	a[1] -= b[1];
+	b[1] += a[1];
+	a[1] = b[1] - a[1];
+}

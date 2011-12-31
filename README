@@ -28,3 +28,10 @@ Added some todos..αυτά
 Fri Dec 30 04:53:20 GTBST 2011
 Changed fish and fishMap into the ultimate fishMap std::map, updated all the methods to use the new format.
 Notice how fast it is...everything works..check TODO for next goals..
+
+Sat Dec 31 19:35:45 GTBST 2011
+I [Petros]:
+	* Implemented a more sophisticated eating mechanism using bitfields (see member Organism::eatField) and the corresponding checking method (canEat). Do mess around with each organism's eating habits.
+	* Fixed an endless loop bug (0x02) found in Ocean::collide. That is, each organism shall choose a random direction from a two-dimensional array named Helper::dir[8][2] for eight rounds; after that, the organism is discarded.
+	* fishMap's iterator is now incremented (in Ocean::update) immediately after being evaluated for Ocean::collide(Organism*). That accounts for invalidation after erasing a map's pair (in Ocean::kill). There shouldn't be any issues implementing a bearing mechanism.
+	* Added an Organism::kill() method that decrements each Organism's count after dying. Another method to increment count might be needed.

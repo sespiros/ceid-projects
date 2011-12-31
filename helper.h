@@ -9,8 +9,10 @@
 class Helper {
 public:
 		static sf::Vector2f** getWorldScreenMapping(const int x, const int y, const int w, const int h);
+		static void swapDir(int*, int*);
 
         static sf::Vector2f** worldToPixel;
+		static int dir[8][2];
 };
 
 #endif

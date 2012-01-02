@@ -3,7 +3,9 @@
 #include "helper.h"
 #include <iostream>
 #include <cstdlib>
+#include <cmath>
 #include <ctime>
+#include <algorithm>
 
 using  std::map;
 using  std::pair;
@@ -12,6 +14,7 @@ using  std::pair;
  */
 int Ocean::count = 0;
 std::map<int, Organism*> Ocean::fishMap;
+std::vector<Pollution*> Ocean::pollution;
 
 void Ocean::init() {
 	ClassRegistry::registerClasses();
@@ -44,6 +47,11 @@ void Ocean::populate() {
 	for (int i = 0; i < Ocean::MAX_COUNT; i++) {
 		int x = rand()%(Ocean::MAX_X - 1);
 		int y = rand()%(Ocean::MAX_Y - 1);
+
+		while (fishMap.count(x + y*MAX_X) != 0) {
+			x = rand()%(Ocean::MAX_X - 1);
+			y = rand()%(Ocean::MAX_Y - 1);
+		}
 		Ocean::createAndAddRandFish(x, y);
 	}
 }
@@ -76,8 +84,8 @@ void Ocean::move(int key, int x, int y) {
 }
 
 void Ocean::collide(int key){
-	int curX = fishMap[key]->getX();
-	int curY = fishMap[key]->getY();
+	int curX = Ocean::fishMap[key]->getX();
+	int curY = Ocean::fishMap[key]->getY();
 
 	int dx, dy, x, y, hash;
 	bool hasMoved = false;
@@ -91,17 +99,17 @@ void Ocean::collide(int key){
 		dy = Helper::dir[j][1];
 		Helper::swapDir(Helper::dir[j], Helper::dir[i]);
 
-		if (((curX + dx < 0) || (curX + dx >= Ocean::MAX_X)) || ((curY + dy < 0) || (curY + dy >= Ocean::MAX_Y)))
+		if (!isValid(curX + dx, Ocean::MAX_X) || !isValid(curY + dy, Ocean::MAX_Y))
 			continue;
 
 		x = curX + dx;
 		y = curY + dy;
 
 		hash = x + y * MAX_X;
-		if(fishMap.find(hash) != fishMap.end()){
-			if(fishMap[key]->canEat(fishMap[hash])){
+		if(Ocean::fishMap.find(hash) != Ocean::fishMap.end()){
+			if(Ocean::fishMap[key]->canEat(Ocean::fishMap[hash])){
 				hasEat = true;
-			}else if(fishMap[hash]->getType() == fishMap[key]->getType()){
+			}else if(Ocean::fishMap[hash]->getType() == Ocean::fishMap[key]->getType()){
 				hasBred = true;
 			}
 		}else{
@@ -125,23 +133,63 @@ void Ocean::collide(int key){
 	}
 }
 
+void Ocean::tickPollution() {
+	for (std::vector<Pollution*>::const_iterator i = Ocean::pollution.begin(); i != Ocean::pollution.end(); ++i) {
+		Pollution* p = *i;
+		int cy = p->getY();
+		int cx = p->getX();
+		int r = p->getRadius();
+
+		for (int j = -r; j <= r; j++) {
+			for (int k = abs(j) - r; k <= r - abs(j); k++) {
+				if (!Ocean::isValid(cy + j, MAX_Y) || !Ocean::isValid(cx + k, MAX_X))
+					continue;
+				if (Ocean::fishMap.count((cx + k) + (cy + j)*MAX_X) != 0)
+					Ocean::kill((cx + k) + (cy + j)*MAX_X);
+			}
+		}
+
+		p->tick();
+	}
+
+	if (Ocean::pollution.size() != 0){
+		std::vector<Pollution*>::iterator rem = std::remove_if(Ocean::pollution.begin(), Ocean::pollution.end(), isDone);
+		if (rem != Ocean::pollution.end()) {
+			Ocean::pollution.erase(rem);
+		}
+	}
+}
+
 void Ocean::update() {
 	srand(time(0));
 	map<int, Organism*>::iterator it;
 
-	for (it = fishMap.begin(); it != fishMap.end(); ) {
+	tickPollution();
+
+	for (it = Ocean::fishMap.begin(); it != Ocean::fishMap.end(); ) {
 		collide((it++)->first);
 	}
+	Ocean::info();
 }
 
 void Ocean::info() {
-	std::cout << "***************\n";
-	std::cout << Ocean::count << " fish.\n";
+	std::cout << Ocean::count << " fish." << std::endl;
 	int i=0;
 	std::map<int, Organism*>::iterator it;
-	for (it = fishMap.begin(); it != fishMap.end(); it++){
-		std::cout << "Fish " << i++ << " is of type " << it->second->getType() << std::endl;
-		std::cout << "Position: " << it->second->getX() << " " << it->second->getY() << std::endl;
-	}
-	std::cout << "***************\n";
+//	for (it = fishMap.begin(); it != fishMap.end(); it++){
+//		std::cout << "Fish " << i++ << " is of type " << it->second->getType() << std::endl;
+//		std::cout << "Position: " << it->second->getX() << " " << it->second->getY() << std::endl;
+//	}
+}
+
+bool Ocean::isValid(int a, int max)
+{
+	return ((a >= 0) && (a < max));
+}
+
+void Ocean::pollute(int r, int x, int y)
+{
+	Pollution* p = new Pollution(r, x, y);
+	Ocean::pollution.insert(Ocean::pollution.begin(), p);
+	std::cout << "Inserted pollution source at (" << x << ", " << y << "), radius " << r << std::endl;
 }

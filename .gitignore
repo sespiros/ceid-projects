@@ -6,3 +6,4 @@ Makefile.Release
 *.o
 debug/
 release/
+*.autosave

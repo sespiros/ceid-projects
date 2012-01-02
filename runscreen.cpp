@@ -11,7 +11,7 @@ int RunScreen::Run(sf::RenderWindow &App)
     sf::Clock runner;
 
     //adjusted view
-    sf::View view(sf::FloatRect(-10.7823,-6.66833,1190.67,690.782));
+	sf::View view(sf::FloatRect(-11.7823,-5.66833,1190.67,690.782));
 
     //617 350 center
     //635 372 halfsize
@@ -21,8 +21,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                         |                 |
                         |                 |
                      (15,480)----------(780,480)
-    */
-    //ZPlankton asdf(15,10);
+	*/
 
     if (!runImage.LoadFromFile("artwork/run2.png")){
         std::cerr<<"Error loading background image"<<std::endl;
@@ -81,7 +80,10 @@ int RunScreen::Run(sf::RenderWindow &App)
 
                 }
                 //--------------------------------------------------------------------------------------
-            }
+				if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Space) {
+					Ocean::pollute(rand()%4 + 1, rand()%Ocean::MAX_X, rand()%Ocean::MAX_Y);
+				}
+			}
 
             Ocean::update();
 

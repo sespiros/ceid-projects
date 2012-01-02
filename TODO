@@ -16,7 +16,7 @@ DONE|   *change blue sea texture to match view resolution
                 _retexture
                 _behavior
                 _placing & interface in general
-            -pollution
+DONE|       -pollution
                 _retexture
                 _behavior
                 _placing & interface in general
@@ -36,4 +36,5 @@ DONE|   *fix occasional bug
 DONE|   *Optimize rand selection
 ****|   *THE FUCKING INTERPOLATION FTW!!!!
 ****|	*Which Organism members should be protected? Which private?
+****|	*Check for memory leaks, maybe use a Boost pointer container?
 ****|   *<add todo>

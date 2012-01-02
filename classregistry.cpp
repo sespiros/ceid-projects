@@ -1,6 +1,6 @@
 #include <map>
 
-#include "ClassRegistry.h"
+#include "classregistry.h"
 
 using std::map;
 using std::pair;

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <functional>
 #include "iscreen.h"
 #include "organism.h"
 #include "Ocean.h"
@@ -119,6 +120,10 @@ int RunScreen::Run(sf::RenderWindow &App)
             for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
                 App.Draw(it->second->sprite);
             }
+
+			Pollution::bind(&App);
+			std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));
+			Pollution::bind(0);
 
             App.SetView(App.GetDefaultView());
             App.Draw(runSprite);

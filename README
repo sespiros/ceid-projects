@@ -46,3 +46,9 @@ Tue Jan 3 02:23:03 GTBST 2012
 I [Spiros]:
         *Deleted screenmanager implementation, caused segfaults in linux.
         *Fixed random generation in Ocean::collide, in Ocean::Cpp. (Possible memory leak fixed).
+		
+
+Tue Jan 3 19:02:06 GTBST 2012
+I [Petros]:
+	* Added a draw method for the pollution. Use Pollution::bind(sf::RenderWindow*) to first bind the render window, draw each pollution source, the unbind with Pollution::bind(0)
+	* typedef for std::map<int, Organism*>::iterator

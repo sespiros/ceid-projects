@@ -250,7 +250,7 @@ void Organism::eat(Organism* o) {
 	if (foodConsumed >= foodRequired) {
 		size += foodConsumed/foodRequired;
 		foodConsumed = foodConsumed%foodRequired;
-		std::cout << "Size inc!" << std::endl;
+		std::cout << "Size inc! for " << o << std::endl;
 	}
 }
 

@@ -65,6 +65,11 @@ int AboutScreen::Run(sf::RenderWindow &App)
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
             App.Draw(it->second->sprite);
         }
+
+		Pollution::bind(&App);
+		std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));
+		Pollution::bind(0);
+
         App.SetView(App.GetDefaultView());
         App.Draw(runSprite);
         App.Draw(aboutSprite);

@@ -6,6 +6,8 @@
 #include "organism.h"
 #include "pollution.h"
 
+typedef std::map<int, Organism*>::iterator mapIter;
+
 class Ocean {
 public:
     static const int MAX_COUNT = 100;
@@ -16,14 +18,14 @@ public:
 
     static void add(Organism *toAdd);
     static void kill(int key);
-	static std::map<int, Organism*>::iterator move(int key, int x, int y);
+	static mapIter move(int key, int x, int y);
     static void createAndAddFish(int t, int x, int y);
 
 	static void pollute(int, int, int);
 
     static void createAndAddRandFish(int x, int y);
     static void populate();
-	static std::map<int, Organism*>::iterator collide(int key);
+	static mapIter collide(int key);
     static Organism::fishtype genRandType();
 
     static void init();
@@ -34,8 +36,7 @@ public:
 
     Ocean();
 
-    static std::map<int, Organism*> fishMap;
-private:
+	static std::map<int, Organism*> fishMap;
 	static std::vector<Pollution*> pollution;
 };
 

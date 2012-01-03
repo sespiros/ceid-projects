@@ -73,9 +73,9 @@ Organism::fishtype Ocean::genRandType() {
 	return (Organism::fishtype)0;
 }
 
-map<int, Organism*>::iterator Ocean::move(int key, int x, int y) {
+mapIter Ocean::move(int key, int x, int y) {
 	int hash = x + y * MAX_X;
-	map<int, Organism*>::iterator it = Ocean::fishMap.find(key);
+	mapIter it = Ocean::fishMap.find(key);
 
 	it->second->setX(x);
 	it->second->setY(y);
@@ -86,10 +86,10 @@ map<int, Organism*>::iterator Ocean::move(int key, int x, int y) {
 	return it;
 }
 
-map<int, Organism*>::iterator Ocean::collide(int key){
+mapIter Ocean::collide(int key){
 	int curX = Ocean::fishMap[key]->getX();
 	int curY = Ocean::fishMap[key]->getY();
-	map<int, Organism*>::iterator next = Ocean::fishMap.find(key);
+	mapIter next = Ocean::fishMap.find(key);
 
 	int dx, dy, x, y, hash;
 	bool hasMoved = false;
@@ -172,7 +172,7 @@ void Ocean::tickPollution() {
 
 void Ocean::update() {
 	srand(time(0));
-	map<int, Organism*>::iterator it;
+	mapIter it;
 
 	tickPollution();
 
@@ -185,7 +185,7 @@ void Ocean::update() {
 void Ocean::info() {
 	std::cout << Ocean::count << " fish." << std::endl;
 	int i=0;
-	std::map<int, Organism*>::iterator it;
+	mapIter it;
 //	for (it = fishMap.begin(); it != fishMap.end(); it++){
 //		std::cout << "Fish " << i++ << " is of type " << it->second->getType() << std::endl;
 //		std::cout << "Position: " << it->second->getX() << " " << it->second->getY() << std::endl;

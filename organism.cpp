@@ -16,10 +16,12 @@ int Narwhal::count=0;
 const std::map<Organism::fishtype, int> Organism::weightMap = Organism::createWeightMap();
 
 Organism::Organism(int x, int y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
-    size(s),age(a),growthRate(gr),foodRequired(fr),velocity(v),type(t)
+	size(s),age(a),growthRate(gr),foodRequired(fr),speed(v),type(t)
 {
     (*this).x=x;
 	(*this).y=y;
+
+	foodConsumed = 0;
 }
 
 std::map<Organism::fishtype, int> Organism::createWeightMap() {
@@ -50,7 +52,7 @@ Plankton::Plankton(int x, int y, int a, int s, float gr, int fr, int v, Organism
     //familyCount++;
 }
 
-ZPlankton::ZPlankton(int x, int y):Plankton(x, y, 1, 0, 1.0f, 5, 1, ZPL){
+ZPlankton::ZPlankton(int x, int y):Plankton(x, y, 1, 1, 1.0f, 5, 1, ZPL){
     count++;
 
 	image.LoadFromFile("artwork/ZPlankton.png");
@@ -66,7 +68,7 @@ void ZPlankton::kill() {
 	count--;
 }
 
-PPlankton::PPlankton(int x, int y):Plankton(x, y, 1, 0, 0, 0, 1, PPL){
+PPlankton::PPlankton(int x, int y):Plankton(x, y, 1, 1, 0, 0, 1, PPL){
     count++;
 	image.LoadFromFile("artwork/PPlankton.png");
     sprite.SetImage(image);
@@ -87,7 +89,7 @@ nonPlankton::nonPlankton(int x, int y, int a, int s, float gr, int fr, int v, Or
     //familyCount++;
 }
 
-Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 1, 0, 1.0f, 4, 2, SHRIMP){
+Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 1, 1, 1.0f, 4, 2, SHRIMP){
     count++;
 	eatField = 1 << Organism::ZPL;
 
@@ -104,7 +106,7 @@ void Shrimp::kill() {
 	count--;
 }
 
-Jelly::Jelly(int x, int y):nonPlankton(x, y, 1, 0, 1.0f, 4, 1, JELLY){
+Jelly::Jelly(int x, int y):nonPlankton(x, y, 1, 1, 1.0f, 4, 1, JELLY){
     count++;
 	eatField = 1 << Organism::PPL;
 
@@ -121,7 +123,7 @@ void Jelly::kill() {
 	count--;
 }
 
-Eel::Eel(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 4, 5, EEL){
+Eel::Eel(int x, int y):nonPlankton(x, y, 1, 1, 2.0f, 4, 5, EEL){
     count++;
 	eatField = (1 << Organism::SHRIMP) | (1 << Organism::GTP);
 
@@ -138,7 +140,7 @@ void Eel::kill() {
 	count--;
 }
 
-Balloon::Balloon(int x, int y):nonPlankton(x, y, 1, 0, 3.0f, 3, 3, BALLOON){
+Balloon::Balloon(int x, int y):nonPlankton(x, y, 1, 1, 3.0f, 3, 3, BALLOON){
     count++;
 	eatField = (1 << Organism::SHRIMP) | (1 << Organism::GTP);
 
@@ -155,7 +157,7 @@ void Balloon::kill() {
 	count--;
 }
 
-Clown::Clown(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, CLOWN){
+Clown::Clown(int x, int y):nonPlankton(x, y, 1, 1, 2.0f, 3, 4, CLOWN){
     count++;
 	eatField = (1 << Organism::ZPL) | (1 << Organism::GTP);
 
@@ -172,7 +174,7 @@ void Clown::kill() {
 	count--;
 }
 
-Gtp::Gtp(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 3, GTP){
+Gtp::Gtp(int x, int y):nonPlankton(x, y, 1, 1, 2.0f, 3, 3, GTP){
     count++;
 	eatField = (1 << Organism::PPL);
 
@@ -189,7 +191,7 @@ void Gtp::kill() {
 	count--;
 }
 
-Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 1, 0, 2.0f, 3, 4, MAGIKARP){
+Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 1, 1, 2.0f, 3, 4, MAGIKARP){
     count++;
 	eatField = (1 << Organism::ZPL) | (1 << Organism::JELLY);
 
@@ -206,7 +208,7 @@ void Magikarp::kill() {
 	count--;
 }
 
-Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 1, 0, 4.0f, 8, 6, NARWHAL){
+Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 1, 1, 4.0f, 8, 6, NARWHAL){
     count++;
 	eatField = 0xfffffffc;
 
@@ -229,6 +231,11 @@ int Organism::getX(){
 int Organism::getY(){
     return y;
 }
+
+int Organism::getSpeed() {
+	return speed;
+}
+
 void Organism::setX(int x){
     (*this).x=x;
     sprite.SetX(Helper::worldToPixel[x][y].x);
@@ -236,6 +243,15 @@ void Organism::setX(int x){
 void Organism::setY(int y){
     (*this).y=y;
     sprite.SetY(Helper::worldToPixel[x][y].y);
+}
+
+void Organism::eat(Organism* o) {
+	foodConsumed += o->size;
+	if (foodConsumed >= foodRequired) {
+		size += foodConsumed/foodRequired;
+		foodConsumed = foodConsumed%foodRequired;
+		std::cout << "Size inc!" << std::endl;
+	}
 }
 
 bool Organism::canEat(Organism* o) {

@@ -14,10 +14,12 @@ public:
     //virtual sf::Sprite getSprite()=0;
     int getX();
     int getY();
+	int getSpeed();
     void setX(int );
     void setY(int );
 	bool canEat(Organism*);
 	virtual void kill() = 0;
+	void eat(Organism*);
 
 	static const std::map<fishtype, int> weightMap;
     sf::Image image;
@@ -36,7 +38,7 @@ private:
     const float growthRate;
     const int foodRequired;
     int foodConsumed;
-    const int velocity;
+	const int speed;
 	const fishtype type;
 };
 

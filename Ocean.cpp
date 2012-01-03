@@ -29,6 +29,7 @@ void Ocean::add(Organism *toAdd) {
 
 void Ocean::kill(int key) {
 	fishMap[key]->kill();
+	delete fishMap[key];
 	fishMap.erase(key);
 	count--;
 }
@@ -72,20 +73,23 @@ Organism::fishtype Ocean::genRandType() {
 	return (Organism::fishtype)0;
 }
 
-void Ocean::move(int key, int x, int y) {
+map<int, Organism*>::iterator Ocean::move(int key, int x, int y) {
 	int hash = x + y * MAX_X;
+	map<int, Organism*>::iterator it = Ocean::fishMap.find(key);
 
-	fishMap[key]->setX(x);
-	fishMap[key]->setY(y);
+	it->second->setX(x);
+	it->second->setY(y);
 
 	fishMap.insert(pair<int, Organism*>(hash, fishMap[key]));
 	//not Ocean::kill because in Ocean::we move an object and we don't want count--
-	fishMap.erase(key);
+	fishMap.erase(it++);
+	return it;
 }
 
-void Ocean::collide(int key){
+map<int, Organism*>::iterator Ocean::collide(int key){
 	int curX = Ocean::fishMap[key]->getX();
 	int curY = Ocean::fishMap[key]->getY();
+	map<int, Organism*>::iterator next = Ocean::fishMap.find(key);
 
 	int dx, dy, x, y, hash;
 	bool hasMoved = false;
@@ -121,16 +125,22 @@ void Ocean::collide(int key){
 	}
 
 	if(hasEat){
+		Ocean::fishMap[key]->eat(Ocean::fishMap[hash]);
 		kill(hash);
-		move(key, x, y);
+		next = move(key, x, y);
 		//add stats print
 	}else if(hasBred){
 		//to be added
 		//add stats print
+		next++;
 	}else if(hasMoved){
-		move(key, x, y);
+		next = move(key, x, y);
 		//add stats print
 	}
+	else {
+		next++;
+	}
+	return next;
 }
 
 void Ocean::tickPollution() {
@@ -167,7 +177,7 @@ void Ocean::update() {
 	tickPollution();
 
 	for (it = Ocean::fishMap.begin(); it != Ocean::fishMap.end(); ) {
-		collide((it++)->first);
+		it = collide(it->first);
 	}
 	Ocean::info();
 }

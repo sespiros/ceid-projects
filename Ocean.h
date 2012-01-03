@@ -16,14 +16,14 @@ public:
 
     static void add(Organism *toAdd);
     static void kill(int key);
-    static void move(int key, int x, int y);
+	static std::map<int, Organism*>::iterator move(int key, int x, int y);
     static void createAndAddFish(int t, int x, int y);
 
 	static void pollute(int, int, int);
 
     static void createAndAddRandFish(int x, int y);
     static void populate();
-    static void collide(int key);
+	static std::map<int, Organism*>::iterator collide(int key);
     static Organism::fishtype genRandType();
 
     static void init();

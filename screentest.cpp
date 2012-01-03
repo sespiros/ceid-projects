@@ -1,16 +1,26 @@
 #include "helper.h"
-#include "screenmanager.h"
+#include "iscreen.h"
+#include "about.h"
+#include "run.h"
 
 int main(int argc, char** argv)
 {
-	// Ocean Initialization
-	Ocean::init();
+    // Ocean Initialization
+    Ocean::init();
 
-	// Screen Initialization
-	ScreenManager::init();
+    sf::RenderWindow App(sf::VideoMode(1024, 600, 32), "Ocean Life v0.1");
+    std::vector<IScreen *> Screens;
 
-	// Main Loop
-	ScreenManager::run();
+    AboutScreen about;
+    RunScreen run;
+
+    Screens.push_back(&about);
+    Screens.push_back(&run);
+
+    int curScreen = 0;
+
+    while (curScreen >= 0)
+        curScreen = Screens[curScreen]->Run(App);
 
     return EXIT_SUCCESS;
 }

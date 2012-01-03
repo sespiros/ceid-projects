@@ -37,4 +37,7 @@ DONE|   *Optimize rand selection
 ****|   *THE FUCKING INTERPOLATION FTW!!!!
 ****|	*Which Organism members should be protected? Which private?
 ****|	*Check for memory leaks, maybe use a Boost pointer container?
+DONE|   *Fix rand implementation not to produce 0,0 as dx,dy
+****|   *Limit pollution sources with clocks
+****|   *add pollution shader (possible post-fx fisheye with colorize) check sfml samples
 ****|   *<add todo>

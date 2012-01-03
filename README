@@ -36,8 +36,13 @@ I [Petros]:
 	* fishMap's iterator is now incremented (in Ocean::update) immediately after being evaluated for Ocean::collide(Organism*). That accounts for invalidation after erasing a map's pair (in Ocean::kill). There shouldn't be any issues implementing a bearing mechanism.
 	* Added an Organism::kill() method that decrements each Organism's count after dying. Another method to increment count might be needed.
 	
-Tue Jan 3 0143:31 GTBST 2012
+Tue Jan 3 01:43:31 GTBST 2012
 I [Petros]:
 	* Introduced a pollution system (position[x, y], radius). A static vector<Pollution *> holds the current pollution sources; each source has a lifespan (4th default constructor parameter). No sprites for the moment, just a logging routine. Deletion now should deallocate the pointers to pollution objects, yet we could check for memory leaks.
 	* Ocean::update now also runs tickPollution()
 	* Ocean::populate now checks for object existence before adding a new one at the same spot.
+
+Tue Jan 3 02:23:03 GTBST 2012
+I [Spiros]:
+        *Deleted screenmanager implementation, caused segfaults in linux.
+        *Fixed random generation in Ocean::collide, in Ocean::Cpp. (Possible memory leak fixed).

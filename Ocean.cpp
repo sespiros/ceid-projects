@@ -1,5 +1,5 @@
 #include "Ocean.h"
-#include "ClassRegistry.h"
+#include "classregistry.h"
 #include "helper.h"
 #include <iostream>
 #include <cstdlib>
@@ -93,7 +93,7 @@ void Ocean::collide(int key){
 	bool hasBred = false;
 
 
-	for (int i = 8; i > 0; i--) {
+    for (int i = 7; i >= 0; i--) {
 		int j = rand()%i;
 		dx = Helper::dir[j][0];
 		dy = Helper::dir[j][1];

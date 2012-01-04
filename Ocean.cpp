@@ -97,11 +97,11 @@ mapIter Ocean::collide(int key){
 	bool hasBred = false;
 
 
-    for (int i = 7; i >= 0; i--) {
-		int j = rand()%i;
+	for (int i = 7; i > 0; i--) {
+		int j = rand()%(i + 1);
 		dx = Helper::dir[j][0];
 		dy = Helper::dir[j][1];
-		Helper::swapDir(Helper::dir[j], Helper::dir[i]);
+		Helper::swapDir(j, i);
 
 		if (!isValid(curX + dx, Ocean::MAX_X) || !isValid(curY + dy, Ocean::MAX_Y))
 			continue;
@@ -162,12 +162,7 @@ void Ocean::tickPollution() {
 		p->tick();
 	}
 
-	if (Ocean::pollution.size() != 0){
-		std::vector<Pollution*>::iterator rem = std::remove_if(Ocean::pollution.begin(), Ocean::pollution.end(), isDone);
-		if (rem != Ocean::pollution.end()) {
-			Ocean::pollution.erase(rem);
-		}
-	}
+	Ocean::pollution.erase(std::remove_if(Ocean::pollution.begin(), Ocean::pollution.end(), Pollution::isDone), Ocean::pollution.end());
 }
 
 void Ocean::update() {

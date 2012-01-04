@@ -17,17 +17,19 @@ public:
     int getY();
     int getSpeed();
     int getSize();
+	int getFoodConsumedWeek();
+	int getAge();
     void setX(int );
     void setY(int );
     bool canEat(Organism*);
     virtual void kill() = 0;
     void eat(Organism*);
+	void levelUp();
+	void weeklyReset();
 
     static const std::map<fishtype, int> weightMap;
     sf::Image image;
-    sf::Sprite sprite;
-    int foodConsumedWeek;
-    int age;
+	sf::Sprite sprite;
 
     Organism(int, int, int, int, float, int, int, fishtype);
 
@@ -39,9 +41,10 @@ private:
 
     int x, y;
     int size;
+	int age;
     const float growthRate;
     const int foodRequired;
-    int foodConsumed;
+	int foodConsumed, foodConsumedWeek;
     const int speed;
     const fishtype type;
 };

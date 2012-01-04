@@ -20,7 +20,7 @@ public:
         //returns constructor based on enum type
         static organism_creator getConstructor(int s);
         static std::map<int, std::string> assocMapNames;
-        static std::map<int, sf::Sprite> assocMapImages;
+        static std::map<int, sf::Image> assocMapImages;
 
         //....add comment
         template<class className> static void associate(Organism::fishtype);

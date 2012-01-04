@@ -24,7 +24,6 @@ public:
     void eat(Organism*);
 
     static const std::map<fishtype, int> weightMap;
-    sf::Image image;
     sf::Sprite sprite;
     int foodConsumedWeek;
     int age;

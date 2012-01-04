@@ -8,6 +8,7 @@ using std::pair;
 //defines the map
 map<int, organism_creator> ClassRegistry::assocMap;
 map<int, std::string> ClassRegistry::assocMapNames;
+map<int, sf::Image> ClassRegistry::assocMapImages;
 
 //returns custom constructor
 template<class T> Organism* organism_factory(int x, int y)
@@ -52,5 +53,30 @@ void ClassRegistry::registerClasses() {
     assocMapNames.insert(pair<int, std::string>(7, "Giatonp**** fishes"));
     assocMapNames.insert(pair<int, std::string>(8, "Magikarps"));
     assocMapNames.insert(pair<int, std::string>(9, "Narwhals"));
+
+    sf::Image image;
+    image.LoadFromFile("artwork/ZPlankton.png");
+    assocMapImages.insert(pair<int, sf::Image>(0,image));
+    image.LoadFromFile("artwork/PPlankton.png");
+    assocMapImages.insert(pair<int, sf::Image>(1,image));
+    image.LoadFromFile("artwork/Shrimp.png");
+    assocMapImages.insert(pair<int, sf::Image>(2,image));
+    image.LoadFromFile("artwork/Jelly.png");
+    assocMapImages.insert(pair<int, sf::Image>(3,image));
+    image.LoadFromFile("artwork/Eel.png");
+    assocMapImages.insert(pair<int, sf::Image>(4,image));
+    image.LoadFromFile("artwork/Balloon.png");
+    assocMapImages.insert(pair<int, sf::Image>(5,image));
+    image.LoadFromFile("artwork/Clown.png");
+    assocMapImages.insert(pair<int, sf::Image>(6,image));
+    image.LoadFromFile("artwork/Gtp.png");
+    assocMapImages.insert(pair<int, sf::Image>(7,image));
+    image.LoadFromFile("artwork/Magikarp.png");
+    assocMapImages.insert(pair<int, sf::Image>(8,image));
+    image.LoadFromFile("artwork/Narwhal.png");
+    assocMapImages.insert(pair<int, sf::Image>(9,image));
+
+
+
 }
 

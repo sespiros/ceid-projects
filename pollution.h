@@ -7,20 +7,22 @@ class Pollution
 {
 public:
 	Pollution();
-	Pollution(int, int, int, int = 3);
+	Pollution(int, int, int, int = 8);
 
 	static void bind(sf::RenderWindow*);
 
 	void tick();
 	void draw();
 
+	// Utility function as a predicate for the erase-remove idiom
+	static bool isDone(Pollution *);
+
 	int getRadius() const;
 	int getX() const;
 	int getY() const;
-
-	friend bool isDone(Pollution *);
 private:
 	int radius;
+	const int maxRadius;
 	int x, y;
 	int roundsRun;
 	int lifespan;
@@ -28,8 +30,5 @@ private:
 	sf::Sprite sprite;
 	static sf::RenderWindow* window;
 };
-
-// Utility function as a predicate for the erase-remove idiom
-bool isDone(Pollution *);
 
 #endif // POLLUTION_H

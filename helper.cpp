@@ -71,12 +71,12 @@ Vector2f** Helper::getWorldScreenMapping(const int x, const int y, const int w, 
     return conv;
 }
 
-void Helper::swapDir(int* a, int* b) {
-	a[0] -= b[0];
-	b[0] += a[0];
-	a[0] = b[0] - a[0];
+void Helper::swapDir(int i, int j) {
+	int tmp = Helper::dir[i][0];
+	Helper::dir[i][0] = Helper::dir[j][0];
+	Helper::dir[j][0] = tmp;
 
-	a[1] -= b[1];
-	b[1] += a[1];
-	a[1] = b[1] - a[1];
+	tmp = Helper::dir[i][1];
+	Helper::dir[i][1] = Helper::dir[j][1];
+	Helper::dir[j][1] = tmp;
 }

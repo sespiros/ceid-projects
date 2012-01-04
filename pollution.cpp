@@ -3,20 +3,9 @@
 
 sf::RenderWindow* Pollution::window = 0;
 
-bool isDone(Pollution* p)
+Pollution::Pollution(int r, int x, int y, int ls) : maxRadius(r)
 {
-	bool ret = false;
-	if (p->roundsRun >= p->lifespan) {
-		delete p;
-		p = 0;
-		ret = true;
-	}
-	return ret;
-}
-
-Pollution::Pollution(int r, int x, int y, int ls)
-{
-	radius = r;
+	radius = 0;
 	Pollution::x = x;
 	Pollution::y = y;
 	lifespan = ls;
@@ -37,6 +26,7 @@ void Pollution::bind(sf::RenderWindow* w)
 void Pollution::tick()
 {
 	roundsRun++;
+	radius = -abs(2.0 * maxRadius / lifespan * roundsRun - maxRadius) + maxRadius;
 }
 
 void Pollution::draw()
@@ -49,6 +39,17 @@ void Pollution::draw()
 			window->Draw(sprite);
 		}
 	}
+}
+
+bool Pollution::isDone(Pollution* p)
+{
+	bool ret = false;
+	if (p->roundsRun >= p->lifespan) {
+		delete p;
+		p = 0;
+		ret = true;
+	}
+	return ret;
 }
 
 int Pollution::getRadius() const

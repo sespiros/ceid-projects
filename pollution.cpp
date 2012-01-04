@@ -36,6 +36,8 @@ void Pollution::draw()
 			if (!Ocean::isValid(y + yy, Ocean::MAX_Y) || !Ocean::isValid(x + xx, Ocean::MAX_X))
 				continue;
 			sprite.SetPosition(Helper::worldToPixel[x + xx][y + yy].x, Helper::worldToPixel[x + xx][y + yy].y);
+			sprite.FlipX((rand() % 2 == 0) ? true : false);
+			sprite.FlipY((rand() % 2 == 0) ? true : false);
 			window->Draw(sprite);
 		}
 	}

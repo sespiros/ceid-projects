@@ -23,7 +23,7 @@ public:
 	static mapIter move(int key, int x, int y);
     static void createAndAddFish(int t, int x, int y);
 
-	static void pollute(int, int, int);
+	static void pollute(int, int, int, int = 8);
 
     static void createAndAddRandFish(int x, int y);
     static void populate();

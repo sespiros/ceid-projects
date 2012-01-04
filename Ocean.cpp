@@ -228,9 +228,9 @@ bool Ocean::isValid(int a, int max)
     return ((a >= 0) && (a < max));
 }
 
-void Ocean::pollute(int r, int x, int y)
+void Ocean::pollute(int r, int x, int y, int t)
 {
-    Pollution* p = new Pollution(r, x, y);
+	Pollution* p = new Pollution(r, x, y, t);
     Ocean::pollution.insert(Ocean::pollution.begin(), p);
     //debug
     //std::cout << "Inserted pollution source at (" << x << ", " << y << "), radius " << r << std::endl;

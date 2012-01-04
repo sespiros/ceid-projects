@@ -48,13 +48,13 @@ Vector2f** Helper::getWorldScreenMapping() {
 
     //Fill buffer with window coordinates
     for(i=0;i<itiles;i++){
-        xs=0.f;
+		ys=0.f;
         for(j=0;j<jtiles;j++){
             conv[i][j].x=xs;
             conv[i][j].y=ys;
-            xs+=w+5;
+			ys+=w+5;
         }
-        ys+=w+5;
+		xs+=w+5;
     }
 
 //    Print buffer for debugging purposes(DO NOT DELETE!)

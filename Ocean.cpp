@@ -35,12 +35,12 @@ void Ocean::init(bool choice) {
     Ocean::worldIsBig = choice;
     if(worldIsBig){
         MAX_COUNT = 200;
-        MAX_X = 32;
-        MAX_Y = 52;
+		MAX_X = 52;
+		MAX_Y = 32;
     }else{
         MAX_COUNT = 100;
-        MAX_X = 16;
-        MAX_Y = 26;
+		MAX_X = 26;
+		MAX_Y = 16;
     }
 
     Helper::worldToPixel= Helper::getWorldScreenMapping();
@@ -193,24 +193,7 @@ mapIter Ocean::collide(int key){
 }
 
 void Ocean::tickPollution() {
-    for (std::vector<Pollution*>::const_iterator i = Ocean::pollution.begin(); i != Ocean::pollution.end(); ++i) {
-        Pollution* p = *i;
-        int cy = p->getY();
-        int cx = p->getX();
-        int r = p->getRadius();
-
-        for (int j = -r; j <= r; j++) {
-            for (int k = abs(j) - r; k <= r - abs(j); k++) {
-                if (!Ocean::isValid(cy + j, MAX_Y) || !Ocean::isValid(cx + k, MAX_X))
-                    continue;
-                if (Ocean::fishMap.count((cx + k) + (cy + j)*MAX_X) != 0)
-                    Ocean::kill((cx + k) + (cy + j)*MAX_X);
-            }
-        }
-
-        p->tick();
-    }
-
+	std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::tick));
     Ocean::pollution.erase(std::remove_if(Ocean::pollution.begin(), Ocean::pollution.end(), Pollution::isDone), Ocean::pollution.end());
 }
 

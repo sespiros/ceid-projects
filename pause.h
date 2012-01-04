@@ -131,7 +131,7 @@ int PauseScreen::Run(sf::RenderWindow &App)
             App.Draw(it->second->sprite);
         }
 
-        Pollution::bind(&App);
+		Pollution::bind(&App, true);
         std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));
         Pollution::bind(0);
 

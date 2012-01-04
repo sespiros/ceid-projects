@@ -111,7 +111,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                     }
                 }
                 if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Space) {
-                    Ocean::pollute(rand()%4 + 1, rand()%Ocean::MAX_X, rand()%Ocean::MAX_Y, rand()%8 + 3);
+					Ocean::pollute(rand()%5 + 1, rand()%Ocean::MAX_X, rand()%Ocean::MAX_Y, rand()%8 + 3);
                 }
                 if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
                     //std::cout << App.GetInput().GetMouseX()<<" "<<App.GetInput().GetMouseY()<<std::endl;

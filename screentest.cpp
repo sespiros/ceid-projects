@@ -5,8 +5,8 @@
 
 int main()
 {
-    // Ocean Initialization
-    Ocean::init();
+    // Ocean Initialization select true for BigWorld
+    Ocean::init(false);
 
     sf::RenderWindow App(sf::VideoMode(1024, 600, 32), "Ocean Life v0.1");
     std::vector<IScreen *> Screens;

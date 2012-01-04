@@ -5,9 +5,10 @@ DONE|   *change Ocean::move so before setting new x,y check Ocean::fishMap :
                     (*skype*)
             -if not sets new x,y
 DONE|   *change blue sea texture to match view resolution
-****|   *optimize textures dimensions in general
-****|   *limit zoom and move
-****|   *decide about the world size
+DONE|   *optimize textures dimensions in general
+DONE|   *limit zoom
+****|         and move
+DONE|   *decide about the world size
             -standard size and just zoom in
             -VAST WORLD see only a part and we may choose what to draw
 ****|   *clock and render timing
@@ -24,15 +25,15 @@ DONE|       -pollution
                 _possible drag&drop?
 DONE|   *add stats
 ****|   *implement dynamic(*skype*) stats tab in the top-right corner
-****|   *fix pause screen
+DONE|   *fix pause screen
 ****|   *add a checkedSprite version of every class
-****|   *add general itiles and jtiles as in getWorldScreenMapping
+DONE|   *add general itiles and jtiles as in getWorldScreenMapping
 DONE|   *fix occasional bug
             http://www.qtforum.org/article/31803/passing-pointer-of-object-into-function-crashes.html
             edit: SERIOUS BUG IN COMMIT 41b8a...we should check the code after this commit
             ammend: after debugging it seems that createAndAddRandFish causes sometimes sigsegv.
 ****|   *find a way to publish TODO file without commits........:P
-****|   *Complete Ocean.cpp in comments
+DONE|   *Complete Ocean.cpp in comments
 DONE|   *Optimize rand selection
 ****|   *THE FUCKING INTERPOLATION FTW!!!!
 ****|	*Which Organism members should be protected? Which private?
@@ -40,4 +41,8 @@ DONE|   *Optimize rand selection
 DONE|   *Fix rand implementation not to produce 0,0 as dx,dy
 DONE|   *Limit pollution sources with clocks <-- Explain
 ****|   *add pollution shader (possible post-fx fisheye with colorize) check sfml samples 
+****|   *clickable icons next to stats show category spesific information
+****|   *Possible drag view..
+****|   *In Big world view the dimensions are not correct yet
+****|   *Amount of zoom must be common between run and pause..fix
 ****|   *<add todo>

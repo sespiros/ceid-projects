@@ -64,3 +64,10 @@ Wed Jan 4 20:10:56 GTBST 2012
 I [Spiros]:
         * Added new pollution texture.
         * Optimizations in constructors and Organism Images.
+
+Wed Jan 4 22:48:50 GTBST 2012
+I [Spiros]:
+        * Added two different world sizes
+        * Clickable play/pause
+        * Controlled Zoom only 2 times
+        * Move View with arrows **CHECK TODO**

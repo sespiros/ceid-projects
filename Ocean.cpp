@@ -25,17 +25,33 @@ float Ocean::averageDeathRate[10];
 float Ocean::averageAge[10];
 sf::String Ocean::categories[10];
 sf::Sprite Ocean::Images[10];
+bool Ocean::worldIsBig;
+int Ocean::MAX_COUNT;
+sf::Vector2f** Helper::worldToPixel;
 
-void Ocean::init() {
+void Ocean::init(bool choice) {
     ClassRegistry::registerClasses();
+
+    Ocean::worldIsBig = choice;
+    if(worldIsBig){
+        MAX_COUNT = 200;
+        MAX_X = 32;
+        MAX_Y = 52;
+    }else{
+        MAX_COUNT = 100;
+        MAX_X = 16;
+        MAX_Y = 26;
+    }
+
+    Helper::worldToPixel= Helper::getWorldScreenMapping();
 
     //this variable is for setting y coordinate for the strings of stats
     int y = 30;
 
     //Stats Arrays initialization
-	for(int i = 0; i < 10 ; i++){
+    for(int i = 0; i < 10 ; i++){
         averageConsumptionWeek[i] = 0;
-		averageDeathRate[i] = 0;
+        averageDeathRate[i] = 0;
 
         //Stats String Categories Arrays initialization
         categories[i].SetText(ClassRegistry::assocMapNames[i]);
@@ -203,7 +219,7 @@ void Ocean::update() {
     mapIter it;
 
     tickPollution();
-	turns++;
+    turns++;
 
     for (it = Ocean::fishMap.begin(); it != Ocean::fishMap.end(); ) {
         it = collide(it->first);
@@ -230,7 +246,7 @@ bool Ocean::isValid(int a, int max)
 
 void Ocean::pollute(int r, int x, int y, int t)
 {
-	Pollution* p = new Pollution(r, x, y, t);
+    Pollution* p = new Pollution(r, x, y, t);
     Ocean::pollution.insert(Ocean::pollution.begin(), p);
     //debug
     //std::cout << "Inserted pollution source at (" << x << ", " << y << "), radius " << r << std::endl;
@@ -242,23 +258,23 @@ void Ocean::stats(){
     //Average consumption last week
     //AverageDeathRate
 
-	memset(averageCategorySize, 0, sizeof(averageCategorySize));
-	memset(averageAge, 0, sizeof(averageAge));
-	if(turns%7 == 0)
-		memset(averageConsumptionWeek, 0, sizeof(averageConsumptionWeek));
+    memset(averageCategorySize, 0, sizeof(averageCategorySize));
+    memset(averageAge, 0, sizeof(averageAge));
+    if(turns%7 == 0)
+        memset(averageConsumptionWeek, 0, sizeof(averageConsumptionWeek));
 
     mapIter it;
     for(it = fishMap.begin(); it != fishMap.end();it++){
-		averageCategorySize [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getSize()/static_cast<float>(it->second->getCount()) : 0;
-		averageDeathRate [it->second->getType()] = (Ocean::deaths != 0) ? 100.0f*it->second->getDeaths()/static_cast<float>(Ocean::deaths) : 0;
-		averageAge [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getAge()/static_cast<float>(it->second->getCount()) : 0;
-		it->second->levelUp();
+        averageCategorySize [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getSize()/static_cast<float>(it->second->getCount()) : 0;
+        averageDeathRate [it->second->getType()] = (Ocean::deaths != 0) ? 100.0f*it->second->getDeaths()/static_cast<float>(Ocean::deaths) : 0;
+        averageAge [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getAge()/static_cast<float>(it->second->getCount()) : 0;
+        it->second->levelUp();
 
-		if(turns%7 == 0){
-			averageConsumptionWeek [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getFoodConsumedWeek()/static_cast<float>(it->second->getCount()) : 0;
-			it->second->weeklyReset();
-		}
-	}
+        if(turns%7 == 0){
+            averageConsumptionWeek [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getFoodConsumedWeek()/static_cast<float>(it->second->getCount()) : 0;
+            it->second->weeklyReset();
+        }
+    }
 
 }
 
@@ -287,7 +303,6 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     spriteLog.SetImage(Log);
 
 
-
     if(!choice2){
         identifier.SetText("Categories");
         for(int i = 0; i < 10; i++){
@@ -312,10 +327,10 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
         y = 50;
         for(int i = 10; i < 20 ;i ++){
             std::stringstream ss;
-			ss << "Avg. consumption/w = " << averageConsumptionWeek[i - 10];
+            ss << "Avg. consumption/w = " << averageConsumptionWeek[i - 10];
             data[i].SetText(ss.str());
             data[i].SetColor(sf::Color::Black);
-			data[i].SetPosition(860,y);
+            data[i].SetPosition(860,y);
             data[i].SetSize(11);
             y += 53;
             o->Draw(data[i]);
@@ -325,7 +340,7 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
         y = 60;
         for(int i = 20; i < 30 ;i ++){
             std::stringstream ss;
-			ss << "Average death rate = " << averageDeathRate[i - 20];
+            ss << "Average death rate = " << averageDeathRate[i - 20];
             data[i].SetText(ss.str());
             data[i].SetColor(sf::Color::Black);
             data[i].SetPosition(860,y);
@@ -338,7 +353,7 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
         y = 70;
         for(int i = 30; i < 40 ;i ++){
             std::stringstream ss;
-			ss << "Average age = " << averageAge[i - 30];
+            ss << "Average age = " << averageAge[i - 30];
             data[i].SetText(ss.str());
             data[i].SetColor(sf::Color::Black);
             data[i].SetPosition(860,y);

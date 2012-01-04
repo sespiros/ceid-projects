@@ -10,9 +10,10 @@ typedef std::map<int, Organism*>::iterator mapIter;
 
 class Ocean {
 public:
-    static const int MAX_COUNT = 100;
-    static const int MAX_X = 16;
-    static const int MAX_Y = 26;
+    static int MAX_COUNT;
+    static int MAX_X;
+    static int MAX_Y;
+    static bool worldIsBig;
 
     static int count;
     static int deaths;
@@ -30,7 +31,7 @@ public:
 	static mapIter collide(int key);
     static Organism::fishtype genRandType();
 
-    static void init();
+    static void init(bool choice);
 	static void tickPollution();
     static void update();
     static void info();

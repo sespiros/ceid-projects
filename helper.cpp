@@ -4,20 +4,18 @@
 using namespace std;
 using namespace sf;
 
-sf::Vector2f** Helper::worldToPixel= Helper::getWorldScreenMapping(1024, 600, 32, 32);;
-
 int Helper::dir[8][2] = {
-	{-1, -1},
-	{-1, 0},
-	{-1, 1},
-	{0, -1},
-	{0, 1},
-	{1, -1},
+    {-1, -1},
+    {-1, 0},
+    {-1, 1},
+    {0, -1},
+    {0, 1},
+    {1, -1},
     {1, 0},
-	{1, 1},
+    {1, 1},
 };
 
-Vector2f** Helper::getWorldScreenMapping(const int x, const int y, const int w, const int h) {
+Vector2f** Helper::getWorldScreenMapping() {
 
     /*
          x=1024 jtiles pointer: i
@@ -35,9 +33,10 @@ Vector2f** Helper::getWorldScreenMapping(const int x, const int y, const int w, 
          itiles =    600/(size of tile+5)
          +5 to add a gap between fish
          */
+    int w = 32;
+    int jtiles = Ocean::MAX_Y;
+    int itiles = Ocean::MAX_X;
 
-    int jtiles=x/(w+5);
-    int itiles=y/(h+5);
     int i,j;
     int xs=0,ys=0;
     Vector2f **conv;
@@ -53,7 +52,7 @@ Vector2f** Helper::getWorldScreenMapping(const int x, const int y, const int w, 
         for(j=0;j<jtiles;j++){
             conv[i][j].x=xs;
             conv[i][j].y=ys;
-            xs+=h+5;
+            xs+=w+5;
         }
         ys+=w+5;
     }
@@ -72,11 +71,11 @@ Vector2f** Helper::getWorldScreenMapping(const int x, const int y, const int w, 
 }
 
 void Helper::swapDir(int i, int j) {
-	int tmp = Helper::dir[i][0];
-	Helper::dir[i][0] = Helper::dir[j][0];
-	Helper::dir[j][0] = tmp;
+    int tmp = Helper::dir[i][0];
+    Helper::dir[i][0] = Helper::dir[j][0];
+    Helper::dir[j][0] = tmp;
 
-	tmp = Helper::dir[i][1];
-	Helper::dir[i][1] = Helper::dir[j][1];
-	Helper::dir[j][1] = tmp;
+    tmp = Helper::dir[i][1];
+    Helper::dir[i][1] = Helper::dir[j][1];
+    Helper::dir[j][1] = tmp;
 }

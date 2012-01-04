@@ -80,7 +80,7 @@ void ZPlankton::kill() {
 }
 
 PPlankton::PPlankton(int x, int y):Plankton(x, y, 0, 1, 0, 0, 1, PPL){
-	count++;
+    count++;
 
     sprite.SetImage(ClassRegistry::assocMapImages[1]);
     sprite.SetScale(0.25f, 0.25f);

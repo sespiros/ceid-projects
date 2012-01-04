@@ -15,6 +15,8 @@ public:
     static const int MAX_Y = 26;
 
     static int count;
+    static int deaths;
+    static int turns;
 
     static void add(Organism *toAdd);
     static void kill(int key);
@@ -34,10 +36,20 @@ public:
     static void info();
 	static bool isValid(int, int);
 
+    static void stats();
+    static void drawStats(sf::RenderWindow*, bool , bool);
+
     Ocean();
 
 	static std::map<int, Organism*> fishMap;
 	static std::vector<Pollution*> pollution;
+    static float averageCategorySize[10];
+    static float averageConsumptionWeek[10];
+    static float averageDeathRate[10];
+    static float averageAge[10];
+    static sf::String categories[10];
+    static sf::Sprite Images[10];
+
 };
 
 #endif // OCEAN_H

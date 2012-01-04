@@ -7,6 +7,7 @@ using std::pair;
 
 //defines the map
 map<int, organism_creator> ClassRegistry::assocMap;
+map<int, std::string> ClassRegistry::assocMapNames;
 
 //returns custom constructor
 template<class T> Organism* organism_factory(int x, int y)
@@ -40,5 +41,16 @@ void ClassRegistry::registerClasses() {
     ClassRegistry::associate<Gtp>(Organism::GTP);
     ClassRegistry::associate<Magikarp>(Organism::MAGIKARP);
     ClassRegistry::associate<Narwhal>(Organism::NARWHAL);
+
+    assocMapNames.insert(pair<int, std::string>(0, "Zoo Planktons"));
+    assocMapNames.insert(pair<int, std::string>(1, "Plant Planktons"));
+    assocMapNames.insert(pair<int, std::string>(2, "Shrimps"));
+    assocMapNames.insert(pair<int, std::string>(3, "Jellies"));
+    assocMapNames.insert(pair<int, std::string>(4, "Eels"));
+    assocMapNames.insert(pair<int, std::string>(5, "Balloon fishes"));
+    assocMapNames.insert(pair<int, std::string>(6, "Clown fishes"));
+    assocMapNames.insert(pair<int, std::string>(7, "Giatonp**** fishes"));
+    assocMapNames.insert(pair<int, std::string>(8, "Magikarps"));
+    assocMapNames.insert(pair<int, std::string>(9, "Narwhals"));
 }
 

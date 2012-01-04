@@ -1,9 +1,9 @@
 #include "helper.h"
 #include "iscreen.h"
-#include "about.h"
+#include "pause.h"
 #include "run.h"
 
-int main(int argc, char** argv)
+int main()
 {
     // Ocean Initialization
     Ocean::init();
@@ -11,10 +11,10 @@ int main(int argc, char** argv)
     sf::RenderWindow App(sf::VideoMode(1024, 600, 32), "Ocean Life v0.1");
     std::vector<IScreen *> Screens;
 
-    AboutScreen about;
+    PauseScreen pause;
     RunScreen run;
 
-    Screens.push_back(&about);
+    Screens.push_back(&pause);
     Screens.push_back(&run);
 
     int curScreen = 0;

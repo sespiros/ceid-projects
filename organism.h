@@ -10,47 +10,51 @@ public:
     enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NARWHAL};
 
     fishtype getType();
-    virtual int getCount()=0;
+    virtual int getCount() = 0;
+    virtual int getDeaths() = 0;
     //virtual sf::Sprite getSprite()=0;
     int getX();
     int getY();
-	int getSpeed();
+    int getSpeed();
+    int getSize();
     void setX(int );
     void setY(int );
-	bool canEat(Organism*);
-	virtual void kill() = 0;
-	void eat(Organism*);
+    bool canEat(Organism*);
+    virtual void kill() = 0;
+    void eat(Organism*);
 
-	static const std::map<fishtype, int> weightMap;
+    static const std::map<fishtype, int> weightMap;
     sf::Image image;
     sf::Sprite sprite;
+    int foodConsumedWeek;
+    int age;
 
-	Organism(int, int, int, int, float, int, int, fishtype);
+    Organism(int, int, int, int, float, int, int, fishtype);
 
 protected:
-	int eatField;
+    int eatField;
 
 private:
-	static std::map<fishtype, int> createWeightMap();
+    static std::map<fishtype, int> createWeightMap();
 
     int x, y;
-    int size, age;
+    int size;
     const float growthRate;
     const int foodRequired;
     int foodConsumed;
-	const int speed;
-	const fishtype type;
+    const int speed;
+    const fishtype type;
 };
 
 class Plankton:public Organism
 {
 public:
-     Plankton(int, int, int, int, float, int, int, fishtype);
-     static int familyCount;
+    Plankton(int, int, int, int, float, int, int, fishtype);
+    static int familyCount;
 
-     int getFcount(){
-         return familyCount;
-     }
+    int getFcount(){
+        return familyCount;
+    }
 };
 
 
@@ -59,11 +63,16 @@ class ZPlankton:public Plankton
 
 public:
     ZPlankton(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
 
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
@@ -71,23 +80,29 @@ class PPlankton:public Plankton
 {
 
 public:
-	PPlankton(int,int);
-	virtual void kill();
+    PPlankton(int,int);
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
 class nonPlankton:public Organism
 {
 public:
-     nonPlankton(int,int, int, int, float, int, int, fishtype);
-     static int familyCount;
+    nonPlankton(int,int, int, int, float, int, int, fishtype);
+    static int familyCount;
 
-     int getFcount(){
-         return familyCount;
-     }
+    int getFcount(){
+        return familyCount;
+    }
 };
 
 class Shrimp:public nonPlankton
@@ -95,10 +110,16 @@ class Shrimp:public nonPlankton
 
 public:
     Shrimp(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
@@ -107,10 +128,16 @@ class Jelly:public nonPlankton
 
 public:
     Jelly(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
@@ -119,10 +146,16 @@ class Eel:public nonPlankton
 
 public:
     Eel(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
@@ -131,10 +164,16 @@ class Balloon:public nonPlankton
 
 public:
     Balloon(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
@@ -143,10 +182,16 @@ class Clown:public nonPlankton
 
 public:
     Clown(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
@@ -155,10 +200,16 @@ class Gtp:public nonPlankton
 
 public:
     Gtp(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
@@ -167,10 +218,16 @@ class Magikarp:public nonPlankton
 
 public:
     Magikarp(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 
@@ -179,10 +236,16 @@ class Narwhal:public nonPlankton
 
 public:
     Narwhal(int,int);
-	virtual void kill();
+    virtual void kill();
     static int count;
+    static int deaths;
+
     int getCount(){
         return count;
+    };
+
+    int getDeaths(){
+        return deaths;
     };
 };
 

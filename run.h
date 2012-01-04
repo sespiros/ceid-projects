@@ -11,11 +11,16 @@ private:
 public:
     RunScreen (void);
     virtual int Run (sf::RenderWindow &App);
+    //static int a;
+    //static int b;
 };
 
 RunScreen::RunScreen(void){
     playing = false;
 }
+
+//int RunScreen::a = 0;
+//int RunScreen::b = 0;
 
 int RunScreen::Run(sf::RenderWindow &App)
 {
@@ -26,6 +31,7 @@ int RunScreen::Run(sf::RenderWindow &App)
     sf::Sprite runSprite;
     sf::Sprite backSprite;
     sf::Clock runner;
+    sf::Vector2f MousePos;
 
     //adjusted view
     sf::View view(sf::FloatRect(-11.7823,-5.66833,1190.67,690.782));
@@ -40,7 +46,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                      (15,480)----------(780,480)
     */
 
-    if (!runImage.LoadFromFile("artwork/run2.png")){
+    if (!runImage.LoadFromFile("artwork/run.png")){
         std::cerr<<"Error loading background image"<<std::endl;
         return(-1);
     }
@@ -68,6 +74,7 @@ int RunScreen::Run(sf::RenderWindow &App)
 
             while(App.GetEvent(Event))
             {
+                MousePos = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
                 if (Event.Type == sf::Event::Closed)
                 {
                     return (-1);
@@ -76,29 +83,14 @@ int RunScreen::Run(sf::RenderWindow &App)
                     playing = true;
                     return(0);
                 }
-                //FIX THE ZOOM AND MOVE CONTROLS-------------------------------------------------------
-                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Q){   //view.Zoom(1.050f);
-
-                }
-                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::E){   //view.Zoom(0.950f);
-
-                }
-
-                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::A){   //view.Move(5.0f,0);
-
-                }
-                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::D){   //view.Move(-5.0f,0);
-
-                }
-                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){   //view.Move(0,5.0f);
-
-                }
-                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::S){   //view.Move(0,-5.0f);
-
-                }
-                //--------------------------------------------------------------------------------------
                 if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Space) {
                     Ocean::pollute(rand()%4 + 1, rand()%Ocean::MAX_X, rand()%Ocean::MAX_Y);
+                }
+                if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
+                    //std::cout << App.GetInput().GetMouseX()<<" "<<App.GetInput().GetMouseY()<<std::endl;
+                    if(MousePos.x > 826 && MousePos.x < 1015 && MousePos.y > 558 && MousePos.y < 594){
+                        IScreen::logChoice = !IScreen::logChoice;
+                    }
                 }
             }
 
@@ -106,7 +98,8 @@ int RunScreen::Run(sf::RenderWindow &App)
 
             accumulator-=dt;
             drawn=false;
-
+            //b++;
+            //std::cout<<"update= "<<b<<std::endl;
         }
 
         if(drawn){
@@ -121,19 +114,25 @@ int RunScreen::Run(sf::RenderWindow &App)
                 App.Draw(it->second->sprite);
             }
 
-			Pollution::bind(&App);
-			std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));
-			Pollution::bind(0);
+            Pollution::bind(&App);
+            std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));
+            Pollution::bind(0);
 
             App.SetView(App.GetDefaultView());
             App.Draw(runSprite);
+
+            //Draw stats box
+            Ocean::drawStats(&App, IScreen::logChoice, 0);
 
             App.Display();
             App.Clear();
 
             drawn=true;
+            //a++;
+
             //debug for placing view
             //std::cout<<view.GetRect().Right<<","<<view.GetRect().Top<<" "<<view.GetRect().Left<<","<<view.GetRect().Bottom<<std::endl;
+            //std::cout <<"render= "<<a<<std::endl<<std::endl;
         }
 
 

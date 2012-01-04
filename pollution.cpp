@@ -4,13 +4,12 @@
 sf::RenderWindow* Pollution::window = 0;
 bool Pollution::isPaused_;
 
-Pollution::Pollution(int r, int x, int y, int ls, int w) : maxRadius(r)
+Pollution::Pollution(int r, int x, int y, int ls) : maxRadius(r)
 {
 	radius = 0;
 	Pollution::x = x;
 	Pollution::y = y;
 	lifespan = ls;
-	width = w;
 	roundsRun = 0;
 
 	if (!img.LoadFromFile("artwork/Pollution.png"))
@@ -32,8 +31,6 @@ void Pollution::tick()
 		for (int xx = abs(yy) - radius; xx <= radius - abs(yy); xx++) {
 			if (!Ocean::isValid(y + yy, Ocean::MAX_Y) || !Ocean::isValid(x + xx, Ocean::MAX_X))
 				continue;
-			if (xx - (abs(yy) - radius) >= width && radius - abs(yy) - xx >= width)
-				continue;
 			if (Ocean::fishMap.count((x + xx) + (y + yy)*Ocean::MAX_X) != 0)
 				Ocean::kill((x + xx) + (y + yy)*Ocean::MAX_X);
 		}
@@ -49,8 +46,6 @@ void Pollution::draw()
 	for (int yy = -radius; yy <= radius; yy++) {
 		for (int xx = abs(yy) - radius; xx <= radius - abs(yy); xx++) {
 			if (!Ocean::isValid(y + yy, Ocean::MAX_Y) || !Ocean::isValid(x + xx, Ocean::MAX_X))
-				continue;
-			if (xx - (abs(yy) - radius) >= width && radius - abs(yy) - xx >= width)
 				continue;
 			sprite.SetPosition(Helper::worldToPixel[x + xx][y + yy].x, Helper::worldToPixel[x + xx][y + yy].y);
 			if (!isPaused_) {

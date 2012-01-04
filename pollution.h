@@ -7,7 +7,7 @@ class Pollution
 {
 public:
 	Pollution();
-	Pollution(int, int, int, int = 8, int = 2);
+	Pollution(int, int, int, int = 8);
 
 	static void bind(sf::RenderWindow*, bool = false);
 
@@ -23,7 +23,6 @@ public:
 private:
 	int radius;
 	const int maxRadius;
-	int width;
 	int x, y;
 	int roundsRun;
 	int lifespan;

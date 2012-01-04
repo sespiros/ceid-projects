@@ -59,3 +59,8 @@ I [Spiros]:
         * Added methods for computing and drawing stats for categories.
         * Added some additional logic (deaths, Consume per week, age, turns)
         * Added Log Box clickable.
+
+Wed Jan 4 20:10:56 GTBST 2012
+I [Spiros]:
+        * Added new pollution texture.
+        * Optimizations in constructors and Organism Images.

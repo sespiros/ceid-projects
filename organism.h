@@ -27,8 +27,7 @@ public:
 	void levelUp();
 	void weeklyReset();
 
-    static const std::map<fishtype, int> weightMap;
-    sf::Image image;
+	static const std::map<fishtype, int> weightMap;
 	sf::Sprite sprite;
 
     Organism(int, int, int, int, float, int, int, fishtype);

@@ -24,6 +24,7 @@ float Ocean::averageConsumptionWeek[10];
 float Ocean::averageDeathRate[10];
 float Ocean::averageAge[10];
 sf::String Ocean::categories[10];
+sf::Sprite Ocean::Images[10];
 
 void Ocean::init() {
     ClassRegistry::registerClasses();
@@ -41,11 +42,12 @@ void Ocean::init() {
         categories[i].SetPosition(830,y);
         categories[i].SetColor(sf::Color::Black);
         categories[i].SetSize(11);
+
+        Images[i].SetImage(ClassRegistry::assocMapImages[i]);
+        Images[i].SetPosition(830,y+19);
+        Images[i].SetScale(0.20f, 0.20f);
+
         y += 53;
-
-        //Images initialization
-
-
     }
 
     Ocean::populate();
@@ -290,6 +292,7 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
         identifier.SetText("Categories");
         for(int i = 0; i < 10; i++){
             o->Draw(categories[i]);
+            o->Draw(Images[i]);
         }
 
         //averageCategorySize strings

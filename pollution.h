@@ -21,7 +21,7 @@ public:
 	int getX() const;
 	int getY() const;
 private:
-	int radius;
+	int radius, innerRadius;
 	const int maxRadius;
 	int x, y;
 	int roundsRun;

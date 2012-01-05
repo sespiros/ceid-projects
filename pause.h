@@ -31,6 +31,7 @@ int PauseScreen::Run(sf::RenderWindow &App)
     int zoom = 0;
 
     sf::View view;
+	App.SetFramerateLimit(25);
     if(Ocean::worldIsBig){
         view.SetFromRect(sf::FloatRect(0,0,1200,700));
         view.Zoom(0.5);
@@ -66,6 +67,8 @@ int PauseScreen::Run(sf::RenderWindow &App)
         return(-1);
     }
     runSprite.SetImage(runImage);
+
+	App.SetFramerateLimit(25);
 
     while (Running)
     {
@@ -107,18 +110,18 @@ int PauseScreen::Run(sf::RenderWindow &App)
                 }
             }
 
-            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Up){
-                view.Move(0, 10.0f);
-            }
-            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Down){
-                view.Move(0, -10.0f);
-            }
-            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Left){
-                view.Move(-10.0f, 0);
-            }
-            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Right){
-                view.Move(10.0f, 0);
-            }
+			if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Up){
+				view.Move(0, 10.0f);
+			}
+			if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Down){
+				view.Move(0, -10.0f);
+			}
+			if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Left){
+				view.Move(-10.0f, 0);
+			}
+			if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Right){
+				view.Move(10.0f, 0);
+			}
 
             //////////////////////////////////////////////////
         }
@@ -143,7 +146,8 @@ int PauseScreen::Run(sf::RenderWindow &App)
         Ocean::drawStats(&App, IScreen::logChoice, 0);
 
         App.Display();
-        App.Clear();
+		App.Clear();
     }
+	App.SetFramerateLimit(0);
     return(-1);
 }

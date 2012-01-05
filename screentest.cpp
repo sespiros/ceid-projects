@@ -22,5 +22,7 @@ int main()
     while (curScreen >= 0)
         curScreen = Screens[curScreen]->Run(App);
 
+	Helper::cleanup();
+
     return EXIT_SUCCESS;
 }

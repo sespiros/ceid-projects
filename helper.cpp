@@ -70,6 +70,14 @@ Vector2f** Helper::getWorldScreenMapping() {
     return conv;
 }
 
+void Helper::cleanup() {
+	for (int i = 0; i < Ocean::MAX_X; i++) {
+		delete[] Helper::worldToPixel[i];
+	}
+
+	delete[] Helper::worldToPixel;
+}
+
 void Helper::swapDir(int i, int j) {
     int tmp = Helper::dir[i][0];
     Helper::dir[i][0] = Helper::dir[j][0];

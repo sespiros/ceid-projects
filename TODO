@@ -40,9 +40,10 @@ DONE|   *Optimize rand selection
 ****|	*Check for memory leaks, maybe use a Boost pointer container?
 DONE|   *Fix rand implementation not to produce 0,0 as dx,dy
 DONE|   *Limit pollution sources with clocks <-- Explain
-****|   *add pollution shader (possible post-fx fisheye with colorize) check sfml samples 
+****|   *add pollution shader (possible post-fx fisheye with colorize) check sfml samples <- no you check
 ****|   *clickable icons next to stats show category spesific information
 ****|   *Possible drag view..
 ****|   *In Big world view the dimensions are not correct yet
-****|   *Amount of zoom must be common between run and pause..fix
-****|   *<add todo>
+****|   *Amount of zoom must be common between run and pause..fix <- no you fix
+****|	*Separate event code from the main loop
+****|   *<add todo> <- no you add

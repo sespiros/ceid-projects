@@ -76,3 +76,7 @@ Thu Jan 5 01:05:06 GTBST 2012
 I [Petros]:
 	* Fixed coords in Helper (x for width, y for height)
 	* Packed Pollution and changed the spreading algorithm
+	
+Thu Jan 5 20:38:32 GTBST 2012
+I [Petros]:
+	* Implemented Dewitter's game loop in dewittersrun.h. Uncomment screentest.cpp to test. However, on my laptop, render runs at ~27 FPS (~60 FPS without the App.Display() line). Y U SO SLOW?

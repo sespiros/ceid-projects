@@ -39,21 +39,18 @@ int PauseScreen::Run(sf::RenderWindow &App)
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
         view.Zoom(0.35f);
         view.Move(722.0f,438.0f);
-        if (!back.LoadFromFile("artwork/big.jpg")){
-            std::cerr<<"Error loading background image"<<std::endl;
-            return(-1);
-        }
-        backSprite.SetImage(back);
     }else{
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
         view.Zoom(0.81f);
         view.Move(87.f,49.f);
-        if (!back.LoadFromFile("artwork/small.jpg")){
-            std::cerr<<"Error loading background image"<<std::endl;
-            return(-1);
-        }
-        backSprite.SetImage(back);
+
     }
+
+    if (!back.LoadFromFile("artwork/back.jpg")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+    backSprite.SetImage(back);
 
     if (!pauseImage.LoadFromFile("artwork/pause.png")){
         std::cerr<<"Error loading background image"<<std::endl;
@@ -124,9 +121,11 @@ int PauseScreen::Run(sf::RenderWindow &App)
             //////////////////////////////////////////////////
         }
 
+        App.SetView(App.GetDefaultView());
+        App.Draw(backSprite);
+
         App.SetView(view);
 
-        App.Draw(backSprite);
         std::map<int, Organism*>::iterator it;
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
             App.Draw(it->second->sprite);

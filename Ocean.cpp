@@ -25,6 +25,8 @@ float Ocean::averageDeathRate[10];
 float Ocean::averageAge[10];
 sf::String Ocean::categories[10];
 sf::Sprite Ocean::Images[10];
+sf::Font Ocean::Segoe;
+sf::Font Ocean::SegoeLight;
 bool Ocean::worldIsBig;
 int Ocean::MAX_COUNT;
 sf::Vector2f** Helper::worldToPixel;
@@ -32,11 +34,14 @@ sf::Vector2f** Helper::worldToPixel;
 void Ocean::init(bool choice) {
     ClassRegistry::registerClasses();
 
+    Segoe.LoadFromFile("artwork/Segoe.ttf");
+    SegoeLight.LoadFromFile("artwork/SegoeLight.ttf");
+
     Ocean::worldIsBig = choice;
     if(worldIsBig){
         MAX_COUNT = 200;
         MAX_X = 49;
-		MAX_Y = 32;
+        MAX_Y = 32;
     }else{
         MAX_COUNT = 100;
         MAX_X = 21;
@@ -56,7 +61,8 @@ void Ocean::init(bool choice) {
         //Stats String Categories Arrays initialization
         categories[i].SetText(ClassRegistry::assocMapNames[i]);
         categories[i].SetPosition(830,y);
-        categories[i].SetColor(sf::Color::Black);
+        categories[i].SetColor(sf::Color::White);
+        categories[i].SetFont(Segoe);
         categories[i].SetSize(11);
 
         Images[i].SetImage(ClassRegistry::assocMapImages[i]);
@@ -193,7 +199,7 @@ mapIter Ocean::collide(int key){
 }
 
 void Ocean::tickPollution() {
-	std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::tick));
+    std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::tick));
     Ocean::pollution.erase(std::remove_if(Ocean::pollution.begin(), Ocean::pollution.end(), Pollution::isDone), Ocean::pollution.end());
 }
 
@@ -270,13 +276,17 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     StatsTitle.SetText("Stats:");
     StatsTitle.SetSize(20);
     StatsTitle.SetPosition(830,10);         //830-left 895-center 10-top
-    StatsTitle.SetColor(sf::Color::Black);
+    StatsTitle.SetColor(sf::Color::White);
+    StatsTitle.SetFont(Segoe);
     identifier.SetSize(15);
     identifier.SetPosition(885,15);         //830-left 895-center 10-top
-    identifier.SetColor(sf::Color::Black);
+    identifier.SetColor(sf::Color::White);
+    identifier.SetFont(Segoe);
     clickToExpand.SetSize(15);
     clickToExpand.SetPosition(845,570);
-    clickToExpand.SetColor(sf::Color::Black);
+    clickToExpand.SetColor(sf::Color::White);
+    clickToExpand.SetFont(Segoe);
+
     sf::String data[40];
 
 
@@ -299,9 +309,10 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
             std::stringstream ss;
             ss << "Average category size = " << averageCategorySize[i];
             data[i].SetText(ss.str());
-            data[i].SetColor(sf::Color::Black);
+            data[i].SetColor(sf::Color::White);
             data[i].SetPosition(860,y);
-            data[i].SetSize(11);
+            data[i].SetSize(10);
+            data[i].SetFont(Segoe);
             y += 53;
             o->Draw(data[i]);
         }
@@ -312,9 +323,10 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
             std::stringstream ss;
             ss << "Avg. consumption/w = " << averageConsumptionWeek[i - 10];
             data[i].SetText(ss.str());
-            data[i].SetColor(sf::Color::Black);
+            data[i].SetColor(sf::Color::White);
             data[i].SetPosition(860,y);
-            data[i].SetSize(11);
+            data[i].SetSize(10);
+            data[i].SetFont(Segoe);
             y += 53;
             o->Draw(data[i]);
         }
@@ -325,9 +337,10 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
             std::stringstream ss;
             ss << "Average death rate = " << averageDeathRate[i - 20];
             data[i].SetText(ss.str());
-            data[i].SetColor(sf::Color::Black);
+            data[i].SetColor(sf::Color::White);
             data[i].SetPosition(860,y);
-            data[i].SetSize(11);
+            data[i].SetSize(10);
+            data[i].SetFont(Segoe);
             y += 53;
             o->Draw(data[i]);
         }
@@ -338,9 +351,10 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
             std::stringstream ss;
             ss << "Average age = " << averageAge[i - 30];
             data[i].SetText(ss.str());
-            data[i].SetColor(sf::Color::Black);
+            data[i].SetColor(sf::Color::White);
             data[i].SetPosition(860,y);
-            data[i].SetSize(11);
+            data[i].SetSize(10);
+            data[i].SetFont(Segoe);
             y += 53;
             o->Draw(data[i]);
         }
@@ -356,6 +370,7 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
 
 
         clickToExpand.SetText("Press click to close log");
+        clickToExpand.SetColor(sf::Color::Black);
     }else{
         clickToExpand.SetText("Press click to show log");
     }

@@ -50,6 +50,8 @@ public:
     static float averageAge[10];
     static sf::String categories[10];
     static sf::Sprite Images[10];
+    static sf::Font Segoe;
+    static sf::Font SegoeLight;
 
 };
 

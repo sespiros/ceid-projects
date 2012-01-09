@@ -46,21 +46,27 @@ int ExpScreen::Run(sf::RenderWindow &App)
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
         view.Zoom(0.35f);
         view.Move(722.0f,438.0f);
-        if (!back.LoadFromFile("artwork/big.jpg")){
-            std::cerr<<"Error loading background image"<<std::endl;
-            return(-1);
-        }
-        backSprite.SetImage(back);
+        //        if (!back.LoadFromFile("artwork/big.jpg")){
+        //            std::cerr<<"Error loading background image"<<std::endl;
+        //            return(-1);
+        //        }
+        //        backSprite.SetImage(back);
     }else{
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
         view.Zoom(0.81f);
         view.Move(87.f,49.f);
-        if (!back.LoadFromFile("artwork/small.jpg")){
-            std::cerr<<"Error loading background image"<<std::endl;
-            return(-1);
-        }
-        backSprite.SetImage(back);
+        //        if (!back.LoadFromFile("artwork/small.jpg")){
+        //            std::cerr<<"Error loading background image"<<std::endl;
+        //            return(-1);
+        //        }
+        //        backSprite.SetImage(back);
     }
+
+    if (!back.LoadFromFile("artwork/back.jpg")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+    backSprite.SetImage(back);
 
     if (!runImage.LoadFromFile("artwork/run.png")){
         std::cerr<<"Error loading background image"<<std::endl;
@@ -149,13 +155,14 @@ int ExpScreen::Run(sf::RenderWindow &App)
 
         float interpolation = float( runner.GetElapsedTime() + SKIP_TICKS - next_game_tick ) / float( SKIP_TICKS );
 
-        App.SetView(view);
-
+        App.SetView(App.GetDefaultView());
         App.Draw(backSprite);
+
+        App.SetView(view);
 
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
 
-            float ElapsedTime = interpolation ;
+            float ElapsedTime = interpolation * 0.90f;
             float movX = (Helper::worldToPixel[it->second->getX()][it->second->getY()].x - it->second->sprite.GetPosition().x);
             float movY = (Helper::worldToPixel[it->second->getX()][it->second->getY()].y - it->second->sprite.GetPosition().y);
 

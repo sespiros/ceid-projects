@@ -260,11 +260,11 @@ int Organism::getAge() {
 
 void Organism::setX(int x){
     (*this).x=x;
-    sprite.SetX(Helper::worldToPixel[x][y].x);
+    //sprite.SetX(Helper::worldToPixel[x][y].x);
 }
 void Organism::setY(int y){
     (*this).y=y;
-    sprite.SetY(Helper::worldToPixel[x][y].y);
+    //sprite.SetY(Helper::worldToPixel[x][y].y);
 }
 
 void Organism::eat(Organism* o) {

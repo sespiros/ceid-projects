@@ -33,6 +33,7 @@ int ExpScreen::Run(sf::RenderWindow &App)
     sf::Vector2f MousePos;
     sf::Vector2f MousePosView;
     sf::Vector2i local;
+    mapIter it;
 
     int zoom = 0;
     int loops = 0;
@@ -145,15 +146,26 @@ int ExpScreen::Run(sf::RenderWindow &App)
             frames = 0;
             lastTime = curTime;
         }
-        std::cout<<fps<<std::endl;
+
+        float interpolation = float( runner.GetElapsedTime() + SKIP_TICKS - next_game_tick ) / float( SKIP_TICKS );
 
         App.SetView(view);
 
         App.Draw(backSprite);
-        std::map<int, Organism*>::iterator it;
+
+        for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
+
+            float ElapsedTime = interpolation ;
+            float movX = (Helper::worldToPixel[it->second->getX()][it->second->getY()].x - it->second->sprite.GetPosition().x);
+            float movY = (Helper::worldToPixel[it->second->getX()][it->second->getY()].y - it->second->sprite.GetPosition().y);
+
+            it->second->sprite.Move(movX * ElapsedTime, movY * ElapsedTime);
+        }
+
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
             App.Draw(it->second->sprite);
         }
+
 
         Pollution::bind(&App);
         std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));

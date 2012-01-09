@@ -35,7 +35,7 @@ DONE|   *fix occasional bug
 ****|   *find a way to publish TODO file without commits........:P
 DONE|   *Complete Ocean.cpp in comments
 DONE|   *Optimize rand selection
-****|   *THE FUCKING INTERPOLATION FTW!!!!
+DONE|   *THE FUCKING INTERPOLATION FTW!!!! CREDITS TO DEADMAU5!!!!!!!!!
 ****|	*Which Organism members should be protected? Which private?
 ****|	*Check for memory leaks, maybe use a Boost pointer container?
 DONE|   *Fix rand implementation not to produce 0,0 as dx,dy
@@ -48,4 +48,6 @@ DONE|   *In Big world view the dimensions are not correct yet
 ****|	*Separate event code from the main loop
 ****|   *add about screen
 ****|   *Add organism whenever we want
+****|   *Interpolate in the same manner pollution...add position of pollution in class pollution and change them instead of sprite's position in tick...etc
+****|   *Major Recolor in textures
 ****|   *<add todo> <- no you add

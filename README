@@ -31,27 +31,27 @@ Notice how fast it is...everything works..check TODO for next goals..
 
 Sat Dec 31 19:35:45 GTBST 2011
 I [Petros]:
-	* Implemented a more sophisticated eating mechanism using bitfields (see member Organism::eatField) and the corresponding checking method (canEat). Do mess around with each organism's eating habits.
-	* Fixed an endless loop bug (0x02) found in Ocean::collide. That is, each organism shall choose a random direction from a two-dimensional array named Helper::dir[8][2] for eight rounds; after that, the organism is discarded.
-	* fishMap's iterator is now incremented (in Ocean::update) immediately after being evaluated for Ocean::collide(Organism*). That accounts for invalidation after erasing a map's pair (in Ocean::kill). There shouldn't be any issues implementing a bearing mechanism.
-	* Added an Organism::kill() method that decrements each Organism's count after dying. Another method to increment count might be needed.
-	
+        * Implemented a more sophisticated eating mechanism using bitfields (see member Organism::eatField) and the corresponding checking method (canEat). Do mess around with each organism's eating habits.
+        * Fixed an endless loop bug (0x02) found in Ocean::collide. That is, each organism shall choose a random direction from a two-dimensional array named Helper::dir[8][2] for eight rounds; after that, the organism is discarded.
+        * fishMap's iterator is now incremented (in Ocean::update) immediately after being evaluated for Ocean::collide(Organism*). That accounts for invalidation after erasing a map's pair (in Ocean::kill). There shouldn't be any issues implementing a bearing mechanism.
+        * Added an Organism::kill() method that decrements each Organism's count after dying. Another method to increment count might be needed.
+
 Tue Jan 3 01:43:31 GTBST 2012
 I [Petros]:
-	* Introduced a pollution system (position[x, y], radius). A static vector<Pollution *> holds the current pollution sources; each source has a lifespan (4th default constructor parameter). No sprites for the moment, just a logging routine. Deletion now should deallocate the pointers to pollution objects, yet we could check for memory leaks.
-	* Ocean::update now also runs tickPollution()
-	* Ocean::populate now checks for object existence before adding a new one at the same spot.
+        * Introduced a pollution system (position[x, y], radius). A static vector<Pollution *> holds the current pollution sources; each source has a lifespan (4th default constructor parameter). No sprites for the moment, just a logging routine. Deletion now should deallocate the pointers to pollution objects, yet we could check for memory leaks.
+        * Ocean::update now also runs tickPollution()
+        * Ocean::populate now checks for object existence before adding a new one at the same spot.
 
 Tue Jan 3 02:23:03 GTBST 2012
 I [Spiros]:
         *Deleted screenmanager implementation, caused segfaults in linux.
         *Fixed random generation in Ocean::collide, in Ocean::Cpp. (Possible memory leak fixed).
-		
+
 
 Tue Jan 3 19:02:06 GTBST 2012
 I [Petros]:
-	* Added a draw method for the pollution. Use Pollution::bind(sf::RenderWindow*) to first bind the render window, draw each pollution source, the unbind with Pollution::bind(0)
-	* typedef for std::map<int, Organism*>::iterator
+        * Added a draw method for the pollution. Use Pollution::bind(sf::RenderWindow*) to first bind the render window, draw each pollution source, the unbind with Pollution::bind(0)
+        * typedef for std::map<int, Organism*>::iterator
 
 Wed Jan 4 18:10:56 GTBST 2012
 I [Spiros]:
@@ -74,12 +74,12 @@ I [Spiros]:
 
 Thu Jan 5 01:05:06 GTBST 2012
 I [Petros]:
-	* Fixed coords in Helper (x for width, y for height)
-	* Packed Pollution and changed the spreading algorithm
-	
+        * Fixed coords in Helper (x for width, y for height)
+        * Packed Pollution and changed the spreading algorithm
+
 Thu Jan 5 20:38:32 GTBST 2012
 I [Petros]:
-	* Implemented Dewitter's game loop in dewittersrun.h. Uncomment screentest.cpp to test. However, on my laptop, render runs at ~27 FPS (~60 FPS without the App.Display() line). Y U SO SLOW?
+        * Implemented Dewitter's game loop in dewittersrun.h. Uncomment screentest.cpp to test. However, on my laptop, render runs at ~27 FPS (~60 FPS without the App.Display() line). Y U SO SLOW?
 
 Mon Jan 9 04:39:90 GTBST 2012
 I [Spiros]:
@@ -87,3 +87,7 @@ I [Spiros]:
         * Added method to get organism coordinates
         * "Fixed" 25 fps "bug"....LAWLZ check pause screen diff.....nuff said
 
+Mon Jan 9 05:43:45 GTBST 2012
+I [Spiros]:
+        * Added a clever implementation of interpolation...obvious but we couldn't see...speed 37 we can change that..
+        *Changed textures of small and big background

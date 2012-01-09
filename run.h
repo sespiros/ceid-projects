@@ -35,6 +35,9 @@ int RunScreen::Run(sf::RenderWindow &App)
     sf::Vector2f MousePosView;
     sf::Vector2i local;
     mapIter it;
+    float OffsetX, moX;
+    float OffsetY, moY;
+    bool che = false;
 
     int zoom = 0;
     int loops = 0;
@@ -42,16 +45,32 @@ int RunScreen::Run(sf::RenderWindow &App)
     float curTime, lastTime, fps = 0;
     int frames = 0;
 
+    sf::String lock;
+    lock.SetColor(sf::Color::White);
+    lock.SetPosition(720,480);
+    lock.SetSize(12);
+    lock.SetFont(Ocean::Segoe);
+
+    sf::String prompt;
+    prompt.SetColor(sf::Color::White);
+    prompt.SetPosition(720,490);
+    prompt.SetSize(12);
+    prompt.SetFont(Ocean::Segoe);
+
     sf::View view;
     if(Ocean::worldIsBig){
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
         view.Zoom(0.35f);
-        view.Move(722.0f,438.0f);
+        OffsetX = 722.0f;
+        OffsetY = 438.0f;
+        view.Move(OffsetX, OffsetY);
 
     }else{
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
         view.Zoom(0.81f);
-        view.Move(87.f,49.f);
+        OffsetX = 87.0f;
+        OffsetY = 49.0f;
+        view.Move(OffsetX, OffsetY);
     }
 
     if (!back.LoadFromFile("artwork/back.jpg")){
@@ -96,6 +115,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                     }else{
                         Ocean::choice = true;
                         Ocean::choiceHash = hash;
+
                     }
                 }
 
@@ -134,6 +154,10 @@ int RunScreen::Run(sf::RenderWindow &App)
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Right){
                 view.Move(-10.0f, 0);
             }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::C){
+                che = !che;
+                std::cout<<"Che changed to "<<che<<std::endl;
+            }
 
             ////////////////////////////////////////////////////
         }
@@ -160,7 +184,18 @@ int RunScreen::Run(sf::RenderWindow &App)
 
         App.SetView(App.GetDefaultView());
         App.Draw(backSprite);
+        //////////////////////////  EXPERIMENTAL CAMERA LOCK   //////////////////////////////
 
+        if(Ocean::choice && che){
+            moX = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].x - view.GetCenter().x + OffsetX/4;//caused by zooming
+            moY = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].y - view.GetCenter().y + OffsetY/4;
+
+            view.Move(moX * interpolation, moY * interpolation);
+        }
+
+
+
+        //////////////////////////////////////////////////////////////////////////////////
         App.SetView(view);
 
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
@@ -184,6 +219,16 @@ int RunScreen::Run(sf::RenderWindow &App)
         App.SetView(App.GetDefaultView());
         App.Draw(runSprite);
 
+        if(che){
+            lock.SetText("Camera lock ON");
+            prompt.SetText("Press C to disable");
+        }else{
+            lock.SetText("Camera lock OFF");
+            prompt.SetText("Press C to enable");
+        }
+
+        App.Draw(lock);
+        App.Draw(prompt);
         //Draw stats box
         Ocean::drawStats(&App, IScreen::logChoice, Ocean::choice);
 

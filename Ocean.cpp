@@ -6,8 +6,6 @@
 #include <cmath>
 #include <ctime>
 #include <algorithm>
-#include <cstring>
-#include <sstream>
 
 using  std::map;
 using  std::pair;
@@ -19,6 +17,7 @@ int Ocean::deaths = 0;
 int Ocean::turns = 0;
 bool Ocean::choice = false;
 int Ocean::choiceHash = 0;
+std::stringstream Ocean::log;
 std::map<int, Organism*> Ocean::fishMap;
 std::vector<Pollution*> Ocean::pollution;
 float Ocean::averageCategorySize[10];
@@ -95,6 +94,8 @@ void Ocean::kill(int key) {
     fishMap.erase(key);
     count--;
     deaths++;
+
+    regLog("ena psari pethane..paraponemeno");
 }
 
 void Ocean::createAndAddFish(int t, int x, int y) {
@@ -285,6 +286,7 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     sf::String StatsTitle;
     sf::String clickToExpand;
     sf::String identifier;
+    sf::String logs;
     sf::Image Log;
     sf::Sprite spriteLog;
     StatsTitle.SetText("Stats:");
@@ -300,6 +302,11 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     clickToExpand.SetPosition(845,570);
     clickToExpand.SetColor(sf::Color::White);
     clickToExpand.SetFont(Segoe);
+    logs.SetText(Ocean::log.str());
+    logs.SetSize(11);
+    logs.SetPosition(835,330);
+    logs.SetColor(sf::Color::Black);
+
 
     sf::String data[40];
 
@@ -313,7 +320,7 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     if(!choice2){
 
         if(Ocean::choiceHash == -1){
-            std::cout<<"To epilegmeno psari pire POULO"<<std::endl;
+            regLog("To epilegmeno psari pire POULO");
             choiceHash = 0;
         }
 
@@ -446,8 +453,10 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
 
     if(choice){
         o->Draw(spriteLog);
-        //TO ADD LOG INFORMATION
 
+
+
+        o->Draw(logs);
         clickToExpand.SetText("Press click to close log");
         clickToExpand.SetColor(sf::Color::Black);
     }else{
@@ -458,4 +467,17 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     o->Draw(identifier);
     o->Draw(clickToExpand);
     o->Draw(StatsTitle);
+}
+
+void Ocean::regLog(std::string subj){
+    static int counter;
+
+    if(counter%21 == 0){
+        std::cout<<"clear"<<std::endl;
+        Ocean::log.str("");
+    }
+
+    Ocean::log << subj <<std::endl;
+    counter++;
+
 }

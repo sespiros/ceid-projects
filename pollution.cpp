@@ -13,7 +13,7 @@ Pollution::Pollution(int r, int x, int y, int ls) : maxRadius(r)
 	innerRadius = 0;
 	roundsRun = 0;
 
-	if (!img.LoadFromFile("artwork/Pollution.png"))
+    if (!img.LoadFromFile("artwork/Pollution.png"))
 		std::cerr << "Could not load image (pollution.png)" << std::endl;
 	sprite.SetImage(img);
 	sprite.SetScale(0.25f, 0.25f);

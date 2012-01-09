@@ -5,6 +5,8 @@
 
 #include "organism.h"
 #include "pollution.h"
+#include <cstring>
+#include <sstream>
 
 typedef std::map<int, Organism*>::iterator mapIter;
 
@@ -41,6 +43,7 @@ public:
 
     static void stats();
     static void drawStats(sf::RenderWindow*, bool , bool);
+    static void regLog(std::string);
 
     Ocean();
 
@@ -54,6 +57,8 @@ public:
     static sf::Sprite Images[10];
     static sf::Font Segoe;
     static sf::Font SegoeLight;
+
+    static std::stringstream log;
 
 };
 

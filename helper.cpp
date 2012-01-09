@@ -34,8 +34,8 @@ Vector2f** Helper::getWorldScreenMapping() {
          +5 to add a gap between fish
          */
     int w = 32;
-    int jtiles = Ocean::MAX_Y;
-    int itiles = Ocean::MAX_X;
+    int jtiles = Ocean::MAX_Y+1;    //+1 to check for boundaries in adding organism manually
+    int itiles = Ocean::MAX_X+1;
 
     int i,j;
     int xs=0,ys=0;
@@ -48,16 +48,16 @@ Vector2f** Helper::getWorldScreenMapping() {
 
     //Fill buffer with window coordinates
     for(i=0;i<itiles;i++){
-		ys=0.f;
+        ys=0.f;
         for(j=0;j<jtiles;j++){
             conv[i][j].x=xs;
             conv[i][j].y=ys;
-			ys+=w+5;
+            ys+=w+5;
         }
-		xs+=w+5;
+        xs+=w+5;
     }
 
-//    Print buffer for debugging purposes(DO NOT DELETE!)
+    //Print buffer for debugging purposes(DO NOT DELETE!)
 //    for(i=0;i<itiles;i++){
 //        cout<<"|";
 //        for(j=0;j<jtiles;j++){
@@ -71,11 +71,11 @@ Vector2f** Helper::getWorldScreenMapping() {
 }
 
 void Helper::cleanup() {
-	for (int i = 0; i < Ocean::MAX_X; i++) {
-		delete[] Helper::worldToPixel[i];
-	}
+    for (int i = 0; i < Ocean::MAX_X; i++) {
+        delete[] Helper::worldToPixel[i];
+    }
 
-	delete[] Helper::worldToPixel;
+    delete[] Helper::worldToPixel;
 }
 
 void Helper::swapDir(int i, int j) {
@@ -86,4 +86,27 @@ void Helper::swapDir(int i, int j) {
     tmp = Helper::dir[i][1];
     Helper::dir[i][1] = Helper::dir[j][1];
     Helper::dir[j][1] = tmp;
+}
+
+Vector2i Helper::getLocalCoords(float mouseX, float mouseY){
+    sf::Vector2i ret;
+    bool checky = true;
+    bool checkx = true;
+
+    for (int i = 1; i < Ocean::MAX_X + 1 && checkx; i++){
+        for (int j = 1 ; j < Ocean::MAX_Y + 1 && checky; j++){
+            if(mouseY < worldToPixel[i][j].y){
+                ret.y = j - 1;
+                checky = false;
+            }
+        }
+        if(mouseX < worldToPixel[i][ret.y+1].x){
+            ret.x = i - 1;
+            checkx = false;
+        }
+
+
+    }
+
+    return ret;
 }

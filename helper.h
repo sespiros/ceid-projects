@@ -11,6 +11,7 @@ public:
         static sf::Vector2f** getWorldScreenMapping();
 		static void cleanup();
 		static void swapDir(int, int);
+        static sf::Vector2i getLocalCoords(float, float);
 
         static sf::Vector2f** worldToPixel;
 		static int dir[8][2];

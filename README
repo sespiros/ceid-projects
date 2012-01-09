@@ -80,3 +80,10 @@ I [Petros]:
 Thu Jan 5 20:38:32 GTBST 2012
 I [Petros]:
 	* Implemented Dewitter's game loop in dewittersrun.h. Uncomment screentest.cpp to test. However, on my laptop, render runs at ~27 FPS (~60 FPS without the App.Display() line). Y U SO SLOW?
+
+Mon Jan 9 04:39:90 GTBST 2012
+I [Spiros]:
+        * Fixed Dimensions of all screens.
+        * Added method to get organism coordinates
+        * "Fixed" 25 fps "bug"....LAWLZ check pause screen diff.....nuff said
+

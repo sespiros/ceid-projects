@@ -2,6 +2,7 @@
 #include "iscreen.h"
 #include "organism.h"
 #include "Ocean.h"
+#include "helper.h"
 
 class PauseScreen : public IScreen
 {
@@ -28,31 +29,30 @@ int PauseScreen::Run(sf::RenderWindow &App)
     sf::Image runImage;
     sf::Sprite runSprite;
     sf::Vector2f MousePos;
+    sf::Vector2f MousePosView;
+    sf::Vector2i local;
+
     int zoom = 0;
 
     sf::View view;
-	App.SetFramerateLimit(25);
     if(Ocean::worldIsBig){
-        view.SetFromRect(sf::FloatRect(0,0,1200,700));
-        view.Zoom(0.5);
-        view.Move(600.0f,320.0f);
+        view.SetFromRect(sf::FloatRect(-5,-5,800,500));
+        view.Zoom(0.35f);
+        view.Move(722.0f,438.0f);
         if (!back.LoadFromFile("artwork/big.jpg")){
             std::cerr<<"Error loading background image"<<std::endl;
             return(-1);
         }
-
         backSprite.SetImage(back);
-
     }else{
-        view.SetFromRect(sf::FloatRect(2,-5.66833,1190.67,690.782));
-        view.Zoom(0.97);
+        view.SetFromRect(sf::FloatRect(-5,-5,800,500));
+        view.Zoom(0.81f);
+        view.Move(87.f,49.f);
         if (!back.LoadFromFile("artwork/small.jpg")){
             std::cerr<<"Error loading background image"<<std::endl;
             return(-1);
         }
-
         backSprite.SetImage(back);
-
     }
 
     if (!pauseImage.LoadFromFile("artwork/pause.png")){
@@ -68,13 +68,12 @@ int PauseScreen::Run(sf::RenderWindow &App)
     }
     runSprite.SetImage(runImage);
 
-	App.SetFramerateLimit(25);
-
     while (Running)
     {
         while(App.GetEvent(Event))
         {
             MousePos = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
+            MousePosView = App.ConvertCoords(App.GetInput().GetMouseX(),App.GetInput().GetMouseY(),&view);
             if (Event.Type == sf::Event::Closed)
             {
                 return (-1);
@@ -84,13 +83,12 @@ int PauseScreen::Run(sf::RenderWindow &App)
                 return(1);
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                if(MousePos.x > 15 && MousePos.x < 818 && MousePos.y > 15 && MousePos.y < 512){
-                    playing = true;
-                    return(1);
-                }
+                local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
+                //debugging
+                std::cout << local.x << " " << local.y << std::endl;
+
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                std::cout << App.GetInput().GetMouseX()<<" "<<App.GetInput().GetMouseY()<<std::endl;
                 if(MousePos.x > 826 && MousePos.x < 1015 && MousePos.y > 558 && MousePos.y < 594){
                     IScreen::logChoice = !IScreen::logChoice;
                 }
@@ -98,30 +96,30 @@ int PauseScreen::Run(sf::RenderWindow &App)
             //////////////////////////////////////////////////
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){
                 if(zoom < 2){
-                    view.Zoom(2.0f);
+                    view.Zoom(1.25f);
                     zoom++;
                 }
 
             }
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::S){
-                if(zoom >= 0){//temporary for debugging
+                if(zoom > 0){
                     view.Zoom(0.5f);
                     zoom--;
                 }
             }
 
-			if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Up){
-				view.Move(0, 10.0f);
-			}
-			if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Down){
-				view.Move(0, -10.0f);
-			}
-			if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Left){
-				view.Move(-10.0f, 0);
-			}
-			if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Right){
-				view.Move(10.0f, 0);
-			}
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Up){
+                view.Move(0, 10.0f);
+            }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Down){
+                view.Move(0, -10.0f);
+            }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Left){
+                view.Move(10.0f, 0);
+            }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Right){
+                view.Move(-10.0f, 0);
+            }
 
             //////////////////////////////////////////////////
         }
@@ -134,7 +132,7 @@ int PauseScreen::Run(sf::RenderWindow &App)
             App.Draw(it->second->sprite);
         }
 
-		Pollution::bind(&App, true);
+        Pollution::bind(&App, true);
         std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));
         Pollution::bind(0);
 
@@ -146,8 +144,8 @@ int PauseScreen::Run(sf::RenderWindow &App)
         Ocean::drawStats(&App, IScreen::logChoice, 0);
 
         App.Display();
-		App.Clear();
+        App.Clear();
     }
-	App.SetFramerateLimit(0);
+    App.SetFramerateLimit(0);
     return(-1);
 }

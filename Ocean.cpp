@@ -35,12 +35,12 @@ void Ocean::init(bool choice) {
     Ocean::worldIsBig = choice;
     if(worldIsBig){
         MAX_COUNT = 200;
-		MAX_X = 52;
+        MAX_X = 49;
 		MAX_Y = 32;
     }else{
         MAX_COUNT = 100;
-		MAX_X = 26;
-		MAX_Y = 16;
+        MAX_X = 21;
+        MAX_Y = 14;
     }
 
     Helper::worldToPixel= Helper::getWorldScreenMapping();

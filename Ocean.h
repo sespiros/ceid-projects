@@ -18,32 +18,34 @@ public:
     static int count;
     static int deaths;
     static int turns;
+    static int choiceHash;
+    static bool choice;
 
     static void add(Organism *toAdd);
     static void kill(int key);
-	static mapIter move(int key, int x, int y);
+    static mapIter move(int key, int x, int y);
     static void createAndAddFish(int t, int x, int y);
 
-	static void pollute(int, int, int, int = 8);
+    static void pollute(int, int, int, int = 8);
 
     static void createAndAddRandFish(int x, int y);
     static void populate();
-	static mapIter collide(int key);
+    static mapIter collide(int key);
     static Organism::fishtype genRandType();
 
     static void init(bool choice);
-	static void tickPollution();
+    static void tickPollution();
     static void update();
     static void info();
-	static bool isValid(int, int);
+    static bool isValid(int, int);
 
     static void stats();
     static void drawStats(sf::RenderWindow*, bool , bool);
 
     Ocean();
 
-	static std::map<int, Organism*> fishMap;
-	static std::vector<Pollution*> pollution;
+    static std::map<int, Organism*> fishMap;
+    static std::vector<Pollution*> pollution;
     static float averageCategorySize[10];
     static float averageConsumptionWeek[10];
     static float averageDeathRate[10];

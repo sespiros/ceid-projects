@@ -91,3 +91,8 @@ Mon Jan 9 05:43:45 GTBST 2012
 I [Spiros]:
         * Added a clever implementation of interpolation...obvious but we couldn't see...speed 37 we can change that..
         *Changed textures of small and big background
+
+Mon Jan 9 18:43:45 GTBST 2012
+I [Spiros]:
+        * Added new pixel-perfect textures!!!
+        * Added stats per Organism

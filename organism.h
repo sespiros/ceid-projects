@@ -19,6 +19,8 @@ public:
     int getSize();
 	int getFoodConsumedWeek();
 	int getAge();
+    int getGrowthRate();
+    int getFoodRequiredPerWeek();
     void setX(int );
     void setY(int );
     bool canEat(Organism*);

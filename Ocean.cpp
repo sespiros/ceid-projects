@@ -17,6 +17,8 @@ using  std::pair;
 int Ocean::count = 0;
 int Ocean::deaths = 0;
 int Ocean::turns = 0;
+bool Ocean::choice = false;
+int Ocean::choiceHash = 0;
 std::map<int, Organism*> Ocean::fishMap;
 std::vector<Pollution*> Ocean::pollution;
 float Ocean::averageCategorySize[10];
@@ -82,6 +84,12 @@ void Ocean::add(Organism *toAdd) {
 }
 
 void Ocean::kill(int key) {
+
+    if(key == Ocean::choiceHash && Ocean::choice){
+        Ocean::choiceHash = -1;
+        Ocean::choice = false;
+    }
+
     fishMap[key]->kill();
     delete fishMap[key];
     fishMap.erase(key);
@@ -136,6 +144,11 @@ mapIter Ocean::move(int key, int x, int y) {
     it->second->setY(y);
 
     fishMap.insert(pair<int, Organism*>(hash, fishMap[key]));
+
+    if(key == Ocean::choiceHash && Ocean::choice){
+        Ocean::choiceHash = hash;
+    }
+
     //not Ocean::kill because in Ocean::we move an object and we don't want count--
     fishMap.erase(it++);
     return it;
@@ -268,6 +281,7 @@ void Ocean::stats(){
 }
 
 void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
+    int y;
     sf::String StatsTitle;
     sf::String clickToExpand;
     sf::String identifier;
@@ -297,6 +311,12 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
 
 
     if(!choice2){
+
+        if(Ocean::choiceHash == -1){
+            std::cout<<"To epilegmeno psari pire POULO"<<std::endl;
+            choiceHash = 0;
+        }
+
         identifier.SetText("Categories");
         for(int i = 0; i < 10; i++){
             o->Draw(categories[i]);
@@ -304,7 +324,7 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
         }
 
         //averageCategorySize strings
-        int y = 40;
+        y = 40;
         for(int i = 0; i < 10 ;i ++){
             std::stringstream ss;
             ss << "Average category size = " << averageCategorySize[i];
@@ -361,13 +381,72 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
 
 
     }else{
+        std::stringstream sb;
+        sb<<ClassRegistry::assocMapNames[Ocean::fishMap[Ocean::choiceHash]->getType()];
 
+        identifier.SetText(sb.str());
+        sf::Sprite id = Ocean::fishMap[Ocean::choiceHash]->sprite;
+
+        id.SetPosition(830,30);
+        id.SetScale(1.5f,1.5f);
+
+        std::stringstream sa;
+        sa << "Position: "<< Ocean::fishMap[Ocean::choiceHash]->getX()<<", "<<Ocean::fishMap[Ocean::choiceHash]->getY()<<std::endl;
+        y = 220;
+        data[0].SetText(sa.str());
+        data[0].SetColor(sf::Color::White);
+        data[0].SetPosition(830,y);
+        data[0].SetSize(14);
+        data[0].SetFont(Segoe);
+        std::stringstream s0;
+        s0 << " age = "<< Ocean::fishMap[Ocean::choiceHash]->getAge();
+        y += 15;
+        data[1].SetText(s0.str());
+        data[1].SetColor(sf::Color::White);
+        data[1].SetPosition(830,y);
+        data[1].SetSize(14);
+        data[1].SetFont(Segoe);
+        std::stringstream s1;
+        s1 << " size = "<< Ocean::fishMap[Ocean::choiceHash]->getSize();
+        y += 15;
+        data[2].SetText(s1.str());
+        data[2].SetColor(sf::Color::White);
+        data[2].SetPosition(830,y);
+        data[2].SetSize(14);
+        data[2].SetFont(Segoe);
+        std::stringstream s2;
+        s2 << " growthRate = "<< Ocean::fishMap[Ocean::choiceHash]->getGrowthRate();
+        y += 15;
+        data[3].SetText(s2.str());
+        data[3].SetColor(sf::Color::White);
+        data[3].SetPosition(830,y);
+        data[3].SetSize(14);
+        data[3].SetFont(Segoe);
+        std::stringstream s3;
+        s3 << " food Required/Week = "<< Ocean::fishMap[Ocean::choiceHash]->getFoodRequiredPerWeek();
+        y += 15;
+        data[4].SetText(s3.str());
+        data[4].SetColor(sf::Color::White);
+        data[4].SetPosition(830,y);
+        data[4].SetSize(14);
+        data[4].SetFont(Segoe);
+        std::stringstream s4;
+        s4 << " food Consumed/Week = "<< Ocean::fishMap[Ocean::choiceHash]->getFoodConsumedWeek();
+        y += 15;
+        data[5].SetText(s4.str());
+        data[5].SetColor(sf::Color::White);
+        data[5].SetPosition(830,y);
+        data[5].SetSize(14);
+        data[5].SetFont(Segoe);
+
+        o->Draw(id);
+        for(int i = 0; i < 6; i++)
+            o->Draw(data[i]);
     }
 
     if(choice){
         o->Draw(spriteLog);
         //TO ADD LOG INFORMATION
-
 
         clickToExpand.SetText("Press click to close log");
         clickToExpand.SetColor(sf::Color::Black);

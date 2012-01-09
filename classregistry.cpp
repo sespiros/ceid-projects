@@ -43,16 +43,16 @@ void ClassRegistry::registerClasses() {
     ClassRegistry::associate<Magikarp>(Organism::MAGIKARP);
     ClassRegistry::associate<Narwhal>(Organism::NARWHAL);
 
-    assocMapNames.insert(pair<int, std::string>(0, "Zoo Planktons"));
-    assocMapNames.insert(pair<int, std::string>(1, "Plant Planktons"));
-    assocMapNames.insert(pair<int, std::string>(2, "Shrimps"));
-    assocMapNames.insert(pair<int, std::string>(3, "Jellies"));
-    assocMapNames.insert(pair<int, std::string>(4, "Eels"));
-    assocMapNames.insert(pair<int, std::string>(5, "Balloon fishes"));
-    assocMapNames.insert(pair<int, std::string>(6, "Clown fishes"));
-    assocMapNames.insert(pair<int, std::string>(7, "Giatonp**** fishes"));
-    assocMapNames.insert(pair<int, std::string>(8, "Magikarps"));
-    assocMapNames.insert(pair<int, std::string>(9, "Narwhals"));
+    assocMapNames.insert(pair<int, std::string>(0, "Zoo Plankton"));
+    assocMapNames.insert(pair<int, std::string>(1, "Plant Plankton"));
+    assocMapNames.insert(pair<int, std::string>(2, "Shrimp"));
+    assocMapNames.insert(pair<int, std::string>(3, "Jelly"));
+    assocMapNames.insert(pair<int, std::string>(4, "Eel"));
+    assocMapNames.insert(pair<int, std::string>(5, "Balloon fish"));
+    assocMapNames.insert(pair<int, std::string>(6, "Clown fish"));
+    assocMapNames.insert(pair<int, std::string>(7, "GTP fish"));
+    assocMapNames.insert(pair<int, std::string>(8, "Magikarp"));
+    assocMapNames.insert(pair<int, std::string>(9, "Narwhal"));
 
     sf::Image image;
     image.LoadFromFile("artwork/ZPlankton.png");

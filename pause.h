@@ -17,6 +17,8 @@ public:
 PauseScreen::PauseScreen(void){
     playing=false;
 }
+int Ocean::MAX_X;
+int Ocean::MAX_Y;
 
 int PauseScreen::Run(sf::RenderWindow &App)
 {
@@ -80,9 +82,20 @@ int PauseScreen::Run(sf::RenderWindow &App)
                 return(1);
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
-                //debugging
-                std::cout << local.x << " " << local.y << std::endl;
+                if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 512){
+                    local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
+
+                    int hash = local.x + local.y * Ocean::MAX_X;
+
+                    if(Ocean::fishMap.find(hash) == Ocean::fishMap.end())
+                    {
+                        Ocean::choice = false;
+                        Ocean::choiceHash = 0;
+                    }else{
+                        Ocean::choice = true;
+                        Ocean::choiceHash = hash;
+                    }
+                }
 
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
@@ -93,7 +106,7 @@ int PauseScreen::Run(sf::RenderWindow &App)
             //////////////////////////////////////////////////
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){
                 if(zoom < 2){
-                    view.Zoom(1.25f);
+                    view.Zoom(2.0f);
                     zoom++;
                 }
 
@@ -140,7 +153,7 @@ int PauseScreen::Run(sf::RenderWindow &App)
         App.Draw(pauseSprite);
 
         //Draw stats box
-        Ocean::drawStats(&App, IScreen::logChoice, 0);
+        Ocean::drawStats(&App, IScreen::logChoice, Ocean::choice);
 
         App.Display();
         App.Clear();

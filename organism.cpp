@@ -258,6 +258,14 @@ int Organism::getAge() {
     return age;
 }
 
+int Organism::getGrowthRate(){
+    return growthRate;
+}
+
+int Organism::getFoodRequiredPerWeek(){
+    return foodRequired*7;
+}
+
 void Organism::setX(int x){
     (*this).x=x;
     //sprite.SetX(Helper::worldToPixel[x][y].x);

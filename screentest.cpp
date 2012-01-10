@@ -13,7 +13,6 @@ int main()
 
     PauseScreen pause;
     RunScreen run;
-
     Screens.push_back(&pause);
     Screens.push_back(&run);
 

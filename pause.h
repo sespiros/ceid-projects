@@ -33,6 +33,8 @@ int PauseScreen::Run(sf::RenderWindow &App)
     sf::Vector2f MousePos;
     sf::Vector2f MousePosView;
     sf::Vector2i local;
+    float OffsetX, CenterX;
+    float OffsetY, CenterY;
 
     int zoom = 0;
 
@@ -40,12 +42,21 @@ int PauseScreen::Run(sf::RenderWindow &App)
     if(Ocean::worldIsBig){
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
         view.Zoom(0.35f);
-        view.Move(722.0f,438.0f);
+        //OffsetX = 722.0f;
+        //OffsetY = 438.0f;
+        //view.Move(OffsetX, OffsetY);
+        CenterX = 1119.5;
+        CenterY = 685.5;
+        view.SetCenter(CenterX, CenterY);
     }else{
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
-        view.Zoom(0.81f);
-        view.Move(87.f,49.f);
-
+        view.Zoom(0.79f);
+        //OffsetX = 97.0f;
+        //OffsetY = 57.0f;
+        //view.Move(OffsetX, OffsetY);
+        CenterX = 494.5;
+        CenterY = 304.5;
+        view.SetCenter(CenterX, CenterY);
     }
 
     if (!back.LoadFromFile("artwork/back.jpg")){

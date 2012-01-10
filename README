@@ -101,3 +101,11 @@ Mon Jan 9 20:38:45 GTBST 2012
 I [Spiros]:
         * Added Follow Camera
         * Added Log mechanism (non scrolling yet, not sure if needed)
+
+Wed Jan 11 01:00:60 GTBST 2012
+I [Spiros]:
+        * Made the world larger
+        * Fixed stats box allignment
+        * Added general stats in Ocean::stats
+        * Implemented better followcam (yet it needs to be centered )
+

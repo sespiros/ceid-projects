@@ -35,8 +35,8 @@ int RunScreen::Run(sf::RenderWindow &App)
     sf::Vector2f MousePosView;
     sf::Vector2i local;
     mapIter it;
-    float OffsetX, moX;
-    float OffsetY, moY;
+    float OffsetX, moX, CenterX;
+    float OffsetY, moY, CenterY;
     bool che = false;
 
     int zoom = 0;
@@ -47,30 +47,30 @@ int RunScreen::Run(sf::RenderWindow &App)
 
     sf::String lock;
     lock.SetColor(sf::Color::White);
-    lock.SetPosition(720,480);
+    lock.SetPosition(662,550);
     lock.SetSize(12);
-    lock.SetFont(Ocean::Segoe);
-
-    sf::String prompt;
-    prompt.SetColor(sf::Color::White);
-    prompt.SetPosition(720,490);
-    prompt.SetSize(12);
-    prompt.SetFont(Ocean::Segoe);
+    lock.SetFont(Ocean::GlobalFont);
 
     sf::View view;
     if(Ocean::worldIsBig){
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
         view.Zoom(0.35f);
-        OffsetX = 722.0f;
-        OffsetY = 438.0f;
-        view.Move(OffsetX, OffsetY);
+        //OffsetX = 722.0f;
+        //OffsetY = 438.0f;
+        //view.Move(OffsetX, OffsetY);
+        CenterX = 1119.5;
+        CenterY = 685.5;
+        view.SetCenter(CenterX, CenterY);
 
     }else{
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
-        view.Zoom(0.81f);
-        OffsetX = 87.0f;
-        OffsetY = 49.0f;
-        view.Move(OffsetX, OffsetY);
+        view.Zoom(0.79f);
+        //OffsetX = 97.0f;
+        //OffsetY = 57.0f;
+        //view.Move(OffsetX, OffsetY);
+        CenterX = 494.5;
+        CenterY = 304.5;
+        view.SetCenter(CenterX, CenterY);
     }
 
     if (!back.LoadFromFile("artwork/back.jpg")){
@@ -156,7 +156,12 @@ int RunScreen::Run(sf::RenderWindow &App)
             }
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::C){
                 che = !che;
-                std::cout<<"Che changed to "<<che<<std::endl;
+                if (!che){
+                    view.SetCenter(CenterX, CenterY);
+                }
+            }
+            if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
+                std::cout<<MousePos.x<<" "<<MousePos.y<<std::endl;
             }
 
             ////////////////////////////////////////////////////
@@ -184,18 +189,24 @@ int RunScreen::Run(sf::RenderWindow &App)
 
         App.SetView(App.GetDefaultView());
         App.Draw(backSprite);
+
+
         //////////////////////////  EXPERIMENTAL CAMERA LOCK   //////////////////////////////
 
-        if(Ocean::choice && che){
-            moX = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].x - view.GetCenter().x + OffsetX/4;//caused by zooming
-            moY = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].y - view.GetCenter().y + OffsetY/4;
+        if(Ocean::choice && che && zoom >= 1){
+            moX = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].x - view.GetCenter().x;//caused by zooming
+            moY = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].y - view.GetCenter().y;
 
             view.Move(moX * interpolation, moY * interpolation);
+
+        }
+        if(zoom == 0){
+            view.SetCenter(CenterX, CenterY);
         }
 
-
-
         //////////////////////////////////////////////////////////////////////////////////
+
+
         App.SetView(view);
 
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
@@ -220,15 +231,12 @@ int RunScreen::Run(sf::RenderWindow &App)
         App.Draw(runSprite);
 
         if(che){
-            lock.SetText("Camera lock ON");
-            prompt.SetText("Press C to disable");
+            lock.SetText("Press C to disable followcam");
         }else{
-            lock.SetText("Camera lock OFF");
-            prompt.SetText("Press C to enable");
+            lock.SetText("Press C to enable followcam");
         }
 
         App.Draw(lock);
-        App.Draw(prompt);
         //Draw stats box
         Ocean::drawStats(&App, IScreen::logChoice, Ocean::choice);
 

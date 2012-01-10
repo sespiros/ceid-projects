@@ -76,7 +76,5 @@ void ClassRegistry::registerClasses() {
     image.LoadFromFile("artwork/Narwhal.png");
     assocMapImages.insert(pair<int, sf::Image>(9,image));
 
-
-
 }
 

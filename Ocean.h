@@ -19,6 +19,7 @@ public:
 
     static int count;
     static int deaths;
+    static int births;
     static int turns;
     static int choiceHash;
     static bool choice;
@@ -27,6 +28,7 @@ public:
     static void kill(int key);
     static mapIter move(int key, int x, int y);
     static void createAndAddFish(int t, int x, int y);
+    static mapIter breed(int key1, int key2);
 
     static void pollute(int, int, int, int = 8);
 

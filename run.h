@@ -60,7 +60,7 @@ int RunScreen::Run(sf::RenderWindow &App)
 
     sf::String lock;
     lock.SetColor(sf::Color::White);
-    lock.SetSize(12);
+    lock.SetSize(15);
     lock.SetFont(Ocean::GlobalFont);
 
     sf::Sprite tooltip;
@@ -96,7 +96,7 @@ int RunScreen::Run(sf::RenderWindow &App)
 
     sf::String tip;
     tip.SetColor(sf::Color::White);
-    tip.SetSize(11);
+    tip.SetSize(13);
     tip.SetFont(Ocean::GlobalFont);
 
     sf::Rect<float> addNew                  (831,39,875,560);
@@ -288,8 +288,13 @@ int RunScreen::Run(sf::RenderWindow &App)
                 sf::Vector2i local = Helper::getLocalCoords(MousePos.x ,MousePos.y);
                 int hash = local.x + local.y * Ocean::MAX_X;
 
-                if(Ocean::fishMap.find(hash) == Ocean::fishMap.end()){
-                    Ocean::createAndAddFish(drop-1, local.x, local.y) ;
+                if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
+                    if(Ocean::fishMap.find(hash) == Ocean::fishMap.end()){
+                        Ocean::createAndAddFish(drop-1, local.x, local.y) ;
+                        std::stringstream ss;
+                        ss << "A "<<ClassRegistry::assocMapNames[drop - 1]<<" was added by user";
+                        Ocean::regLog(ss.str());
+                    }
                 }
             }
             drop = false;
@@ -349,7 +354,6 @@ int RunScreen::Run(sf::RenderWindow &App)
         }
 
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
-
             if(Ocean::choice){
                 selection.SetPosition(Ocean::fishMap[Ocean::choiceHash]->sprite.GetPosition());
                 App.Draw(selection);
@@ -373,10 +377,10 @@ int RunScreen::Run(sf::RenderWindow &App)
 
         if(che){
             lock.SetText("Press C to disable followcam");
-            lock.SetPosition(610,550);
+            lock.SetPosition(615,545);
         }else{
             lock.SetText("Press C to enable followcam");
-            lock.SetPosition(620,550);
+            lock.SetPosition(625,545);
         }
 
         App.Draw(lock);

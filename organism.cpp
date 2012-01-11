@@ -303,3 +303,8 @@ bool Organism::canEat(Organism* o) {
         return false;
 }
 
+int Organism::getWeightof(Organism::fishtype a){
+    //std::map<Organism::fishtype, int> tmp = Organism::weightMap
+    return 5;
+}
+

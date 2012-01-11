@@ -16,6 +16,7 @@ using  std::pair;
 int Ocean::count = 0;
 int Ocean::deaths = 0;
 int Ocean::turns = 0;
+int Ocean::births = 0;
 bool Ocean::choice = false;
 int Ocean::choiceHash = 0;
 std::stringstream Ocean::log;
@@ -196,10 +197,11 @@ mapIter Ocean::collide(int key){
         Ocean::fishMap[key]->eat(Ocean::fishMap[hash]);
         kill(hash);
         next = move(key, x, y);
-        //add stats print
+        std::stringstream ss;
+        ss << "Fish " << key << " ate fish " << hash;
+        regLog(ss.str());
     }else if(hasBred){
-        //to be added
-        //add stats print
+        next = Ocean::breed(key, hash);
         next++;
     }else if(hasMoved){
         next = move(key, x, y);
@@ -290,16 +292,16 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     sf::Image Log;
     sf::Sprite spriteLog;
     StatsTitle.SetText("Stats:");
-    StatsTitle.SetSize(20);
-    StatsTitle.SetPosition(830,10);
+    StatsTitle.SetSize(30);
+    StatsTitle.SetPosition(830,0);
     StatsTitle.SetColor(sf::Color::White);
     StatsTitle.SetFont(GlobalFont);
-    clickToExpand.SetSize(12);
-    clickToExpand.SetPosition(835,575);
+    clickToExpand.SetSize(15);
+    clickToExpand.SetPosition(837,570);
     clickToExpand.SetColor(sf::Color::White);
     clickToExpand.SetFont(GlobalFont);
-    identifier.SetSize(15);
-    identifier.SetPosition(905,13);
+    identifier.SetSize(20);
+    identifier.SetPosition(915,8);
     identifier.SetColor(sf::Color::White);
     identifier.SetFont(GlobalFont);
     logs.SetText(Ocean::log.str());
@@ -320,11 +322,11 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     ss <<"Week "        <<  std::setw(8)    <<Ocean::turns / 7 + 1 <<"  |  ";
     ss <<"Total alive " <<  std::setw(8)    <<Ocean::count         <<"  |  ";
     ss <<"Deaths "      <<  std::setw(8)    <<Ocean::deaths        <<"  |  ";
-    ss <<"Births "      <<  std::setw(8)    <<"N/A"<<std::endl;
+    ss <<"Births "      <<  std::setw(8)    <<Ocean::births        <<std::endl;
 
     general.SetText(ss.str());
-    general.SetSize(12);
-    general.SetPosition(5,580);
+    general.SetSize(15);
+    general.SetPosition(8,576);
     general.SetColor(sf::Color::White);
     general.SetFont(GlobalFont);
 
@@ -333,7 +335,7 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
         identifier.SetText("Categories");
 
         if(Ocean::choiceHash == -1){
-            regLog("To epilegmeno psari pire POULO");
+            regLog("Chosen fish died");
             choiceHash = 0;
         }
 
@@ -413,8 +415,8 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
 
             data[i].SetText(ss.str());
             data[i].SetColor(sf::Color::White);
-            data[i].SetPosition(875,y);
-            data[i].SetSize(11);
+            data[i].SetPosition(876,y);
+            data[i].SetSize(16);
             data[i].SetFont(GlobalFont);
             y += 53;
             o->Draw(data[i]);
@@ -514,4 +516,54 @@ void Ocean::regLog(std::string subj){
     Ocean::log << subj <<std::endl;
     counter++;
 
+}
+
+mapIter Ocean::breed(int key1, int key2){
+    bool done = false;
+    int parents[2];
+    parents[0] = key1;
+    parents[1] = key2;
+    int k = 0;
+    Organism::fishtype type = Ocean::fishMap[key1]->getType();
+    std::map<Organism::fishtype, int>::const_iterator iter;
+    iter = Organism::weightMap.find(type);
+    int weight = iter->second;
+
+    //as China because we can
+    int breedLimit = Ocean::fishMap[key1]->getCount() ; //temporary maybe improved weightmap
+
+    mapIter it;
+    it = Ocean::fishMap.find(key2);
+
+    while(k < 2 && !done){
+        int random = rand()%breedLimit;
+        for (int i = 7; i > 0 && !done; i--) {
+            int j = rand()%(i + 1);
+
+            int dx = Helper::dir[j][0];
+            int dy = Helper::dir[j][1];
+
+            Helper::swapDir(j, i);
+
+            if (!isValid(Ocean::fishMap[parents[k]]->getX() + dx, Ocean::MAX_X) || !isValid(Ocean::fishMap[parents[k]]->getY() + dy, Ocean::MAX_Y))
+                continue;
+
+            int x = Ocean::fishMap[parents[k]]->getX() + dx;
+            int y = Ocean::fishMap[parents[k]]->getY() + dy;
+
+            int hash = x + y * Ocean::MAX_X;
+
+            if(Ocean::fishMap.find(hash) == Ocean::fishMap.end() && random == 1){
+                Ocean::createAndAddFish(type, x, y);
+                std::stringstream ss;
+                ss << "A "<<ClassRegistry::assocMapNames[type]<<" was born";
+                regLog(ss.str());
+                Ocean::births++;
+                done = true;
+            }
+        }
+        k++;
+    }
+
+    return it;
 }

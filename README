@@ -121,3 +121,8 @@ I [Spiros]:
         * bug in selection texture in run no opacity(i know what it is)
         * Implemented drag to add organism
 
+Wed Jan 11 23:08:45 GTBST 2012
+I [Spiros]:
+        * Implemented Ocean::breed
+        * Added more log information
+        * Minor bug fixes

@@ -21,12 +21,13 @@ public:
 	int getAge();
     int getGrowthRate();
     int getFoodRequiredPerWeek();
+    int getWeightof(Organism::fishtype);
     void setX(int );
     void setY(int );
     bool canEat(Organism*);
     virtual void kill() = 0;
     void eat(Organism*);
-	void levelUp();
+    void levelUp();
 	void weeklyReset();
 
 	static const std::map<fishtype, int> weightMap;

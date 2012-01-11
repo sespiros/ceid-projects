@@ -38,6 +38,7 @@ int RunScreen::Run(sf::RenderWindow &App)
     float OffsetX, moX, CenterX;
     float OffsetY, moY, CenterY;
     bool che = false;
+    bool debug = true;
 
     int zoom = 0;
     int loops = 0;
@@ -47,9 +48,24 @@ int RunScreen::Run(sf::RenderWindow &App)
 
     sf::String lock;
     lock.SetColor(sf::Color::White);
-    lock.SetPosition(662,550);
     lock.SetSize(12);
     lock.SetFont(Ocean::GlobalFont);
+
+    sf::Sprite tooltip;
+    sf::Image   _tooltip;
+
+    tooltip.SetColor(sf::Color::Black);
+
+    sf::String tip;
+    tip.SetColor(sf::Color::White);
+    tip.SetSize(11);
+    tip.SetFont(Ocean::GlobalFont);
+
+    sf::Rect<float> addNew                  (831,39,875,560);
+    sf::Rect<float> averageCategorySize     (871,39,900,560);
+    sf::Rect<float> averageConsumptionWeek  (904,39,935,560);
+    sf::Rect<float> averageDeathRate        (937,39,973,560);
+    sf::Rect<float> averageAge              (976,39,1013,560);
 
     sf::View view;
     if(Ocean::worldIsBig){
@@ -94,6 +110,8 @@ int RunScreen::Run(sf::RenderWindow &App)
         {
             MousePos = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
             MousePosView = App.ConvertCoords(App.GetInput().GetMouseX(),App.GetInput().GetMouseY(),&view);
+            sf::Rect<float> mouseRect(MousePos.x, MousePos.y, MousePos.x + 0.001, MousePos.y + 0.001);
+
             if (Event.Type == sf::Event::Closed)
             {
                 return (-1); // window close
@@ -103,7 +121,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 return(0); // state switch
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 512){
+                if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
                     local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
 
                     int hash = local.x + local.y * Ocean::MAX_X;
@@ -115,7 +133,6 @@ int RunScreen::Run(sf::RenderWindow &App)
                     }else{
                         Ocean::choice = true;
                         Ocean::choiceHash = hash;
-
                     }
                 }
 
@@ -124,7 +141,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 Ocean::pollute(rand()%5 + 1, rand()%Ocean::MAX_X, rand()%Ocean::MAX_Y, rand()%8 + 3);
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                if(MousePos.x > 826 && MousePos.x < 1015 && MousePos.y > 558 && MousePos.y < 594){
+                if(MousePos.x > 826 && MousePos.x < 1015 && MousePos.y > 576 && MousePos.y < 589){
                     IScreen::logChoice = !IScreen::logChoice;
                 }
             }
@@ -162,6 +179,47 @@ int RunScreen::Run(sf::RenderWindow &App)
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
                 std::cout<<MousePos.x<<" "<<MousePos.y<<std::endl;
+            }
+            if(addNew.Intersects(mouseRect)){
+                tip.SetText("Drag organism to add");
+                tip.SetPosition(MousePos.x - 140, MousePos.y - 10);
+                tooltip.SetSubRect(sf::Rect<int>(tip.GetRect().Left - 5,tip.GetRect().Top - 5,tip.GetRect().Right + 5,tip.GetRect().Bottom));
+                tooltip.SetPosition(MousePos.x - 145, MousePos.y - 10);
+            }else{
+                tip.SetText("");
+                tooltip.SetPosition(1024, 600);//PATENTA
+            }
+            if(averageCategorySize.Intersects(mouseRect)){
+                tip.SetText("average category size");
+                tip.SetPosition(MousePos.x - 145, MousePos.y - 10);
+                tooltip.SetSubRect(sf::Rect<int>(tip.GetRect().Left - 5,tip.GetRect().Top - 5,tip.GetRect().Right + 5,tip.GetRect().Bottom));
+                tooltip.SetPosition(MousePos.x - 150, MousePos.y - 10);
+            }
+            if(averageConsumptionWeek.Intersects(mouseRect)){
+                tip.SetText("consumption/week");
+                tip.SetPosition(MousePos.x - 110, MousePos.y - 10);
+                tooltip.SetSubRect(sf::Rect<int>(tip.GetRect().Left - 5,tip.GetRect().Top - 5,tip.GetRect().Right + 5,tip.GetRect().Bottom));
+                tooltip.SetPosition(MousePos.x - 115, MousePos.y - 10);
+            }
+            if(averageDeathRate.Intersects(mouseRect)){
+                tip.SetText("death rate");
+                tip.SetPosition(MousePos.x - 70, MousePos.y - 10);
+                tooltip.SetSubRect(sf::Rect<int>(tip.GetRect().Left - 5,tip.GetRect().Top - 5,tip.GetRect().Right + 5,tip.GetRect().Bottom));
+                tooltip.SetPosition(MousePos.x - 75, MousePos.y - 10);
+            }
+            if(averageAge.Intersects(mouseRect)){
+                tip.SetText("average age");
+                tip.SetPosition(MousePos.x - 80, MousePos.y - 10);
+                tooltip.SetSubRect(sf::Rect<int>(tip.GetRect().Left - 5,tip.GetRect().Top - 5,tip.GetRect().Right + 5,tip.GetRect().Bottom));
+                tooltip.SetPosition(MousePos.x - 85, MousePos.y - 10);
+            }
+
+            if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565 && debug){
+                std::stringstream ss;
+                local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
+                ss << local.x <<", "<<local.y;
+                tip.SetText(ss.str());
+                tip.SetPosition(MousePos.x - 10, MousePos.y - 10);
             }
 
             ////////////////////////////////////////////////////
@@ -232,13 +290,18 @@ int RunScreen::Run(sf::RenderWindow &App)
 
         if(che){
             lock.SetText("Press C to disable followcam");
+            lock.SetPosition(610,550);
         }else{
             lock.SetText("Press C to enable followcam");
+            lock.SetPosition(620,550);
         }
 
         App.Draw(lock);
         //Draw stats box
         Ocean::drawStats(&App, IScreen::logChoice, Ocean::choice);
+
+        App.Draw(tooltip);
+        App.Draw(tip);
 
         App.Display();
         App.Clear();

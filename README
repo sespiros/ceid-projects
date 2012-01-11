@@ -109,3 +109,7 @@ I [Spiros]:
         * Added general stats in Ocean::stats
         * Implemented better followcam (yet it needs to be centered )
 
+Wed Jan 11 06:00:45 GTBST 2012
+I [Spiros]:
+        * Added new stats display
+        * Added mouse-over tooltips and debug information in run

@@ -49,5 +49,7 @@ DONE|   *In Big world view the dimensions are not correct yet
 ****|   *add about screen
 ****|   *Add organism whenever we want
 ****|   *Interpolate in the same manner pollution...add position of pollution in class pollution and change them instead of sprite's position in tick...etc
-****|   *Major Recolor in textures
+DONE|   *Major Recolor in textures
+****|   *Fix a new bug in small world view when rightmost column = 0 caused of view dimensions
+****|   *In run when zoom=2 and lock camera on..debug information not showing properly..priority LOWEST(TODO FORMAT IDEA)
 ****|   *<add todo> <- no you add

@@ -282,7 +282,9 @@ void Organism::eat(Organism* o) {
     if (foodConsumed >= foodRequired) {
         size += foodConsumed/foodRequired;
         foodConsumed = foodConsumed%foodRequired;
-        std::cout << "Size inc! for " << o->size << std::endl;
+        std::stringstream ss;
+        ss<<"Size inc! for "<< o;
+        Ocean::regLog(ss.str());
     }
 }
 

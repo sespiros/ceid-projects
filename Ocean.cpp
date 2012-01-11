@@ -44,7 +44,7 @@ void Ocean::init(bool choice) {
         MAX_Y = 36;
     }else{
         MAX_COUNT = 100;
-        MAX_X = 21;
+        MAX_X = 22;
         MAX_Y = 16;
     }
 

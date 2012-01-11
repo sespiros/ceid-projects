@@ -46,13 +46,51 @@ int RunScreen::Run(sf::RenderWindow &App)
     float curTime, lastTime, fps = 0;
     int frames = 0;
 
+    sf::Rect<float> catSelect[10];
+    int top = 38;
+    int bottom = top + 40;
+    for(int i = 0; i < 10; i++){
+        catSelect[i] = sf::Rect<float>(833,top,870,bottom);
+        top = bottom + 13;
+        bottom = top + 40;
+    }
+    sf::Sprite drag;
+    int drop = 0;
+    drag.SetScale(0.25,0.25);
+
     sf::String lock;
     lock.SetColor(sf::Color::White);
     lock.SetSize(12);
     lock.SetFont(Ocean::GlobalFont);
 
     sf::Sprite tooltip;
-    sf::Image   _tooltip;
+
+    sf::Sprite d_vertical;
+    sf::Sprite d_horizontal;
+    sf::Sprite selection;
+
+    sf::Image vertical;
+    sf::Image horizontal;
+    sf::Image img_selection;
+
+    if (!vertical.LoadFromFile("artwork/grid_vertical.png")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+    d_vertical.SetImage(vertical);
+
+    if (!horizontal.LoadFromFile("artwork/grid_horizontal.png")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+    d_horizontal.SetImage(horizontal);
+
+    if (!img_selection.LoadFromFile("artwork/selection.png")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+    selection.SetImage(img_selection);
+    selection.SetScale(0.25f,0.25f);
 
     tooltip.SetColor(sf::Color::Black);
 
@@ -80,12 +118,12 @@ int RunScreen::Run(sf::RenderWindow &App)
 
     }else{
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
-        view.Zoom(0.79f);
+        view.Zoom(0.78f);
         //OffsetX = 97.0f;
         //OffsetY = 57.0f;
         //view.Move(OffsetX, OffsetY);
-        CenterX = 494.5;
-        CenterY = 304.5;
+        CenterX = 500.5;
+        CenterY = 300.5;
         view.SetCenter(CenterX, CenterY);
     }
 
@@ -102,16 +140,16 @@ int RunScreen::Run(sf::RenderWindow &App)
     runSprite.SetImage(runImage);
 
     lastTime = runner.GetElapsedTime();
-
+    /************************************************************************* LOOP ***************************/
     while (Running)
     {
+        /************************************************************************* EVENTS ***************************/
+        MousePos = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
+        MousePosView = App.ConvertCoords(App.GetInput().GetMouseX(),App.GetInput().GetMouseY(),&view);
+        sf::Rect<float> mouseRect(MousePos.x, MousePos.y, MousePos.x + 0.001, MousePos.y + 0.001);
 
         while(App.GetEvent(Event))
         {
-            MousePos = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
-            MousePosView = App.ConvertCoords(App.GetInput().GetMouseX(),App.GetInput().GetMouseY(),&view);
-            sf::Rect<float> mouseRect(MousePos.x, MousePos.y, MousePos.x + 0.001, MousePos.y + 0.001);
-
             if (Event.Type == sf::Event::Closed)
             {
                 return (-1); // window close
@@ -135,8 +173,8 @@ int RunScreen::Run(sf::RenderWindow &App)
                         Ocean::choiceHash = hash;
                     }
                 }
-
             }
+
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Space) {
                 Ocean::pollute(rand()%5 + 1, rand()%Ocean::MAX_X, rand()%Ocean::MAX_Y, rand()%8 + 3);
             }
@@ -145,7 +183,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                     IScreen::logChoice = !IScreen::logChoice;
                 }
             }
-            /////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////TO ADD IN PAUSE
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::W){
                 if(zoom < 2){
                     view.Zoom(2.0f);
@@ -158,7 +196,6 @@ int RunScreen::Run(sf::RenderWindow &App)
                     zoom--;
                 }
             }
-
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Up){
                 view.Move(0, 10.0f);
             }
@@ -176,6 +213,9 @@ int RunScreen::Run(sf::RenderWindow &App)
                 if (!che){
                     view.SetCenter(CenterX, CenterY);
                 }
+            }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::D){
+                debug = !debug;
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
                 std::cout<<MousePos.x<<" "<<MousePos.y<<std::endl;
@@ -219,12 +259,43 @@ int RunScreen::Run(sf::RenderWindow &App)
                 local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
                 ss << local.x <<", "<<local.y;
                 tip.SetText(ss.str());
-                tip.SetPosition(MousePos.x - 10, MousePos.y - 10);
+                tip.SetPosition(MousePos.x + 10, MousePos.y - 10);
+
+                d_vertical.SetPosition(MousePos.x, 15);
+                d_horizontal.SetPosition(13, MousePos.y);
+            }else{
+                d_vertical.SetPosition(0,0);
+                d_horizontal.SetPosition(0,0);
             }
 
-            ////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////TO ADD IN PAUSE
         }
 
+        if(App.GetInput().IsMouseButtonDown(sf::Mouse::Left)){
+            for(int i = 0; i < 10;i++){
+                if(catSelect[i].Intersects(mouseRect)){
+                    drop = i+1;
+                    drag.SetImage(ClassRegistry::assocMapImages[i]);
+                }
+            }
+            if(drop){
+                drag.SetPosition(MousePos.x,MousePos.y);
+            }else{
+                drag.SetPosition(1024,600);
+            }
+        }else{
+            if(drop){
+                sf::Vector2i local = Helper::getLocalCoords(MousePos.x ,MousePos.y);
+                int hash = local.x + local.y * Ocean::MAX_X;
+
+                if(Ocean::fishMap.find(hash) == Ocean::fishMap.end()){
+                    Ocean::createAndAddFish(drop-1, local.x, local.y) ;
+                }
+            }
+            drop = false;
+        }
+
+        /************************************************************************* UPDATE ***************************/
         loops = 0;
 
         while(runner.GetElapsedTime() > next_game_tick && loops < MAX_FRAMESKIP){
@@ -243,6 +314,7 @@ int RunScreen::Run(sf::RenderWindow &App)
             lastTime = curTime;
         }
 
+        /************************************************************************* RENDER ***************************/
         float interpolation = float( runner.GetElapsedTime() + SKIP_TICKS - next_game_tick ) / float(SKIP_TICKS );
 
         App.SetView(App.GetDefaultView());
@@ -277,6 +349,11 @@ int RunScreen::Run(sf::RenderWindow &App)
         }
 
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
+
+            if(Ocean::choice){
+                selection.SetPosition(Ocean::fishMap[Ocean::choiceHash]->sprite.GetPosition());
+                App.Draw(selection);
+            }
             App.Draw(it->second->sprite);
         }
 
@@ -286,6 +363,12 @@ int RunScreen::Run(sf::RenderWindow &App)
         Pollution::bind(0);
 
         App.SetView(App.GetDefaultView());
+
+        if(debug){
+            App.Draw(d_horizontal);
+            App.Draw(d_vertical);
+        }
+
         App.Draw(runSprite);
 
         if(che){
@@ -300,8 +383,11 @@ int RunScreen::Run(sf::RenderWindow &App)
         //Draw stats box
         Ocean::drawStats(&App, IScreen::logChoice, Ocean::choice);
 
-        App.Draw(tooltip);
-        App.Draw(tip);
+        if(!Ocean::choice){
+            App.Draw(tooltip);
+            App.Draw(tip);
+        }
+        if(drop)App.Draw(drag);
 
         App.Display();
         App.Clear();

@@ -113,3 +113,11 @@ Wed Jan 11 06:00:45 GTBST 2012
 I [Spiros]:
         * Added new stats display
         * Added mouse-over tooltips and debug information in run
+
+Wed Jan 11 20:21:45 GTBST 2012
+I [Spiros]:
+        * Misc enhancements in run and its debug information.
+        * Slight retexture in interface
+        * bug in selection texture in run no opacity(i know what it is)
+        * Implemented drag to add organism
+

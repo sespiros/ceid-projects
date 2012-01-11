@@ -50,12 +50,12 @@ int PauseScreen::Run(sf::RenderWindow &App)
         view.SetCenter(CenterX, CenterY);
     }else{
         view.SetFromRect(sf::FloatRect(-5,-5,800,500));
-        view.Zoom(0.79f);
+        view.Zoom(0.78f);
         //OffsetX = 97.0f;
         //OffsetY = 57.0f;
         //view.Move(OffsetX, OffsetY);
-        CenterX = 494.5;
-        CenterY = 304.5;
+        CenterX = 500.5;
+        CenterY = 300.5;
         view.SetCenter(CenterX, CenterY);
     }
 

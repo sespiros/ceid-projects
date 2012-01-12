@@ -126,3 +126,9 @@ I [Spiros]:
         * Implemented Ocean::breed
         * Added more log information
         * Minor bug fixes
+
+Thu Jan 12 20:46:42 GTBST 2012
+I [Petros]:
+	* Fixed frame rates in pause, run
+	* Fixed narwhal eating habits
+	* There is a bug when the user quickly pauses the simulation; the interpolation is left incomplete and positions get messy

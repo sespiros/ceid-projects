@@ -24,6 +24,7 @@ RunScreen::RunScreen(void) : TICKS_PER_SECOND(1.f), SKIP_TICKS(1.0f / TICKS_PER_
 
 int RunScreen::Run(sf::RenderWindow &App)
 {
+    App.SetFramerateLimit(0);
     sf::Event Event;
     bool Running = true;
     sf::Image runImage;

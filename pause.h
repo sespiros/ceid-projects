@@ -22,6 +22,7 @@ int Ocean::MAX_Y;
 
 int PauseScreen::Run(sf::RenderWindow &App)
 {
+    App.SetFramerateLimit(18);
     sf::Event Event;
     bool Running = true;
     sf::Image pauseImage;
@@ -169,6 +170,5 @@ int PauseScreen::Run(sf::RenderWindow &App)
         App.Display();
         App.Clear();
     }
-    App.SetFramerateLimit(0);
     return(-1);
 }

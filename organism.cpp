@@ -225,7 +225,7 @@ void Magikarp::kill() {
 Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 0, 1, 4.0f, 8, 6, NARWHAL){
     count++;
 
-    eatField = 0xfffffffc;
+    eatField = ~0 & ~(1 << Organism::ZPL | 1 << Organism::PPL | 1 << Organism::NARWHAL);
 
     sprite.SetImage(ClassRegistry::assocMapImages[9]);
     sprite.SetScale(0.25f, 0.25f);

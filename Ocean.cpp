@@ -156,15 +156,14 @@ mapIter Ocean::move(int key, int x, int y) {
 }
 
 mapIter Ocean::collide(int key){
+    mapIter next = Ocean::fishMap.find(key);
     int curX = Ocean::fishMap[key]->getX();
     int curY = Ocean::fishMap[key]->getY();
-    mapIter next = Ocean::fishMap.find(key);
 
     int dx, dy, x, y, hash;
     bool hasMoved = false;
     bool hasEat = false;
     bool hasBred = false;
-
 
     for (int i = 7; i > 0; i--) {
         int j = rand()%(i + 1);
@@ -192,6 +191,7 @@ mapIter Ocean::collide(int key){
         if(hasEat || hasBred || hasMoved)
             break;
     }
+
 
     if(hasEat){
         Ocean::fishMap[key]->eat(Ocean::fishMap[hash]);
@@ -224,9 +224,13 @@ void Ocean::update() {
 
     tickPollution();
     turns++;
-
-    for (it = Ocean::fishMap.begin(); it != Ocean::fishMap.end(); ) {
-        it = collide(it->first);
+    for (it = Ocean::fishMap.begin(); it != Ocean::fishMap.end();) {
+        if (it->second->isDone)
+            ++it;
+        else{
+            it->second->isDone = true;
+            it = collide(it->first);
+        }
     }
 
     Ocean::stats();
@@ -530,10 +534,10 @@ mapIter Ocean::breed(int key1, int key2){
     int weight = iter->second;
 
     //as China because we can
-    int breedLimit = Ocean::fishMap[key1]->getCount() ; //temporary maybe improved weightmap
+    int breedLimit = 2 * Ocean::fishMap[key1]->getCount() ; //temporary maybe improved weightmap
 
     mapIter it;
-    it = Ocean::fishMap.find(key2);
+    it = Ocean::fishMap.find(key1);
 
     while(k < 2 && !done){
         int random = rand()%breedLimit;

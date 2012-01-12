@@ -32,6 +32,7 @@ public:
 
 	static const std::map<fishtype, int> weightMap;
 	sf::Sprite sprite;
+    bool isDone;
 
     Organism(int, int, int, int, float, int, int, fishtype);
 

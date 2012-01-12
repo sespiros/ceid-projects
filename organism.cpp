@@ -34,6 +34,7 @@ Organism::Organism(int x, int y, int a, int s, float gr, int fr, int v, Organism
 
     foodConsumed = 0;
     foodConsumedWeek = 0;
+    isDone = false;
 }
 
 std::map<Organism::fishtype, int> Organism::createWeightMap() {
@@ -60,12 +61,13 @@ Organism::fishtype Organism::getType() {
 Plankton::Plankton(int x, int y, int a, int s, float gr, int fr, int v, Organism::fishtype t):
     Organism(x, y, a, s, gr, fr, v, t)
 {
-    eatField = 0x0;
     //familyCount++;
 }
 
 ZPlankton::ZPlankton(int x, int y):Plankton(x, y, 0, 1, 1.0f, 5, 1, ZPL){
     count++;
+
+    eatField = 1 << Organism::PPL;
 
     sprite.SetImage(ClassRegistry::assocMapImages[0]);
     sprite.SetScale(0.25f, 0.25f);
@@ -81,6 +83,8 @@ void ZPlankton::kill() {
 
 PPlankton::PPlankton(int x, int y):Plankton(x, y, 0, 1, 0, 0, 1, PPL){
     count++;
+
+    eatField = 0;
 
     sprite.SetImage(ClassRegistry::assocMapImages[1]);
     sprite.SetScale(0.25f, 0.25f);
@@ -294,6 +298,7 @@ void Organism::weeklyReset() {
 
 void Organism::levelUp() {
     age++;
+    isDone = false;
 }
 
 bool Organism::canEat(Organism* o) {

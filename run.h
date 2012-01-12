@@ -17,7 +17,7 @@ public:
     const int MAX_FRAMESKIP;
 };
 
-RunScreen::RunScreen(void) : TICKS_PER_SECOND(1.2f), SKIP_TICKS(1.0f / TICKS_PER_SECOND), MAX_FRAMESKIP(10){
+RunScreen::RunScreen(void) : TICKS_PER_SECOND(1.f), SKIP_TICKS(1.0f / TICKS_PER_SECOND), MAX_FRAMESKIP(10){
     playing = false;
 }
 
@@ -285,7 +285,7 @@ int RunScreen::Run(sf::RenderWindow &App)
             }
         }else{
             if(drop){
-                sf::Vector2i local = Helper::getLocalCoords(MousePos.x ,MousePos.y);
+                sf::Vector2i local = Helper::getLocalCoords(MousePosView.x ,MousePosView.y);
                 int hash = local.x + local.y * Ocean::MAX_X;
 
                 if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
@@ -354,7 +354,7 @@ int RunScreen::Run(sf::RenderWindow &App)
         }
 
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
-            if(Ocean::choice){
+            if(Ocean::choice && Ocean::choiceHash == it->first){
                 selection.SetPosition(Ocean::fishMap[Ocean::choiceHash]->sprite.GetPosition());
                 App.Draw(selection);
             }

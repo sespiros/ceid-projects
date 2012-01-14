@@ -322,14 +322,14 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     sf::String data[10];
 
     std::stringstream ss;
-    ss <<"Runtime "     <<  std::setw(8)    <<Ocean::turns         <<"  |  ";
-    ss <<"Week "        <<  std::setw(8)    <<Ocean::turns / 7 + 1 <<"  |  ";
-    ss <<"Total alive " <<  std::setw(8)    <<Ocean::count         <<"  |  ";
-    ss <<"Deaths "      <<  std::setw(8)    <<Ocean::deaths        <<"  |  ";
-    ss <<"Births "      <<  std::setw(8)    <<Ocean::births        <<std::endl;
+    ss <<"Runtime "     <<  std::setw(6)    <<Ocean::turns         <<"  | ";
+    ss <<"Week "        <<  std::setw(6)    <<Ocean::turns / 7 + 1 <<"  | ";
+    ss <<"Total alive " <<  std::setw(6)    <<Ocean::count         <<"  | ";
+    ss <<"Deaths "      <<  std::setw(6)    <<Ocean::deaths        <<"  | ";
+    ss <<"Births "      <<  std::setw(5)    <<Ocean::births        <<" | "<<std::endl;
 
     general.SetText(ss.str());
-    general.SetSize(15);
+    general.SetSize(14);
     general.SetPosition(8,576);
     general.SetColor(sf::Color::White);
     general.SetFont(GlobalFont);
@@ -350,65 +350,6 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
             o->Draw(Images[i]);
         }
 
-        /*
-        //        //averageCategorySize strings
-        //        y = 40;
-        //        for(int i = 0; i < 10 ;i ++){
-        //            std::stringstream ss;
-        //            ss << "Average category size = " << std::setprecision(3) << std::setw(13)<<averageCategorySize[i];
-        //            data[i].SetText(ss.str());
-        //            data[i].SetColor(sf::Color::White);
-        //            data[i].SetPosition(860,y);
-        //            data[i].SetSize(10);
-        //            data[i].SetFont(GlobalFont);
-        //            y += 53;
-        //            o->Draw(data[i]);
-        //        }
-
-        //        //averageComsuptionWeek strings
-        //        y = 50;
-        //        for(int i = 10; i < 20 ;i ++){
-        //            std::stringstream ss;
-        //            ss << "Avg. consumption/w = " << std::setprecision(3)   << std::setw(15)<< averageConsumptionWeek[i - 10];
-        //            data[i].SetText(ss.str());
-        //            data[i].SetColor(sf::Color::White);
-        //            data[i].SetPosition(860,y);
-        //            data[i].SetSize(10);
-        //            data[i].SetFont(GlobalFont);
-        //            y += 53;
-        //            o->Draw(data[i]);
-        //        }
-
-        //        //averageDeathRate strings
-        //        y = 60;
-        //        for(int i = 20; i < 30 ;i ++){
-        //            std::stringstream ss;
-        //            ss << "Average death rate = " << std::setprecision(3)   << std::setw(18)<<  averageDeathRate[i - 20];
-        //            data[i].SetText(ss.str());
-        //            data[i].SetColor(sf::Color::White);
-        //            data[i].SetPosition(860,y);
-        //            data[i].SetSize(10);
-        //            data[i].SetFont(GlobalFont);
-        //            y += 53;
-        //            o->Draw(data[i]);
-        //        }
-
-        //        //averageAge strings
-        //        y = 70;
-        //        for(int i = 30; i < 40 ;i ++){
-        //            std::stringstream ss;
-        //            ss << "Average age = " << std::setprecision(3)   << std::setw(29)<< averageAge[i - 30];
-        //            data[i].SetText(ss.str());
-        //            data[i].SetColor(sf::Color::White);
-        //            data[i].SetPosition(860,y);
-        //            data[i].SetSize(10);
-        //            data[i].SetFont(GlobalFont);
-        //            y += 53;
-        //            o->Draw(data[i]);
-        //        }
-        */
-
-        //int a = 0;
         int y = 45;
         for(int i = 0; i < 10; i++){
             std::stringstream ss;
@@ -419,8 +360,8 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
 
             data[i].SetText(ss.str());
             data[i].SetColor(sf::Color::White);
-            data[i].SetPosition(876,y);
-            data[i].SetSize(16);
+            data[i].SetPosition(875,y);
+            data[i].SetSize(15);
             data[i].SetFont(GlobalFont);
             y += 53;
             o->Draw(data[i]);
@@ -534,7 +475,7 @@ mapIter Ocean::breed(int key1, int key2){
     int weight = iter->second;
 
     //as China because we can
-    int breedLimit = 2 * Ocean::fishMap[key1]->getCount() ; //temporary maybe improved weightmap
+    int breedLimit = Ocean::fishMap[key1]->getCount(); //temporary maybe improved weightmap
 
     mapIter it;
     it = Ocean::fishMap.find(key1);

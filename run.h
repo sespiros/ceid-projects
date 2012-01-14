@@ -13,11 +13,11 @@ public:
     RunScreen (void);
     virtual int Run (sf::RenderWindow &App);
     const float TICKS_PER_SECOND;
-    const float SKIP_TICKS;
+    float SKIP_TICKS;
     const int MAX_FRAMESKIP;
 };
 
-RunScreen::RunScreen(void) : TICKS_PER_SECOND(1.f), SKIP_TICKS(1.0f / TICKS_PER_SECOND), MAX_FRAMESKIP(10){
+RunScreen::RunScreen(void) : TICKS_PER_SECOND(1.0f), SKIP_TICKS(1.0f / TICKS_PER_SECOND), MAX_FRAMESKIP(10){
     playing = false;
 }
 
@@ -68,6 +68,8 @@ int RunScreen::Run(sf::RenderWindow &App)
 
     sf::Sprite d_vertical;
     sf::Sprite d_horizontal;
+    sf::String d_tip;
+
     sf::Sprite selection;
 
     sf::Image vertical;
@@ -100,11 +102,56 @@ int RunScreen::Run(sf::RenderWindow &App)
     tip.SetSize(13);
     tip.SetFont(Ocean::GlobalFont);
 
+    d_tip.SetColor(sf::Color::White);
+    d_tip.SetSize(13);
+    d_tip.SetFont(Ocean::GlobalFont);
+
     sf::Rect<float> addNew                  (831,39,875,560);
     sf::Rect<float> averageCategorySize     (871,39,900,560);
-    sf::Rect<float> averageConsumptionWeek  (904,39,935,560);
-    sf::Rect<float> averageDeathRate        (937,39,973,560);
-    sf::Rect<float> averageAge              (976,39,1013,560);
+    sf::Rect<float> averageConsumptionWeek  (910,39,935,560);
+    sf::Rect<float> averageDeathRate        (947,39,973,560);
+    sf::Rect<float> averageAge              (986,39,1013,560);
+
+    sf::Image st_b;
+    sf::Image in_b;
+    sf::Image  se_sl;
+    sf::Sprite stop;
+    sf::Sprite info;
+    sf::Sprite slider;
+    bool slide = false;
+
+    if (!st_b.LoadFromFile("artwork/stop.png")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+    if (!in_b.LoadFromFile("artwork/info.png")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+    if (!se_sl.LoadFromFile("artwork/speed.png")){
+        std::cerr<<"Error loading background image"<<std::endl;
+        return(-1);
+    }
+
+    stop.SetImage(st_b);
+    info.SetImage(in_b);
+    slider.SetImage(se_sl);
+
+    stop.SetPosition(756,573);
+    info.SetPosition(787,573);
+    slider.SetPosition(583,573);
+
+    if(IScreen::speed == 15.0){
+        slider.SetPosition(714,slider.GetPosition().y);
+    }else if (IScreen::speed == 6.0){
+        slider.SetPosition(668,slider.GetPosition().y);
+    }else if(IScreen::speed == 3.0){
+        slider.SetPosition(625,slider.GetPosition().y);
+    }
+
+    sf::Rect<float> stopRect, infoRect;
+    stopRect = sf::FloatRect(764,581,786,597);
+    infoRect = sf::FloatRect(795,581,817,597);
 
     sf::View view;
     if(Ocean::worldIsBig){
@@ -144,10 +191,12 @@ int RunScreen::Run(sf::RenderWindow &App)
     /************************************************************************* LOOP ***************************/
     while (Running)
     {
+        SKIP_TICKS = 1.0f/IScreen::speed;
         /************************************************************************* EVENTS ***************************/
         MousePos = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
         MousePosView = App.ConvertCoords(App.GetInput().GetMouseX(),App.GetInput().GetMouseY(),&view);
         sf::Rect<float> mouseRect(MousePos.x, MousePos.y, MousePos.x + 0.001, MousePos.y + 0.001);
+        sf::Rect<float> sliderRect(slider.GetPosition().x,slider.GetPosition().y + 5,slider.GetPosition().x + 37,slider.GetPosition().y + 20);
 
         while(App.GetEvent(Event))
         {
@@ -219,7 +268,16 @@ int RunScreen::Run(sf::RenderWindow &App)
                 debug = !debug;
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                std::cout<<MousePos.x<<" "<<MousePos.y<<std::endl;
+                //std::cout<<MousePos.x<<" "<<MousePos.y<<std::endl;
+                if(stopRect.Intersects(mouseRect)){        //restart function
+                    std::cout<<"in stop"<<std::endl;
+                }
+                if(infoRect.Intersects(mouseRect)){        //info sprite display in pause screen
+                    IScreen::info = true;
+                    playing = true;
+                    return(0);
+                }
+
             }
             if(addNew.Intersects(mouseRect)){
                 tip.SetText("Drag organism to add");
@@ -259,14 +317,15 @@ int RunScreen::Run(sf::RenderWindow &App)
                 std::stringstream ss;
                 local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
                 ss << local.x <<", "<<local.y;
-                tip.SetText(ss.str());
-                tip.SetPosition(MousePos.x + 10, MousePos.y - 10);
+                d_tip.SetText(ss.str());
+                d_tip.SetPosition(MousePos.x + 5, MousePos.y - 15);
 
                 d_vertical.SetPosition(MousePos.x, 15);
                 d_horizontal.SetPosition(13, MousePos.y);
             }else{
                 d_vertical.SetPosition(0,0);
                 d_horizontal.SetPosition(0,0);
+                d_tip.SetPosition(1024, 600); //sto diaolo
             }
 
             ////////////////////////////////////////////////////TO ADD IN PAUSE
@@ -279,10 +338,21 @@ int RunScreen::Run(sf::RenderWindow &App)
                     drag.SetImage(ClassRegistry::assocMapImages[i]);
                 }
             }
+
             if(drop){
                 drag.SetPosition(MousePos.x,MousePos.y);
             }else{
                 drag.SetPosition(1024,600);
+            }
+
+            if(sliderRect.Intersects(mouseRect)){
+                slide = true;
+            }
+
+            if(slide){
+                if(MousePos.x > 600 && MousePos.x < 754 - 15){
+                    slider.SetPosition(MousePos.x - 20, slider.GetPosition().y);
+                }
             }
         }else{
             if(drop){
@@ -298,7 +368,23 @@ int RunScreen::Run(sf::RenderWindow &App)
                     }
                 }
             }
-            drop = false;
+            drop = 0;
+            slide = false;
+
+            if(slider.GetPosition().x > 700){
+                slider.SetPosition(714,slider.GetPosition().y);
+                IScreen::speed = 15.0f;
+            }else if(slider.GetPosition().x > 653){
+                slider.SetPosition(668,slider.GetPosition().y);
+                IScreen::speed = 6.0f;
+            }else if(slider.GetPosition().x > 610){
+                slider.SetPosition(625,slider.GetPosition().y);
+                IScreen::speed = 3.0f;
+            }else{
+                slider.SetPosition(583,slider.GetPosition().y);
+                IScreen::speed = 1.0f;
+            }
+            SKIP_TICKS = 1.0f/IScreen::speed;
         }
 
         /************************************************************************* UPDATE ***************************/
@@ -347,16 +433,19 @@ int RunScreen::Run(sf::RenderWindow &App)
 
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
 
-            float ElapsedTime = interpolation;
             float movX = (Helper::worldToPixel[it->second->getX()][it->second->getY()].x - it->second->sprite.GetPosition().x);
             float movY = (Helper::worldToPixel[it->second->getX()][it->second->getY()].y - it->second->sprite.GetPosition().y);
 
-            it->second->sprite.Move(movX * ElapsedTime, movY * ElapsedTime);
+            //if(Ocean::choice && Ocean::choiceHash == it->first){
+            //std::cout<<loops<<"           "<<movX<<"         "<<movY<<std::endl;
+            //}
+
+            it->second->sprite.Move(movX * interpolation, movY * interpolation);
         }
 
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
             if(Ocean::choice && Ocean::choiceHash == it->first){
-                selection.SetPosition(Ocean::fishMap[Ocean::choiceHash]->sprite.GetPosition());
+                selection.SetPosition(Ocean::fishMap[Ocean::choiceHash]->sprite.GetPosition().x-5, Ocean::fishMap[Ocean::choiceHash]->sprite.GetPosition().y-5);
                 App.Draw(selection);
             }
             App.Draw(it->second->sprite);
@@ -372,6 +461,7 @@ int RunScreen::Run(sf::RenderWindow &App)
         if(debug){
             App.Draw(d_horizontal);
             App.Draw(d_vertical);
+            App.Draw(d_tip);
         }
 
         App.Draw(runSprite);
@@ -393,6 +483,10 @@ int RunScreen::Run(sf::RenderWindow &App)
             App.Draw(tip);
         }
         if(drop)App.Draw(drag);
+
+        App.Draw(stop);
+        App.Draw(info);
+        App.Draw(slider);
 
         App.Display();
         App.Clear();

@@ -7,11 +7,11 @@ DONE|   *change Ocean::move so before setting new x,y check Ocean::fishMap :
 DONE|   *change blue sea texture to match view resolution
 DONE|   *optimize textures dimensions in general
 DONE|   *limit zoom
-****|         and move
+DONE|         and move
 DONE|   *decide about the world size
             -standard size and just zoom in
             -VAST WORLD see only a part and we may choose what to draw
-****|   *clock and render timing
+DONE|   *clock and render timing
 ****|   *implement user actions
             -fishnet
                 _retexture
@@ -24,15 +24,15 @@ DONE|       -pollution
             -adding Organisms
                 _possible drag&drop?
 DONE|   *add stats
-****|   *implement dynamic(*skype*) stats tab in the top-right corner
+DONE|   *implement dynamic(*skype*) stats tab in the top-right corner
 DONE|   *fix pause screen
-****|   *add a checkedSprite version of every class
+DONE|   *add a checkedSprite version of every class
 DONE|   *add general itiles and jtiles as in getWorldScreenMapping
 DONE|   *fix occasional bug
             http://www.qtforum.org/article/31803/passing-pointer-of-object-into-function-crashes.html
             edit: SERIOUS BUG IN COMMIT 41b8a...we should check the code after this commit
             ammend: after debugging it seems that createAndAddRandFish causes sometimes sigsegv.
-****|   *find a way to publish TODO file without commits........:P
+DUH!|   *find a way to publish TODO file without commits........:P
 DONE|   *Complete Ocean.cpp in comments
 DONE|   *Optimize rand selection
 DONE|   *THE FUCKING INTERPOLATION FTW!!!! CREDITS TO DEADMAU5!!!!!!!!!
@@ -41,17 +41,17 @@ DONE|   *THE FUCKING INTERPOLATION FTW!!!! CREDITS TO DEADMAU5!!!!!!!!!
 DONE|   *Fix rand implementation not to produce 0,0 as dx,dy
 DONE|   *Limit pollution sources with clocks <-- Explain
 ****|   *add pollution shader (possible post-fx fisheye with colorize) check sfml samples <- no you check
-****|   *clickable icons next to stats show category spesific information
-****|   *Possible drag view..
+DONE|   *clickable icons next to stats show category spesific information
+DERP|   *Possible drag view..
 DONE|   *In Big world view the dimensions are not correct yet
-****|   *Amount of zoom must be common between run and pause..fix <- no you fix
+DONE|   *Amount of zoom must be common between run and pause..fix <- no you fix
 ****|	*Separate event code from the main loop
-****|   *add about screen
-****|   *Add organism whenever we want
+DONE|   *add about screen
+DONE|   *Add organism whenever we want
 ****|   *Interpolate in the same manner pollution...add position of pollution in class pollution and change them instead of sprite's position in tick...etc
 DONE|   *Major Recolor in textures
 DONE|   *Fix a new bug in small world view when rightmost column = 0 caused of view dimensions
-****|   *Fix selection texture in run
+DONE|   *Fix selection texture in run
 ****|   *Fix centered followcam
 ****|   *In run when zoom=2 and lock camera on..debug information not showing properly..priority LOWEST(TODO FORMAT IDEA)
 ****|   *<add todo> <- no you add

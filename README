@@ -132,3 +132,10 @@ I [Petros]:
 	* Fixed frame rates in pause, run
 	* Fixed narwhal eating habits
 	* There is a bug when the user quickly pauses the simulation; the interpolation is left incomplete and positions get messy
+
+Wed Jan 11 03:24:56 GTBST 2012
+I [Spiros]:
+        * Added new features in run and pause screen, speed slider and buttons.
+        * Added about screen
+        * Fixed tooltips bug
+

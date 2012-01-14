@@ -208,6 +208,7 @@ mapIter Ocean::collide(int key){
         //add stats print
     }
     else {
+
         next++;
     }
     return next;
@@ -271,17 +272,25 @@ void Ocean::stats(){
     if(turns%7 == 0)
         memset(averageConsumptionWeek, 0, sizeof(averageConsumptionWeek));
 
+    int toBeKilled[200], c = 0;
+
     mapIter it;
     for(it = fishMap.begin(); it != fishMap.end();it++){
         averageCategorySize [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getSize()/static_cast<float>(it->second->getCount()) : 0;
         averageDeathRate [it->second->getType()] = (Ocean::deaths != 0) ? 100.0f*it->second->getDeaths()/static_cast<float>(Ocean::deaths) : 0;
         averageAge [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getAge()/static_cast<float>(it->second->getCount()) : 0;
-        it->second->levelUp();
+        if(it->second->levelUpCheck()){
+            toBeKilled[c++] = it->first;
+        }
 
         if(turns%7 == 0){
             averageConsumptionWeek [it->second->getType()] += (it->second->getCount() != 0) ? it->second->getFoodConsumedWeek()/static_cast<float>(it->second->getCount()) : 0;
             it->second->weeklyReset();
         }
+    }
+
+    for(int i = 0; i < c; i++){
+        Ocean::kill(toBeKilled[i]);
     }
 
 }

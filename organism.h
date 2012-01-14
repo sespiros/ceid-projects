@@ -27,14 +27,14 @@ public:
     bool canEat(Organism*);
     virtual void kill() = 0;
     void eat(Organism*);
-    void levelUp();
+    bool levelUpCheck();
 	void weeklyReset();
 
 	static const std::map<fishtype, int> weightMap;
 	sf::Sprite sprite;
     bool isDone;
 
-    Organism(int, int, int, int, float, int, int, fishtype);
+    Organism(int, int, int, float, int, int, fishtype);
 
 protected:
     int eatField;
@@ -44,6 +44,7 @@ private:
 
     int x, y;
     int size;
+    int ttl; //timetolive like a pro
 	int age;
     const float growthRate;
     const int foodRequired;
@@ -55,7 +56,7 @@ private:
 class Plankton:public Organism
 {
 public:
-    Plankton(int, int, int, int, float, int, int, fishtype);
+    Plankton(int, int, int, float, int, int, fishtype);
     static int familyCount;
 
     int getFcount(){
@@ -103,7 +104,7 @@ public:
 class nonPlankton:public Organism
 {
 public:
-    nonPlankton(int,int, int, int, float, int, int, fishtype);
+    nonPlankton(int, int, int, float, int, int, fishtype);
     static int familyCount;
 
     int getFcount(){

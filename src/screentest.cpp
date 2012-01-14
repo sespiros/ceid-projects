@@ -7,7 +7,7 @@
 int main()
 {
     // Ocean Initialization select true for BigWorld
-    Ocean::init(true);
+    Ocean::setup();
 
     sf::RenderWindow App(sf::VideoMode(1024, 600, 32), "Ocean Life v0.2");
     std::vector<IScreen *> Screens;
@@ -25,6 +25,7 @@ int main()
         curScreen = Screens[curScreen]->Run(App);
 
     Helper::cleanup();
+    Helper::worldToPixel = NULL;
 
     return EXIT_SUCCESS;
 }

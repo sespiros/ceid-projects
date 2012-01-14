@@ -37,7 +37,7 @@ public:
     static mapIter collide(int key);
     static Organism::fishtype genRandType();
 
-    static void init(bool choice);
+    static void init(bool big);
     static void tickPollution();
     static void update();
     static void info();
@@ -46,6 +46,8 @@ public:
     static void stats();
     static void drawStats(sf::RenderWindow*, bool , bool);
     static void regLog(std::string);
+
+    static void setup();
 
     Ocean();
 

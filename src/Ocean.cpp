@@ -31,28 +31,14 @@ sf::Sprite Ocean::Images[10];
 sf::Font Ocean::GlobalFont;
 bool Ocean::worldIsBig;
 int Ocean::MAX_COUNT;
-sf::Vector2f** Helper::worldToPixel;
 
-void Ocean::init(bool choice) {
+void Ocean::setup() {
     ClassRegistry::registerClasses();
 
     GlobalFont.LoadFromFile("artwork/font.ttf");
 
-    Ocean::worldIsBig = choice;
-    if(worldIsBig){
-        MAX_COUNT = 200;
-        MAX_X = 49;
-        MAX_Y = 36;
-    }else{
-        MAX_COUNT = 100;
-        MAX_X = 22;
-        MAX_Y = 16;
-    }
-
-    Helper::worldToPixel= Helper::getWorldScreenMapping();
-
     //this variable is for setting y coordinate for the strings of stats
-    int y = 15;//30
+    int y = 15;//30 HAHAHHHAHA I PIO AKYRH METAVLITI POU MPOREI NA YPHRXE
 
     //Stats Arrays initialization
     for(int i = 0; i < 10 ; i++){
@@ -72,6 +58,25 @@ void Ocean::init(bool choice) {
 
         y += 53;
     }
+}
+
+void Ocean::init(bool choice) {
+    Ocean::worldIsBig = choice;
+    if(worldIsBig){
+        MAX_COUNT = 200;
+        MAX_X = 49;
+        MAX_Y = 36;
+    }else{
+        MAX_COUNT = 100;
+        MAX_X = 22;
+        MAX_Y = 16;
+    }
+
+    // first, clear previous ocean contents
+    Ocean::fishMap.clear();
+    if (Helper::worldToPixel != NULL)
+        Helper::cleanup();
+    Helper::worldToPixel = Helper::getWorldScreenMapping();
 
     Ocean::populate();
 }

@@ -15,6 +15,8 @@ int Helper::dir[8][2] = {
     {1, 1},
 };
 
+Vector2f** Helper::worldToPixel = NULL;
+
 Vector2f** Helper::getWorldScreenMapping() {
 
     /*
@@ -40,6 +42,15 @@ Vector2f** Helper::getWorldScreenMapping() {
     int i,j;
     int xs=0,ys=0;
     Vector2f **conv;
+
+    if (Helper::worldToPixel){
+        Helper::cleanup();
+        for (int i = 0; i < Ocean::MAX_X; i++) {
+            delete[] Helper::worldToPixel[i];
+        }
+
+        delete[] Helper::worldToPixel;
+    }
 
     //buffer allocation
     conv = new Vector2f*[itiles];
@@ -76,6 +87,7 @@ void Helper::cleanup() {
     }
 
     delete[] Helper::worldToPixel;
+    Helper::worldToPixel = NULL;
 }
 
 void Helper::swapDir(int i, int j) {

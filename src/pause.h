@@ -273,6 +273,11 @@ int PauseScreen::Run(sf::RenderWindow &App)
                 if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
                     std::cout<<MousePos.x<<" "<<MousePos.y<<std::endl;
                     if(stopRect.Intersects(mouseRect)){        //restart function
+                        /*
+                        ** Restart calls (temp)
+                        ** Ocean::init(Ocean::worldIsBig);
+                        ** return 0;
+                        */
                         std::cout<<"in stop"<<std::endl;
                     }
                     if(infoRect.Intersects(mouseRect)){        //info sprite display in pause screen

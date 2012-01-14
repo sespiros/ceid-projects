@@ -2,6 +2,7 @@
 #define MENU_H
 
 #include "iscreen.h"
+#include "Ocean.h"
 
 class MenuScreen : public IScreen {
 public:
@@ -38,7 +39,7 @@ int MenuScreen::Run(sf::RenderWindow &App)
     playBigSprite.SetImage(playBigImg);
     playSmallSprite.SetImage(playSmallImg);
 
-    float spacing = 50.0f;
+    float spacing = 50.0f, offsetY = 0;
     float totalSize = playBigSprite.GetSize().x + playSmallSprite.GetSize().x + spacing;
 
     playBigSprite.SetCenter(playBigSprite.GetSize().x/2.0f, playBigSprite.GetSize().y/2.0f);
@@ -46,7 +47,8 @@ int MenuScreen::Run(sf::RenderWindow &App)
     playSmallSprite.SetCenter(playSmallSprite.GetSize().x/2.0f, playSmallSprite.GetSize().y/2.0f);
     playSmallSprite.SetPosition((App.GetWidth() - totalSize + playSmallSprite.GetSize().x)/2.0f + playBigSprite.GetSize().x + spacing, 250);
 
-    sf::FloatRect mouseRect;
+    sf::FloatRect mouseRect, playRect;
+    sf::Vector2f orig(0, 0), end;
 
     sf::Event e;
 
@@ -68,13 +70,45 @@ int MenuScreen::Run(sf::RenderWindow &App)
         mouseRect.Right = mouseX + 0.1f;
         mouseRect.Bottom = mouseY + 0.1f;
 
-        if (mouseX >= playSmallSprite.GetPosition().x - playSmallSprite.GetCenter().x && mouseX <= playSmallSprite.GetPosition().x - playSmallSprite.GetCenter().x + playSmallSprite.GetSize().x) {
+        end.x = playSmallImg.GetWidth();
+        end.y = playSmallImg.GetHeight();
+        playRect.Left = playSmallSprite.TransformToGlobal(orig).x;
+        playRect.Top = playSmallSprite.TransformToGlobal(orig).y - offsetY/2;
+        playRect.Right = playSmallSprite.TransformToGlobal(end).x;
+        playRect.Bottom = playSmallSprite.TransformToGlobal(end).y + offsetY/2;
+
+        if (mouseRect.Intersects(playRect)) {
             playSmallSprite.SetScale(1.0f, 0.6f);
+            // normal - reduced size
+            offsetY = playSmallImg.GetHeight() * (1 - 0.6f);
+            if (App.GetInput().IsMouseButtonDown(sf::Mouse::Left)) {
+                Ocean::init(false);
+                return 0;
+            }
+        }
+        else{
+            playSmallSprite.SetScale(1, 1);
+            offsetY = 0;
+        }
+
+        end.x = playBigImg.GetWidth();
+        end.y = playBigImg.GetHeight();
+        playRect.Left = playBigSprite.TransformToGlobal(orig).x;
+        playRect.Top = playBigSprite.TransformToGlobal(orig).y;
+        playRect.Right = playBigSprite.TransformToGlobal(end).x;
+        playRect.Bottom = playBigSprite.TransformToGlobal(end).y;
+
+        if (mouseRect.Intersects(playRect)) {
+            playBigSprite.SetScale(1.0f, 1.9f);
+            if (App.GetInput().IsMouseButtonDown(sf::Mouse::Left)) {
+                Ocean::init(true);
+                return 0;
+            }
         }
         else
-            playSmallSprite.SetScale(1, 1);
+            playBigSprite.SetScale(1, 1);
 
-        playBigSprite.SetScale(0.02f * cos(1.5f * timer.GetElapsedTime()) + 1, 0.02f * cos(1.5f * timer.GetElapsedTime()) + 1);
+        //        playBigSprite.SetScale(0.02f * cos(1.5f * timer.GetElapsedTime()) + 1, 0.02f * cos(1.5f * timer.GetElapsedTime()) + 1);
 
         App.Draw(bgSprite);
         App.Draw(playBigSprite);

@@ -354,19 +354,6 @@ int PauseScreen::Run(sf::RenderWindow &App)
                     if(MousePos.x > 600 && MousePos.x < 754 - 15){
                         slider.SetPosition(MousePos.x - 20, slider.GetPosition().y);
                     }
-                    if(slider.GetPosition().x > 700){
-                        slider.SetPosition(714,slider.GetPosition().y);
-                        IScreen::speed = 15.0f;
-                    }else if(slider.GetPosition().x > 653){
-                        slider.SetPosition(668,slider.GetPosition().y);
-                        IScreen::speed = 6.0f;
-                    }else if(slider.GetPosition().x > 610){
-                        slider.SetPosition(625,slider.GetPosition().y);
-                        IScreen::speed = 3.0f;
-                    }else{
-                        slider.SetPosition(583,slider.GetPosition().y);
-                        IScreen::speed = 1.0f;
-                    }
                 }
 
             }else{
@@ -385,6 +372,20 @@ int PauseScreen::Run(sf::RenderWindow &App)
                 }
                 drop = 0;
                 slide = false;
+
+                if(slider.GetPosition().x > 700){
+                    slider.SetPosition(714,slider.GetPosition().y);
+                    IScreen::speed = 15.0f;
+                }else if(slider.GetPosition().x > 653){
+                    slider.SetPosition(668,slider.GetPosition().y);
+                    IScreen::speed = 6.0f;
+                }else if(slider.GetPosition().x > 610){
+                    slider.SetPosition(625,slider.GetPosition().y);
+                    IScreen::speed = 3.0f;
+                }else{
+                    slider.SetPosition(583,slider.GetPosition().y);
+                    IScreen::speed = 1.0f;
+                }
             }
         }
 

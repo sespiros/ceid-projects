@@ -10,6 +10,9 @@ int main()
 
     sf::RenderWindow App(sf::VideoMode(1024, 600, 32), "Ocean Life v0.2");
     std::vector<IScreen *> Screens;
+    sf::Image Icon;
+    Icon.LoadFromFile("artwork/icon.png");
+    App.SetIcon(32,32,Icon.GetPixelsPtr());
 
     PauseScreen pause;
     RunScreen run;

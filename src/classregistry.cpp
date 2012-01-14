@@ -53,6 +53,7 @@ void ClassRegistry::registerClasses() {
     assocMapNames.insert(pair<int, std::string>(7, "GTP fish"));
     assocMapNames.insert(pair<int, std::string>(8, "Magikarp"));
     assocMapNames.insert(pair<int, std::string>(9, "Narwhal"));
+    assocMapNames.insert(pair<int, std::string>(10, "Gyarados"));
 
     sf::Image image;
     image.LoadFromFile("artwork/ZPlankton.png");
@@ -75,6 +76,8 @@ void ClassRegistry::registerClasses() {
     assocMapImages.insert(pair<int, sf::Image>(8,image));
     image.LoadFromFile("artwork/Narwhal.png");
     assocMapImages.insert(pair<int, sf::Image>(9,image));
+    image.LoadFromFile("artwork/LEGENDARY.png");
+    assocMapImages.insert(pair<int, sf::Image>(10,image));
 
 }
 

@@ -206,11 +206,12 @@ int PauseScreen::Run(sf::RenderWindow &App)
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Escape){
                 IScreen::info = false;
             }
+            if (Event.Type == sf::Event::Closed)
+            {
+                return (-1);
+            }
             if(!IScreen::info){
-                if (Event.Type == sf::Event::Closed)
-                {
-                    return (-1);
-                }
+
                 if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Return){
                     playing = true;
                     return(1);

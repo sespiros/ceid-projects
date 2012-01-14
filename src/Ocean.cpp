@@ -61,7 +61,13 @@ void Ocean::setup() {
 }
 
 void Ocean::init(bool choice) {
+    // first, clear previous ocean contents
+    Ocean::fishMap.clear();
+    if (Helper::worldToPixel != NULL)
+        Helper::cleanup();
+
     Ocean::worldIsBig = choice;
+
     if(worldIsBig){
         MAX_COUNT = 200;
         MAX_X = 49;
@@ -72,10 +78,6 @@ void Ocean::init(bool choice) {
         MAX_Y = 16;
     }
 
-    // first, clear previous ocean contents
-    Ocean::fishMap.clear();
-    if (Helper::worldToPixel != NULL)
-        Helper::cleanup();
     Helper::worldToPixel = Helper::getWorldScreenMapping();
 
     Ocean::populate();
@@ -486,7 +488,7 @@ mapIter Ocean::breed(int key1, int key2){
     Organism::fishtype type = Ocean::fishMap[key1]->getType();
     std::map<Organism::fishtype, int>::const_iterator iter;
     iter = Organism::weightMap.find(type);
-    int weight = iter->second;
+    // int weight = iter->second;
 
     //as China because we can
     int breedLimit = Ocean::fishMap[key1]->getCount(); //temporary maybe improved weightmap

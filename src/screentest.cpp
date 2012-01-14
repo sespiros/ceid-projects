@@ -2,6 +2,7 @@
 #include "iscreen.h"
 #include "pause.h"
 #include "run.h"
+#include "menu.h"
 
 int main()
 {
@@ -13,10 +14,12 @@ int main()
 
     PauseScreen pause;
     RunScreen run;
+    MenuScreen menu;
     Screens.push_back(&pause);
     Screens.push_back(&run);
+    Screens.push_back(&menu);
 
-    int curScreen = 0;
+    int curScreen = 2;
 
     while (curScreen >= 0)
         curScreen = Screens[curScreen]->Run(App);

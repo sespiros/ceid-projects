@@ -34,8 +34,8 @@ int PauseScreen::Run(sf::RenderWindow &App)
     sf::Vector2f MousePos;
     sf::Vector2f MousePosView;
     sf::Vector2i local;
-    float OffsetX, CenterX;
-    float OffsetY, CenterY;
+    float CenterX;
+    float CenterY;
     bool debug = true;
 
     sf::Sprite about;
@@ -272,8 +272,8 @@ int PauseScreen::Run(sf::RenderWindow &App)
                     debug = !debug;
                 }
                 if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                    std::cout<<MousePos.x<<" "<<MousePos.y<<std::endl;
                     if(stopRect.Intersects(mouseRect)){        //restart function
+                        return 2;
                         std::cout<<"in stop"<<std::endl;
                     }
                     if(infoRect.Intersects(mouseRect)){        //info sprite display in pause screen

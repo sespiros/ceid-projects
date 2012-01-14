@@ -36,8 +36,8 @@ int RunScreen::Run(sf::RenderWindow &App)
     sf::Vector2f MousePosView;
     sf::Vector2i local;
     mapIter it;
-    float OffsetX, moX, CenterX;
-    float OffsetY, moY, CenterY;
+    float moX, CenterX;
+    float moY, CenterY;
     bool che = false;
     bool debug = true;
 
@@ -271,6 +271,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 //std::cout<<MousePos.x<<" "<<MousePos.y<<std::endl;
                 if(stopRect.Intersects(mouseRect)){        //restart function
                     std::cout<<"in stop"<<std::endl;
+                    return 2;
                 }
                 if(infoRect.Intersects(mouseRect)){        //info sprite display in pause screen
                     IScreen::info = true;

@@ -139,3 +139,12 @@ I [Spiros]:
         * Added about screen
         * Fixed tooltips bug
 
+Sun Jan 15 18:17:56 GTBST 2012
+I [Spiros]:
+        * Added much better logic
+            -changed eatfiels
+            -improved weightmap
+            -breedlimit adds swarm effect
+        * Added help screen
+        * Added more intuitive control
+        * GYARADOS EVOLVE!!!

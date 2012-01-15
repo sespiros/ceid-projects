@@ -33,6 +33,12 @@ int MenuScreen::Run(sf::RenderWindow &App)
 
     sf::Image playBigImg, playSmallImg;
     sf::Sprite playBigSprite, playSmallSprite;
+    sf::String help;
+    help.SetColor(sf::Color::White);
+    help.SetFont(Ocean::GlobalFont);
+    help.SetSize(15);
+    help.SetPosition(5,5);
+    help.SetText("In Game press F1 for help");
 
     sf::Clock timer;
 
@@ -115,6 +121,7 @@ int MenuScreen::Run(sf::RenderWindow &App)
         App.Draw(bgSprite);
         App.Draw(playBigSprite);
         App.Draw(playSmallSprite);
+        App.Draw(help);
         App.Display();
         App.Clear();
     }

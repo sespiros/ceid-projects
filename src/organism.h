@@ -7,7 +7,7 @@ class Organism
 {
 
 public:
-    enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NARWHAL};
+    enum fishtype{ZPL,PPL,SHRIMP,JELLY,EEL,BALLOON,CLOWN,GTP,MAGIKARP,NARWHAL,GYARADOS};
 
     fishtype getType();
     virtual int getCount() = 0;
@@ -50,7 +50,7 @@ private:
     const int foodRequired;
 	int foodConsumed, foodConsumedWeek;
     const int speed;
-    const fishtype type;
+    fishtype type;
 };
 
 class Plankton:public Organism

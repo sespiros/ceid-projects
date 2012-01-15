@@ -43,15 +43,15 @@ std::map<Organism::fishtype, int> Organism::createWeightMap() {
     std::map<Organism::fishtype, int> tmp;
 
     tmp.insert(std::pair<Organism::fishtype, int>(PPL, 25));
-    tmp.insert(std::pair<Organism::fishtype, int>(ZPL, 20));
-    tmp.insert(std::pair<Organism::fishtype, int>(SHRIMP, 9));
-    tmp.insert(std::pair<Organism::fishtype, int>(JELLY, 8));
-    tmp.insert(std::pair<Organism::fishtype, int>(EEL, 8));
-    tmp.insert(std::pair<Organism::fishtype, int>(BALLOON, 8));
+    tmp.insert(std::pair<Organism::fishtype, int>(ZPL, 15));
+    tmp.insert(std::pair<Organism::fishtype, int>(SHRIMP, 13));
+    tmp.insert(std::pair<Organism::fishtype, int>(JELLY, 12));
+    tmp.insert(std::pair<Organism::fishtype, int>(EEL, 5));
+    tmp.insert(std::pair<Organism::fishtype, int>(BALLOON, 6));
     tmp.insert(std::pair<Organism::fishtype, int>(CLOWN, 7));
-    tmp.insert(std::pair<Organism::fishtype, int>(GTP, 9));
-    tmp.insert(std::pair<Organism::fishtype, int>(MAGIKARP, 4));
-    tmp.insert(std::pair<Organism::fishtype, int>(NARWHAL, 2));
+    tmp.insert(std::pair<Organism::fishtype, int>(GTP, 5));
+    tmp.insert(std::pair<Organism::fishtype, int>(MAGIKARP, 8));
+    tmp.insert(std::pair<Organism::fishtype, int>(NARWHAL, 4));
 
     return tmp;
 }
@@ -66,7 +66,7 @@ Plankton::Plankton(int x, int y, int s, float gr, int fr, int v, Organism::fisht
     //familyCount++;
 }
 
-ZPlankton::ZPlankton(int x, int y):Plankton(x, y, 45, 1.0f, 1, 1, ZPL){
+ZPlankton::ZPlankton(int x, int y):Plankton(x, y, 300, 1.0f, 1, 1, ZPL){
     count++;
 
     eatField = 1 << Organism::PPL;
@@ -83,7 +83,7 @@ void ZPlankton::kill() {
     deaths++;
 }
 
-PPlankton::PPlankton(int x, int y):Plankton(x, y, 50, 0, 0, 1, PPL){
+PPlankton::PPlankton(int x, int y):Plankton(x, y, 1000, 0, 0, 1, PPL){
     count++;
 
     eatField = 0;
@@ -106,10 +106,10 @@ nonPlankton::nonPlankton(int x, int y, int s, float gr, int fr, int v, Organism:
     //familyCount++;
 }
 
-Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 40, 1.0f, 1, 2, SHRIMP){
+Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 80, 1.0f, 1, 2, SHRIMP){
     count++;
 
-    eatField = 1 << Organism::ZPL;
+    eatField = 1 << Organism::ZPL | 1 << Organism::PPL;
 
     sprite.SetImage(ClassRegistry::assocMapImages[2]);
     sprite.SetScale(0.25f, 0.25f);
@@ -123,10 +123,10 @@ void Shrimp::kill() {
     deaths++;
 }
 
-Jelly::Jelly(int x, int y):nonPlankton(x, y, 40, 1.0f, 1, 1, JELLY){
+Jelly::Jelly(int x, int y):nonPlankton(x, y, 80, 1.0f, 1, 1, JELLY){
     count++;
 
-    eatField = 1 << Organism::PPL;
+    eatField = (1 << Organism::PPL) | (1 << Organism::ZPL);
 
     sprite.SetImage(ClassRegistry::assocMapImages[3]);
     sprite.SetScale(0.25f, 0.25f);
@@ -140,9 +140,9 @@ void Jelly::kill() {
     deaths++;
 }
 
-Eel::Eel(int x, int y):nonPlankton(x, y, 30, 1.0f, 1, 5, EEL){
+Eel::Eel(int x, int y):nonPlankton(x, y, 60, 1.0f, 1, 5, EEL){
     count++;
-    eatField = (1 << Organism::SHRIMP) | (1 << Organism::GTP);
+    eatField = (1 << Organism::BALLOON) | (1 << Organism::CLOWN) | (1 << Organism::GTP);
 
     sprite.SetImage(ClassRegistry::assocMapImages[4]);
     sprite.SetScale(0.25f, 0.25f);
@@ -156,10 +156,10 @@ void Eel::kill() {
     deaths++;
 }
 
-Balloon::Balloon(int x, int y):nonPlankton(x, y, 30, 1.0f, 1, 3, BALLOON){
+Balloon::Balloon(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 3, BALLOON){
     count++;
 
-    eatField = (1 << Organism::SHRIMP) | (1 << Organism::GTP);
+    eatField = (1 << Organism::SHRIMP) | (1 << Organism::PPL) | (1 << Organism::ZPL) | (1 << Organism::JELLY);
 
     sprite.SetImage(ClassRegistry::assocMapImages[5]);
     sprite.SetScale(0.25f, 0.25f);
@@ -173,10 +173,10 @@ void Balloon::kill() {
     deaths++;
 }
 
-Clown::Clown(int x, int y):nonPlankton(x, y, 30, 1.0f, 1, 4, CLOWN){
+Clown::Clown(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 4, CLOWN){
     count++;
 
-    eatField = (1 << Organism::ZPL) | (1 << Organism::GTP);
+    eatField = (1 << Organism::SHRIMP) | (1 << Organism::PPL) | (1 << Organism::ZPL) | (1 << Organism::JELLY);
 
     sprite.SetImage(ClassRegistry::assocMapImages[6]);
     sprite.SetScale(0.25f, 0.25f);
@@ -190,10 +190,10 @@ void Clown::kill() {
     deaths++;
 }
 
-Gtp::Gtp(int x, int y):nonPlankton(x, y, 30, 1.0f, 1, 3, GTP){
+Gtp::Gtp(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 3, GTP){
     count++;
 
-    eatField = (1 << Organism::PPL);
+    eatField = (1 << Organism::SHRIMP) | (1 << Organism::PPL) | (1 << Organism::ZPL) | (1 << Organism::JELLY);
 
     sprite.SetImage(ClassRegistry::assocMapImages[7]);
     sprite.SetScale(0.25f, 0.25f);
@@ -207,10 +207,10 @@ void Gtp::kill() {
     deaths++;
 }
 
-Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 35, 1.0f, 1, 4, MAGIKARP){
+Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 4, MAGIKARP){
     count++;
 
-    eatField = (1 << Organism::ZPL) | (1 << Organism::JELLY);
+    eatField = (1 << Organism::SHRIMP) | (1 << Organism::PPL) | (1 << Organism::ZPL) | (1 << Organism::JELLY);;
 
     sprite.SetImage(ClassRegistry::assocMapImages[8]);
     sprite.SetScale(0.25f, 0.25f);
@@ -224,7 +224,7 @@ void Magikarp::kill() {
     deaths++;
 }
 
-Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 20, 1.0f, 4, 6, NARWHAL){
+Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 50, 1.0f, 4, 6, NARWHAL){
     count++;
 
     eatField = ~0 & ~(1 << Organism::ZPL | 1 << Organism::PPL | 1 << Organism::NARWHAL);
@@ -287,11 +287,15 @@ void Organism::eat(Organism* o) {
 
     if (foodConsumed >= foodRequired) {
         size += (foodConsumed/foodRequired);
+        if(Ocean::turns < 200){
+            ttl *= 5;
+        }else{
+            ttl *= 4;
+        }
         foodConsumed = foodConsumed%foodRequired;
         std::stringstream ss;
         ss<<"Size inc! for "<< o;
         Ocean::regLog(ss.str());
-        ttl += (foodConsumed/foodRequired);
     }
 }
 
@@ -302,10 +306,16 @@ void Organism::weeklyReset() {
 bool Organism::levelUpCheck() {
     age++;
     isDone = false;
-    (*this).ttl--;
+    ttl--;
 
-    if(age > 5 && size > 10 && type == MAGIKARP){
-        std::cout<<"Gyarados evolve"<<std::cout;
+    if(Ocean::easterEggs){
+        if(age > 5 && size > 10 && type == MAGIKARP){
+            Ocean::regLog("Gyarados evolve");
+            eatField = 1023;
+            sprite.SetImage(ClassRegistry::assocMapImages[10]);
+            type = Organism::GYARADOS;
+            ttl = 500;
+        }
     }
 
     if(ttl <= 0){

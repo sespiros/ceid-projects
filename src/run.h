@@ -40,6 +40,7 @@ int RunScreen::Run(sf::RenderWindow &App)
     float moY, CenterY;
     bool che = false;
     bool debug = true;
+    bool pollute = false;
 
     int zoom = 0;
     int loops = 0;
@@ -64,6 +65,19 @@ int RunScreen::Run(sf::RenderWindow &App)
     lock.SetSize(15);
     lock.SetFont(Ocean::GlobalFont);
 
+    sf::String action;
+    action.SetColor(sf::Color::White);
+    action.SetSize(15);
+    action.SetFont(Ocean::GlobalFont);
+
+    sf::Image he_lp;
+    sf::Sprite help;
+    if (!he_lp.LoadFromFile("artwork/help.png")){
+        std::cerr<<"Error loading resources"<<std::endl;
+        return(-1);
+    }
+    help.SetImage(he_lp);
+
     sf::Sprite tooltip;
 
     sf::Sprite d_vertical;
@@ -77,19 +91,19 @@ int RunScreen::Run(sf::RenderWindow &App)
     sf::Image img_selection;
 
     if (!vertical.LoadFromFile("artwork/grid_vertical.png")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
     d_vertical.SetImage(vertical);
 
     if (!horizontal.LoadFromFile("artwork/grid_horizontal.png")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
     d_horizontal.SetImage(horizontal);
 
     if (!img_selection.LoadFromFile("artwork/selection.png")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
     selection.SetImage(img_selection);
@@ -121,15 +135,15 @@ int RunScreen::Run(sf::RenderWindow &App)
     bool slide = false;
 
     if (!st_b.LoadFromFile("artwork/stop.png")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
     if (!in_b.LoadFromFile("artwork/info.png")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
     if (!se_sl.LoadFromFile("artwork/speed.png")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
 
@@ -176,13 +190,13 @@ int RunScreen::Run(sf::RenderWindow &App)
     }
 
     if (!back.LoadFromFile("artwork/back.jpg")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
     backSprite.SetImage(back);
 
     if (!runImage.LoadFromFile("artwork/run.png")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
     runSprite.SetImage(runImage);
@@ -204,29 +218,40 @@ int RunScreen::Run(sf::RenderWindow &App)
             {
                 return (-1); // window close
             }
-            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Escape){
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Return){
                 playing = true;
                 return(0); // state switch
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
                 if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
-                    local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
+                    if(IScreen::actionChoice == 1){
+                        local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
 
-                    int hash = local.x + local.y * Ocean::MAX_X;
+                        int hash = local.x + local.y * Ocean::MAX_X;
 
-                    if(Ocean::fishMap.find(hash) == Ocean::fishMap.end())
-                    {
-                        Ocean::choice = false;
-                        Ocean::choiceHash = 0;
+                        if(Ocean::fishMap.find(hash) == Ocean::fishMap.end())
+                        {
+                            Ocean::choice = false;
+                            Ocean::choiceHash = 0;
+                        }else{
+                            Ocean::choice = true;
+                            Ocean::choiceHash = hash;
+                        }
+                    }else if (IScreen::actionChoice == 2){
+                        Ocean::pollute(rand()%5 + 1, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y , rand()%8 + 3);
                     }else{
-                        Ocean::choice = true;
-                        Ocean::choiceHash = hash;
+                        //throw nets
                     }
+
                 }
             }
 
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Space) {
-                Ocean::pollute(rand()%5 + 1, rand()%Ocean::MAX_X, rand()%Ocean::MAX_Y, rand()%8 + 3);
+                IScreen::actionChoice++;
+                if (IScreen::actionChoice > 3)IScreen::actionChoice = 1;
+            }
+            if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::F1) {
+                IScreen::helpChoice = !IScreen::helpChoice;
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
                 if(MousePos.x > 826 && MousePos.x < 1015 && MousePos.y > 576 && MousePos.y < 589){
@@ -326,7 +351,7 @@ int RunScreen::Run(sf::RenderWindow &App)
             }else{
                 d_vertical.SetPosition(0,0);
                 d_horizontal.SetPosition(0,0);
-                d_tip.SetPosition(1024, 600); //sto diaolo
+                d_tip.SetPosition(1024, 600); //sta diala
             }
 
             ////////////////////////////////////////////////////TO ADD IN PAUSE
@@ -355,6 +380,15 @@ int RunScreen::Run(sf::RenderWindow &App)
                     slider.SetPosition(MousePos.x - 20, slider.GetPosition().y);
                 }
             }
+
+            //            if(IScreen::actionChoice == 2){
+            //                pollute = true;
+            //            }
+            //            if(pollute){
+            //                Ocean::pollute(rand()%5 + 1, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y , rand()%8 + 3);
+            //                App.
+            //                pollute = false;
+            //            }
         }else{
             if(drop){
                 sf::Vector2i local = Helper::getLocalCoords(MousePosView.x ,MousePosView.y);
@@ -371,6 +405,10 @@ int RunScreen::Run(sf::RenderWindow &App)
             }
             drop = 0;
             slide = false;
+            //            if(pollute){
+            //                Ocean::pollute(rand()%5 + 1, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y , rand()%8 + 3);
+            //            }
+            //            pollute = false;
 
             if(slider.GetPosition().x > 700){
                 slider.SetPosition(714,slider.GetPosition().y);
@@ -469,13 +507,26 @@ int RunScreen::Run(sf::RenderWindow &App)
 
         if(che){
             lock.SetText("Press C to disable followcam");
-            lock.SetPosition(615,545);
+            lock.SetPosition(618,545);
         }else{
             lock.SetText("Press C to enable followcam");
             lock.SetPosition(625,545);
         }
 
-        App.Draw(lock);
+        if(IScreen::actionChoice == 1){
+            action.SetText("Click to choose organism");
+            action.SetPosition(645,530);
+        }else if(IScreen::actionChoice == 2){
+            action.SetText("Click to add pollution");
+            action.SetPosition(660,530);
+        }else{
+            action.SetText("Click to add nets");
+            action.SetPosition(695,530);
+        }
+        if(debug){
+            App.Draw(action);
+            App.Draw(lock);
+        }
         //Draw stats box
         Ocean::drawStats(&App, IScreen::logChoice, Ocean::choice);
 
@@ -488,6 +539,9 @@ int RunScreen::Run(sf::RenderWindow &App)
         App.Draw(stop);
         App.Draw(info);
         App.Draw(slider);
+
+        if(IScreen::helpChoice)
+            App.Draw(help);
 
         App.Display();
         App.Clear();

@@ -22,7 +22,7 @@ int Ocean::MAX_Y;
 
 int PauseScreen::Run(sf::RenderWindow &App)
 {
-    App.SetFramerateLimit(18);
+    App.SetFramerateLimit(23);
     sf::Event Event;
     bool Running = true;
     sf::Image pauseImage;
@@ -41,12 +41,20 @@ int PauseScreen::Run(sf::RenderWindow &App)
     sf::Sprite about;
     sf::Image ab_im;
     if (!ab_im.LoadFromFile("artwork/about.png")){
-        std::cerr<<"Error loading background image"<<std::endl;
+        std::cerr<<"Error loading resources"<<std::endl;
         return(-1);
     }
     about.SetImage(ab_im);
 
     int zoom = 0;
+
+    sf::Image he_lp;
+    sf::Sprite help;
+    if (!he_lp.LoadFromFile("artwork/help.png")){
+        std::cerr<<"Error loading resources"<<std::endl;
+        return(-1);
+    }
+    help.SetImage(he_lp);
 
     sf::Rect<float> catSelect[10];
     int top = 38;
@@ -233,6 +241,9 @@ int PauseScreen::Run(sf::RenderWindow &App)
                         }
                     }
 
+                }
+                if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::F1) {
+                    IScreen::helpChoice = !IScreen::helpChoice;
                 }
                 if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
                     if(MousePos.x > 826 && MousePos.x < 1015 && MousePos.y > 558 && MousePos.y < 594){
@@ -426,6 +437,9 @@ int PauseScreen::Run(sf::RenderWindow &App)
         App.Draw(stop);
         App.Draw(info);
         App.Draw(slider);
+
+        if(IScreen::helpChoice)
+            App.Draw(help);
 
         if(IScreen::info){
             App.Draw(about);

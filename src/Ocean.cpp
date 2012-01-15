@@ -30,6 +30,7 @@ sf::String Ocean::categories[10];
 sf::Sprite Ocean::Images[10];
 sf::Font Ocean::GlobalFont;
 bool Ocean::worldIsBig;
+bool Ocean::easterEggs = true;
 int Ocean::MAX_COUNT;
 
 void Ocean::setup() {
@@ -475,6 +476,7 @@ void Ocean::regLog(std::string subj){
     }
 
     Ocean::log << subj <<std::endl;
+    std::cout << subj <<std::endl; //temporary
     counter++;
 
 }
@@ -491,7 +493,12 @@ mapIter Ocean::breed(int key1, int key2){
     // int weight = iter->second;
 
     //as China because we can
-    int breedLimit = Ocean::fishMap[key1]->getCount(); //temporary maybe improved weightmap
+    int breedLimit;
+    if(Ocean::fishMap[key1]->getCount()>15){
+        breedLimit = Ocean::fishMap[key1]->getCount();
+    }else{
+        breedLimit = 6;
+    }
 
     mapIter it;
     it = Ocean::fishMap.find(key1);

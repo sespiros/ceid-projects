@@ -16,6 +16,7 @@ public:
     static int MAX_X;
     static int MAX_Y;
     static bool worldIsBig;
+    static bool easterEggs;
 
     static int count;
     static int deaths;

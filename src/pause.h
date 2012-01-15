@@ -262,6 +262,9 @@ int PauseScreen::Run(sf::RenderWindow &App)
                     if(zoom > 0){
                         view.Zoom(0.5f);
                         zoom--;
+                        if(zoom == 0){
+                            view.SetCenter(CenterX, CenterY);
+                        }
                     }
                 }
 
@@ -277,6 +280,7 @@ int PauseScreen::Run(sf::RenderWindow &App)
                 if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Right){
                     view.Move(-10.0f, 0);
                 }
+
 
                 //////////////////////////////////////////////////
                 if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::D){
@@ -407,6 +411,10 @@ int PauseScreen::Run(sf::RenderWindow &App)
 
         std::map<int, Organism*>::iterator it;
         for(it = Ocean::fishMap.begin();it != Ocean::fishMap.end(); it++){
+            if(Ocean::choice && Ocean::choiceHash == it->first){
+                selection.SetPosition(Ocean::fishMap[Ocean::choiceHash]->sprite.GetPosition().x-5, Ocean::fishMap[Ocean::choiceHash]->sprite.GetPosition().y-5);
+                App.Draw(selection);
+            }
             App.Draw(it->second->sprite);
         }
 

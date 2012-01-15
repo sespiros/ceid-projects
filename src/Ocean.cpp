@@ -98,12 +98,12 @@ void Ocean::init(bool choice) {
 
     if(worldIsBig){
         MAX_COUNT = 200;
-        MAX_X = 49;
-        MAX_Y = 36;
+        MAX_X = 56;
+        MAX_Y = 41;
     }else{
         MAX_COUNT = 100;
-        MAX_X = 22;
-        MAX_Y = 16;
+        MAX_X = 25;
+        MAX_Y = 18;
     }
 
     Helper::worldToPixel = Helper::getWorldScreenMapping();
@@ -348,8 +348,8 @@ void Ocean::drawStats(sf::RenderWindow *o, bool choice, bool choice2){
     clickToExpand.SetPosition(837,570);
     clickToExpand.SetColor(sf::Color::White);
     clickToExpand.SetFont(GlobalFont);
-    identifier.SetSize(20);
-    identifier.SetPosition(915,8);
+    identifier.SetSize(15);
+    identifier.SetPosition(915,15);
     identifier.SetColor(sf::Color::White);
     identifier.SetFont(GlobalFont);
     logs.SetText(Ocean::log.str());
@@ -521,7 +521,7 @@ mapIter Ocean::breed(int key1, int key2){
 
     //as China because we can
     int breedLimit;
-    if(Ocean::fishMap[key1]->getCount()>15){
+    if(Ocean::fishMap[key1]->getCount()>(Ocean::worldIsBig)?15:8){
         breedLimit = Ocean::fishMap[key1]->getCount();
     }else{
         breedLimit = 6;

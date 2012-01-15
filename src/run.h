@@ -455,8 +455,8 @@ int RunScreen::Run(sf::RenderWindow &App)
         //////////////////////////  EXPERIMENTAL CAMERA LOCK   //////////////////////////////
 
         if(Ocean::choice && che && zoom >= 1){
-            moX = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].x - view.GetCenter().x;//caused by zooming
-            moY = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].y - view.GetCenter().y;
+            moX = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].x - view.GetCenter().x + 35;
+            moY = Helper::worldToPixel[Ocean::fishMap[Ocean::choiceHash]->getX()][Ocean::fishMap[Ocean::choiceHash]->getY()].y - view.GetCenter().y + 15;
 
             view.Move(moX * interpolation, moY * interpolation);
 

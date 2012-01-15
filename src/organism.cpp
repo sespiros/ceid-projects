@@ -286,7 +286,7 @@ void Organism::eat(Organism* o) {
     foodConsumedWeek += o->size;
 
     if (foodConsumed >= foodRequired) {
-        size += (foodConsumed/foodRequired);
+        size += (foodConsumed/foodRequired)*growthRate;
         if(Ocean::turns < 200){
             ttl *= 5;
         }else{

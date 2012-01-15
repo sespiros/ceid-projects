@@ -63,9 +63,9 @@ Vector2f** Helper::getWorldScreenMapping() {
         for(j=0;j<jtiles;j++){
             conv[i][j].x=xs;
             conv[i][j].y=ys;
-            ys+=w+5;
+            ys+=w+0;
         }
-        xs+=w+5;
+        xs+=w+0;
     }
 
     //Print buffer for debugging purposes(DO NOT DELETE!)

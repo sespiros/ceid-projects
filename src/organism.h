@@ -81,6 +81,10 @@ public:
     int getDeaths(){
         return deaths;
     };
+    static void reset() {
+        deaths = 0;
+        count = 0;
+    };
 };
 
 class PPlankton:public Plankton
@@ -98,6 +102,10 @@ public:
 
     int getDeaths(){
         return deaths;
+    };
+    static void reset() {
+        deaths = 0;
+        count = 0;
     };
 };
 
@@ -128,6 +136,10 @@ public:
     int getDeaths(){
         return deaths;
     };
+    static void reset() {
+        deaths = 0;
+        count = 0;
+    };
 };
 
 class Jelly:public nonPlankton
@@ -145,6 +157,10 @@ public:
 
     int getDeaths(){
         return deaths;
+    };
+    static void reset() {
+        deaths = 0;
+        count = 0;
     };
 };
 
@@ -164,6 +180,10 @@ public:
     int getDeaths(){
         return deaths;
     };
+    static void reset() {
+        deaths = 0;
+        count = 0;
+    };
 };
 
 class Balloon:public nonPlankton
@@ -181,6 +201,10 @@ public:
 
     int getDeaths(){
         return deaths;
+    };
+    static void reset() {
+        deaths = 0;
+        count = 0;
     };
 };
 
@@ -200,6 +224,10 @@ public:
     int getDeaths(){
         return deaths;
     };
+    static void reset() {
+        deaths = 0;
+        count = 0;
+    };
 };
 
 class Gtp:public nonPlankton
@@ -217,6 +245,10 @@ public:
 
     int getDeaths(){
         return deaths;
+    };
+    static void reset() {
+        deaths = 0;
+        count = 0;
     };
 };
 
@@ -236,6 +268,10 @@ public:
     int getDeaths(){
         return deaths;
     };
+    static void reset() {
+        deaths = 0;
+        count = 0;
+    };
 };
 
 class Narwhal:public nonPlankton
@@ -253,6 +289,10 @@ public:
 
     int getDeaths(){
         return deaths;
+    };
+    static void reset() {
+        deaths = 0;
+        count = 0;
     };
 };
 

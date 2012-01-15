@@ -61,11 +61,38 @@ void Ocean::setup() {
     }
 }
 
-void Ocean::init(bool choice) {
-    // first, clear previous ocean contents
+void Ocean::reset() {
     Ocean::fishMap.clear();
+    Ocean::pollution.clear();
+    Ocean::count = 0;
+    Ocean::deaths = 0;
+    Ocean::births = 0;
+    Ocean::turns = 0;
+    Ocean::choice = false;
+    Ocean::choiceHash = 0;
+    memset(averageCategorySize, 0, sizeof(averageCategorySize));
+    memset(averageConsumptionWeek, 0, sizeof(averageConsumptionWeek));
+    memset(averageDeathRate, 0, sizeof(averageDeathRate));
+    memset(averageAge, 0, sizeof(averageAge));
+    Ocean::log.str("");
     if (Helper::worldToPixel != NULL)
         Helper::cleanup();
+
+    // per Organism class cleanup
+    PPlankton::reset();
+    ZPlankton::reset();
+    Shrimp::reset();
+    Jelly::reset();
+    Eel::reset();
+    Balloon::reset();
+    Gtp::reset();
+    Magikarp::reset();
+    Narwhal::reset();
+}
+
+void Ocean::init(bool choice) {
+    // first, clear previous ocean contents
+    Ocean::reset();
 
     Ocean::worldIsBig = choice;
 

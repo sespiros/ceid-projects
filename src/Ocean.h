@@ -49,6 +49,7 @@ public:
     static void regLog(std::string);
 
     static void setup();
+    static void reset();
 
     Ocean();
 

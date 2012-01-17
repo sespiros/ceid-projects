@@ -62,6 +62,9 @@ void Ocean::setup() {
 }
 
 void Ocean::reset() {
+	for (mapIter i = Ocean::fishMap.begin(); i != Ocean::fishMap.end(); )
+		Ocean::kill((i++)->first);
+
     Ocean::fishMap.clear();
     Ocean::pollution.clear();
     Ocean::count = 0;

@@ -500,6 +500,10 @@ int RunScreen::Run(sf::RenderWindow &App)
         std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));
         Pollution::bind(0);
 
+		Net::bind(&App);
+		std::for_each(Ocean::nets.begin(), Ocean::nets.end(), std::mem_fun(&Net::draw));
+		Net::bind(0);
+
         App.SetView(App.GetDefaultView());
 
         if(debug){

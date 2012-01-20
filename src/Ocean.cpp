@@ -22,6 +22,7 @@ int Ocean::choiceHash = 0;
 std::stringstream Ocean::log;
 std::map<int, Organism*> Ocean::fishMap;
 std::vector<Pollution*> Ocean::pollution;
+std::vector<Net*> Ocean::nets;
 float Ocean::averageCategorySize[10];
 float Ocean::averageConsumptionWeek[10];
 float Ocean::averageDeathRate[10];
@@ -67,6 +68,7 @@ void Ocean::reset() {
 
     Ocean::fishMap.clear();
     Ocean::pollution.clear();
+	Ocean::nets.clear();
     Ocean::count = 0;
     Ocean::deaths = 0;
     Ocean::births = 0;
@@ -257,11 +259,17 @@ void Ocean::tickPollution() {
     Ocean::pollution.erase(std::remove_if(Ocean::pollution.begin(), Ocean::pollution.end(), Pollution::isDone), Ocean::pollution.end());
 }
 
+void Ocean::tickNets() {
+	std::for_each(Ocean::nets.begin(), Ocean::nets.end(), std::mem_fun(&Net::tick));
+	Ocean::nets.erase(std::remove_if(Ocean::nets.begin(), Ocean::nets.end(), Net::isDone), Ocean::nets.end());
+}
+
 void Ocean::update() {
     srand(time(0));
     mapIter it;
 
     tickPollution();
+	tickNets();
     turns++;
     for (it = Ocean::fishMap.begin(); it != Ocean::fishMap.end();) {
         if (it->second->isDone)
@@ -297,6 +305,12 @@ void Ocean::pollute(int r, int x, int y, int t)
     Ocean::pollution.insert(Ocean::pollution.begin(), p);
     //debug
     //std::cout << "Inserted pollution source at (" << x << ", " << y << "), radius " << r << std::endl;
+}
+
+void Ocean::throwNet(int r, int x, int y, int t)
+{
+	Net* n = new Net(r, x, y, t);
+	Ocean::nets.insert(Ocean::nets.begin(), n);
 }
 
 void Ocean::stats(){

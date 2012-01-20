@@ -224,31 +224,32 @@ int RunScreen::Run(sf::RenderWindow &App)
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
                 if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
-                    if(IScreen::actionChoice == 1){
-                        local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
+                    local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
 
-                        int hash = local.x + local.y * Ocean::MAX_X;
+                    int hash = local.x + local.y * Ocean::MAX_X;
 
-                        if(Ocean::fishMap.find(hash) == Ocean::fishMap.end())
-                        {
-                            Ocean::choice = false;
-                            Ocean::choiceHash = 0;
-                        }else{
-                            Ocean::choice = true;
-                            Ocean::choiceHash = hash;
-                        }
-                    }else if (IScreen::actionChoice == 2){
-                        Ocean::pollute(rand()%5 + 1, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y , rand()%8 + 3);
+                    if(Ocean::fishMap.find(hash) == Ocean::fishMap.end())
+                    {
+                        Ocean::choice = false;
+                        Ocean::choiceHash = 0;
                     }else{
-                        //throw nets
+                        Ocean::choice = true;
+                        Ocean::choiceHash = hash;
                     }
+                }
+            }
 
+            if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Right){
+                if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
+                    if(IScreen::actionChoice == 1){
+                        //add nets
+                    }
                 }
             }
 
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Space) {
                 IScreen::actionChoice++;
-                if (IScreen::actionChoice > 3)IScreen::actionChoice = 1;
+                if (IScreen::actionChoice > 1)IScreen::actionChoice = 0;
             }
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::F1) {
                 IScreen::helpChoice = !IScreen::helpChoice;
@@ -357,9 +358,25 @@ int RunScreen::Run(sf::RenderWindow &App)
             ////////////////////////////////////////////////////TO ADD IN PAUSE
         }
 
+        if(App.GetInput().IsMouseButtonDown(sf::Mouse::Right)){
+            if(IScreen::actionChoice == 0){
+                pollute = true;
+            }
+            if(pollute){
+                int ran = (Ocean::worldIsBig)?rand()%5 + 1:rand()%2 + 1;
+                Ocean::pollute(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y,rand()%8 + 3);
+                pollute = false;
+            }
+        }else{
+            if(pollute){
+                Ocean::pollute(rand()%5 + 1, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y , rand()%8 + 3);
+            }
+            pollute = false;
+        }
+
         if(App.GetInput().IsMouseButtonDown(sf::Mouse::Left)){
             for(int i = 0; i < 10;i++){
-                if(catSelect[i].Intersects(mouseRect)){
+                if(catSelect[i].Intersects(mouseRect) && !drop){
                     drop = i+1;
                     drag.SetImage(ClassRegistry::assocMapImages[i]);
                 }
@@ -381,14 +398,6 @@ int RunScreen::Run(sf::RenderWindow &App)
                 }
             }
 
-            //            if(IScreen::actionChoice == 2){
-            //                pollute = true;
-            //            }
-            //            if(pollute){
-            //                Ocean::pollute(rand()%5 + 1, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y , rand()%8 + 3);
-            //                App.
-            //                pollute = false;
-            //            }
         }else{
             if(drop){
                 sf::Vector2i local = Helper::getLocalCoords(MousePosView.x ,MousePosView.y);
@@ -405,10 +414,6 @@ int RunScreen::Run(sf::RenderWindow &App)
             }
             drop = 0;
             slide = false;
-            //            if(pollute){
-            //                Ocean::pollute(rand()%5 + 1, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y , rand()%8 + 3);
-            //            }
-            //            pollute = false;
 
             if(slider.GetPosition().x > 700){
                 slider.SetPosition(714,slider.GetPosition().y);
@@ -513,15 +518,12 @@ int RunScreen::Run(sf::RenderWindow &App)
             lock.SetPosition(625,545);
         }
 
-        if(IScreen::actionChoice == 1){
-            action.SetText("Click to choose organism");
-            action.SetPosition(645,530);
-        }else if(IScreen::actionChoice == 2){
-            action.SetText("Click to add pollution");
-            action.SetPosition(660,530);
+        if(IScreen::actionChoice == 0){
+            action.SetText("Right Click to add pollution");
+            action.SetPosition(620,530);
         }else{
-            action.SetText("Click to add nets");
-            action.SetPosition(695,530);
+            action.SetText("Right Click to add nets");
+            action.SetPosition(655,530);
         }
         if(debug){
             App.Draw(action);

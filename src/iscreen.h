@@ -19,5 +19,5 @@ bool IScreen::logChoice = false;
 bool IScreen::helpChoice = false;
 bool IScreen::info = false;
 float IScreen::speed;
-int IScreen::actionChoice = 1;
+int IScreen::actionChoice = 0;
 #endif // SCREEN_H

@@ -350,7 +350,7 @@ int PauseScreen::Run(sf::RenderWindow &App)
         if(!IScreen::info){
             if(App.GetInput().IsMouseButtonDown(sf::Mouse::Left)){
                 for(int i = 0; i < 10;i++){
-                    if(catSelect[i].Intersects(mouseRect)){
+                    if(catSelect[i].Intersects(mouseRect) && !drop){
                         drop = i+1;
                         drag.SetImage(ClassRegistry::assocMapImages[i]);
                     }

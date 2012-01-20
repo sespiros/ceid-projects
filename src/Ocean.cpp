@@ -261,7 +261,10 @@ void Ocean::tickPollution() {
 
 void Ocean::tickNets() {
 	std::for_each(Ocean::nets.begin(), Ocean::nets.end(), std::mem_fun(&Net::tick));
-	Ocean::nets.erase(std::remove_if(Ocean::nets.begin(), Ocean::nets.end(), Net::isDone), Ocean::nets.end());
+    std::vector<Net*>::iterator r = std::remove_if(Ocean::nets.begin(), Ocean::nets.end(), Net::isDone);
+    for (std::vector<Net*>::iterator i = r; i != Ocean::nets.end(); ++i)
+        Ocean::regLog((*i)->getCount());
+    Ocean::nets.erase(r, Ocean::nets.end());
 }
 
 void Ocean::update() {

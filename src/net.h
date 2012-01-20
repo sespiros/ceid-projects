@@ -7,9 +7,9 @@ class Net
 {
 public:
 	Net();
-	Net(int, int, int, int = 8);
+    Net(int, int, int, int = 6);
 
-	static void bind(sf::RenderWindow*, bool = false);
+    static void bind(sf::RenderWindow*);
 
 	void tick();
 	void draw();
@@ -20,12 +20,14 @@ public:
 	int getRadius() const;
 	int getX() const;
 	int getY() const;
+    std::string getCount() const;
 private:
-	int radius, innerRadius;
+    int radius;
 	const int maxRadius;
 	int x, y;
 	int roundsRun;
 	int lifespan;
+    int count;
 	sf::Image img;
 	sf::Sprite sprite;
 	static sf::RenderWindow* window;

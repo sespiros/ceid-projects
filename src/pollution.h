@@ -25,7 +25,7 @@ private:
 	const int maxRadius;
 	int x, y;
 	int roundsRun;
-	int lifespan;
+    int lifespan;
 	sf::Image img;
 	sf::Sprite sprite;
 	static sf::RenderWindow* window;

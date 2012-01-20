@@ -243,7 +243,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
                     if(IScreen::actionChoice == 1){
                         int ran = (Ocean::worldIsBig)?rand()%5 + 1:rand()%2 + 1;
-                        Ocean::throwNet(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x, Helper::getLocalCoords(MousePosView.x, MousePosView.y).y, 10);
+                        Ocean::throwNet(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x, Helper::getLocalCoords(MousePosView.x, MousePosView.y).y);
                     }
                 }
             }

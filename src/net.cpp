@@ -7,10 +7,10 @@ bool Net::isPaused_;
 Net::Net(int r, int x, int y, int ls) : maxRadius(r)
 {
 	radius = 0;
+    count = 0;
 	Net::x = x;
 	Net::y = y;
-	lifespan = ls;
-	innerRadius = 0;
+    lifespan = ls;
 	roundsRun = 0;
 
 	if (!img.LoadFromFile("artwork/Net.png"))
@@ -20,10 +20,9 @@ Net::Net(int r, int x, int y, int ls) : maxRadius(r)
 	sprite.SetPosition(Helper::worldToPixel[x][y].x, Helper::worldToPixel[x][y].y);
 }
 
-void Net::bind(sf::RenderWindow* w, bool isPaused)
+void Net::bind(sf::RenderWindow* w)
 {
-	window = w;
-	isPaused_ = isPaused;
+    window = w;
 }
 
 void Net::tick()
@@ -34,8 +33,10 @@ void Net::tick()
 				continue;
 			if (xx * xx + yy * yy > radius * radius)
 				continue;
-			if (Ocean::fishMap.count((x + xx) + (y + yy)*Ocean::MAX_X) != 0)
-				Ocean::kill((x + xx) + (y + yy)*Ocean::MAX_X);
+            if (Ocean::fishMap.count((x + xx) + (y + yy)*Ocean::MAX_X) != 0){
+                Ocean::kill((x + xx) + (y + yy)*Ocean::MAX_X);
+                count++;
+            }
 		}
 	}
 
@@ -52,11 +53,7 @@ void Net::draw()
 				continue;
 			if (xx * xx + yy * yy > radius * radius)
 				continue;
-			sprite.SetPosition(Helper::worldToPixel[x + xx][y + yy].x, Helper::worldToPixel[x + xx][y + yy].y);
-			if (!isPaused_) {
-				sprite.FlipX((rand() % 2 == 0) ? true : false);
-				sprite.FlipY((rand() % 2 == 0) ? true : false);
-			}
+            sprite.SetPosition(Helper::worldToPixel[x + xx][y + yy].x, Helper::worldToPixel[x + xx][y + yy].y);
 			window->Draw(sprite);
 		}
 	}
@@ -86,4 +83,11 @@ int Net::getX() const
 int Net::getY() const
 {
 	return y;
+}
+
+std::string Net::getCount() const
+{
+    std::stringstream ss;
+    ss << count << " fish were caught.";
+    return ss.str();
 }

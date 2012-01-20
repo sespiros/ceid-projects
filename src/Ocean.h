@@ -33,7 +33,7 @@ public:
     static mapIter breed(int key1, int key2);
 
     static void pollute(int, int, int, int = 8);
-	static void throwNet(int, int, int, int = 10);
+    static void throwNet(int, int, int, int = 6);
 
     static void createAndAddRandFish(int x, int y);
     static void populate();

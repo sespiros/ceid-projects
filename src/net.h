@@ -1,35 +1,37 @@
-#ifndef POLLUTION_H
-#define POLLUTION_H
+#ifndef NET_H
+#define NET_H
 
 #include "SFML/Graphics.hpp"
 
-class Pollution
+class Net
 {
 public:
-	Pollution();
-	Pollution(int, int, int, int = 8);
+	Net();
+    Net(int, int, int, int = 6);
 
-	static void bind(sf::RenderWindow*, bool = false);
+    static void bind(sf::RenderWindow*);
 
 	void tick();
 	void draw();
 
 	// Utility function as a predicate for the erase-remove idiom
-	static bool isDone(Pollution *);
+	static bool isDone(Net *);
 
 	int getRadius() const;
 	int getX() const;
 	int getY() const;
+    std::string getCount() const;
 private:
-	int radius, innerRadius;
+    int radius;
 	const int maxRadius;
 	int x, y;
 	int roundsRun;
-    int lifespan;
+	int lifespan;
+    int count;
 	sf::Image img;
 	sf::Sprite sprite;
 	static sf::RenderWindow* window;
 	static bool isPaused_;
 };
 
-#endif // POLLUTION_H
+#endif // NET_H

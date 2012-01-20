@@ -5,6 +5,7 @@
 
 #include "organism.h"
 #include "pollution.h"
+#include "net.h"
 #include <cstring>
 #include <sstream>
 
@@ -28,11 +29,13 @@ public:
     static void add(Organism *toAdd);
     static void kill(int key);
     static void pollute(int, int, int, int = 8);
+    static void throwNet(int, int, int, int = 6);
     static void createAndAddFish(int t, int x, int y);
     static void createAndAddRandFish(int x, int y);
     static void populate();
     static void init(bool big);
     static void tickPollution();
+	static void tickNets();
     static void update();
     static void info();
     static void stats();
@@ -53,6 +56,7 @@ public:
 
     static std::map<int, Organism*> fishMap;
     static std::vector<Pollution*> pollution;
+	static std::vector<Net*> nets;
     static float averageCategorySize[10];
     static float averageConsumptionWeek[10];
     static float averageDeathRate[10];

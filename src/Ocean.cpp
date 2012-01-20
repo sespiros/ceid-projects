@@ -39,7 +39,7 @@ void Ocean::setup() {
     GlobalFont.LoadFromFile("artwork/font.ttf");
 
     //this variable is for setting y coordinate for the strings of stats
-    int y = 15;//30 HAHAHHHAHA I PIO AKYRH METAVLITI POU MPOREI NA YPHRXE
+    int y = 15;
 
     //Stats Arrays initialization
     for(int i = 0; i < 10 ; i++){
@@ -59,38 +59,6 @@ void Ocean::setup() {
 
         y += 53;
     }
-}
-
-void Ocean::reset() {
-	for (mapIter i = Ocean::fishMap.begin(); i != Ocean::fishMap.end(); )
-		Ocean::kill((i++)->first);
-
-    Ocean::fishMap.clear();
-    Ocean::pollution.clear();
-    Ocean::count = 0;
-    Ocean::deaths = 0;
-    Ocean::births = 0;
-    Ocean::turns = 0;
-    Ocean::choice = false;
-    Ocean::choiceHash = 0;
-    memset(averageCategorySize, 0, sizeof(averageCategorySize));
-    memset(averageConsumptionWeek, 0, sizeof(averageConsumptionWeek));
-    memset(averageDeathRate, 0, sizeof(averageDeathRate));
-    memset(averageAge, 0, sizeof(averageAge));
-    Ocean::log.str("");
-    if (Helper::worldToPixel != NULL)
-        Helper::cleanup();
-
-    // per Organism class cleanup
-    PPlankton::reset();
-    ZPlankton::reset();
-    Shrimp::reset();
-    Jelly::reset();
-    Eel::reset();
-    Balloon::reset();
-    Gtp::reset();
-    Magikarp::reset();
-    Narwhal::reset();
 }
 
 void Ocean::init(bool choice) {
@@ -114,38 +82,6 @@ void Ocean::init(bool choice) {
     Ocean::populate();
 }
 
-void Ocean::add(Organism *toAdd) {
-    int hash = toAdd->getX() + toAdd->getY() * MAX_X;
-    fishMap.insert(pair<int, Organism*>(hash, toAdd));
-    count++;
-}
-
-void Ocean::kill(int key) {
-
-    if(key == Ocean::choiceHash && Ocean::choice){
-        Ocean::choiceHash = -1;
-        Ocean::choice = false;
-    }
-
-    fishMap[key]->kill();
-    delete fishMap[key];
-    fishMap.erase(key);
-    count--;
-    deaths++;
-
-    regLog("A fish has died..");
-}
-
-void Ocean::createAndAddFish(int t, int x, int y) {
-    organism_creator f = ClassRegistry::getConstructor(t);
-    Ocean::add(f(x, y));
-}
-
-void Ocean::createAndAddRandFish(int x, int y) {
-    organism_creator f = ClassRegistry::getConstructor(genRandType());
-    Ocean::add(f(x, y));
-}
-
 void Ocean::populate() {
     for (int i = 0; i < Ocean::MAX_COUNT; i++) {
         int x = rand()%(Ocean::MAX_X - 1);
@@ -159,38 +95,23 @@ void Ocean::populate() {
     }
 }
 
-Organism::fishtype Ocean::genRandType() {
-    std::map<Organism::fishtype, int>::const_iterator it;
-    int sum = 0;
-    for (it = Organism::weightMap.begin(); it != Organism::weightMap.end(); it++) {
-        sum += it->second;
+void Ocean::update() {
+    srand(time(0));
+    mapIter it;
+
+    tickPollution();
+    turns++;
+    for (it = Ocean::fishMap.begin(); it != Ocean::fishMap.end();) {
+        if (it->second->isDone)
+            ++it;
+        else{
+            it->second->isDone = true;
+            it = collide(it->first);
+        }
     }
 
-    int rnd = rand()%sum;
-    for (it = Organism::weightMap.begin(); it != Organism::weightMap.end(); it++) {
-        rnd -= it->second;
-        if (rnd < 0)
-            return it->first;
-    }
-    return (Organism::fishtype)0;
-}
+    Ocean::stats();
 
-mapIter Ocean::move(int key, int x, int y) {
-    int hash = x + y * MAX_X;
-    mapIter it = Ocean::fishMap.find(key);
-
-    it->second->setX(x);
-    it->second->setY(y);
-
-    fishMap.insert(pair<int, Organism*>(hash, fishMap[key]));
-
-    if(key == Ocean::choiceHash && Ocean::choice){
-        Ocean::choiceHash = hash;
-    }
-
-    //not Ocean::kill because in Ocean::we move an object and we don't want count--
-    fishMap.erase(it++);
-    return it;
 }
 
 mapIter Ocean::collide(int key){
@@ -252,29 +173,107 @@ mapIter Ocean::collide(int key){
     return next;
 }
 
+void Ocean::reset() {
+    for (mapIter i = Ocean::fishMap.begin(); i != Ocean::fishMap.end(); )
+        Ocean::kill((i++)->first);
+
+    Ocean::fishMap.clear();
+    Ocean::pollution.clear();
+    Ocean::count = 0;
+    Ocean::deaths = 0;
+    Ocean::births = 0;
+    Ocean::turns = 0;
+    Ocean::choice = false;
+    Ocean::choiceHash = 0;
+    memset(averageCategorySize, 0, sizeof(averageCategorySize));
+    memset(averageConsumptionWeek, 0, sizeof(averageConsumptionWeek));
+    memset(averageDeathRate, 0, sizeof(averageDeathRate));
+    memset(averageAge, 0, sizeof(averageAge));
+    Ocean::log.str("");
+    if (Helper::worldToPixel != NULL)
+        Helper::cleanup();
+
+    // per Organism class cleanup
+    PPlankton::reset();
+    ZPlankton::reset();
+    Shrimp::reset();
+    Jelly::reset();
+    Eel::reset();
+    Balloon::reset();
+    Gtp::reset();
+    Magikarp::reset();
+    Narwhal::reset();
+}
+
+void Ocean::add(Organism *toAdd) {
+    int hash = toAdd->getX() + toAdd->getY() * MAX_X;
+    fishMap.insert(pair<int, Organism*>(hash, toAdd));
+    count++;
+}
+
+void Ocean::createAndAddFish(int t, int x, int y) {
+    organism_creator f = ClassRegistry::getConstructor(t);
+    Ocean::add(f(x, y));
+}
+
+void Ocean::createAndAddRandFish(int x, int y) {
+    organism_creator f = ClassRegistry::getConstructor(genRandType());
+    Ocean::add(f(x, y));
+}
+
+void Ocean::kill(int key) {
+
+    if(key == Ocean::choiceHash && Ocean::choice){
+        Ocean::choiceHash = -1;
+        Ocean::choice = false;
+    }
+
+    fishMap[key]->kill();
+    delete fishMap[key];
+    fishMap.erase(key);
+    count--;
+    deaths++;
+
+    regLog("A fish has died..");
+}
+
+Organism::fishtype Ocean::genRandType() {
+    std::map<Organism::fishtype, int>::const_iterator it;
+    int sum = 0;
+    for (it = Organism::weightMap.begin(); it != Organism::weightMap.end(); it++) {
+        sum += it->second;
+    }
+
+    int rnd = rand()%sum;
+    for (it = Organism::weightMap.begin(); it != Organism::weightMap.end(); it++) {
+        rnd -= it->second;
+        if (rnd < 0)
+            return it->first;
+    }
+    return (Organism::fishtype)0;
+}
+
+mapIter Ocean::move(int key, int x, int y) {
+    int hash = x + y * MAX_X;
+    mapIter it = Ocean::fishMap.find(key);
+
+    it->second->setX(x);
+    it->second->setY(y);
+
+    fishMap.insert(pair<int, Organism*>(hash, fishMap[key]));
+
+    if(key == Ocean::choiceHash && Ocean::choice){
+        Ocean::choiceHash = hash;
+    }
+
+    //not Ocean::kill because in Ocean::we move an object and we don't want count--
+    fishMap.erase(it++);
+    return it;
+}
+
 void Ocean::tickPollution() {
     std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::tick));
     Ocean::pollution.erase(std::remove_if(Ocean::pollution.begin(), Ocean::pollution.end(), Pollution::isDone), Ocean::pollution.end());
-}
-
-void Ocean::update() {
-    srand(time(0));
-    mapIter it;
-
-    tickPollution();
-    turns++;
-    for (it = Ocean::fishMap.begin(); it != Ocean::fishMap.end();) {
-        if (it->second->isDone)
-            ++it;
-        else{
-            it->second->isDone = true;
-            it = collide(it->first);
-        }
-    }
-
-    Ocean::stats();
-
-
 }
 
 void Ocean::info() {

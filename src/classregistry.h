@@ -8,23 +8,30 @@
 //pointer to function which returns pointer to Organism
 typedef Organism* (*organism_creator)(int, int);
 
-//FUCKING AWESOME CLASS::
+//Class for registering class types, image resources and names
 class ClassRegistry {
 private:
-        //map with enum as a key and pointer to function which returns pointer to Organism
-        static std::map<int, organism_creator> assocMap;
+    //map with enum as a key and pointer to function which returns pointer to Organism
+    static std::map<int, organism_creator> assocMap;
 
-        //easy access to above map for searching
-        typedef std::map<int, organism_creator>::iterator iter;
+    //easy access to above map for searching
+    typedef std::map<int, organism_creator>::iterator iter;
 public:
-        //returns constructor based on enum type
-        static organism_creator getConstructor(int s);
-        static std::map<int, std::string> assocMapNames;
-        static std::map<int, sf::Image> assocMapImages;
+    //map with enum as a key, returns name of the corresponding type
+    static std::map<int, std::string> assocMapNames;
 
-        //....add comment
-        template<class className> static void associate(Organism::fishtype);
-        static void registerClasses();
+    //map with enum as a key, returns image of the corresponding type
+    static std::map<int, sf::Image> assocMapImages;
+
+    //returns constructor based on enum type
+    static organism_creator getConstructor(int s);
+
+
+    //insert classes into assocMap
+    template<class className> static void associate(Organism::fishtype);
+
+    //registers class types, image resources and names
+    static void registerClasses();
 };
 
 //returns custom constructor

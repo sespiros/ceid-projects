@@ -6,6 +6,9 @@
 #include "iscreen.h"
 #include "Ocean.h"
 
+/** Menu state class
+  *
+  */
 class MenuScreen : public IScreen {
 public:
     MenuScreen();

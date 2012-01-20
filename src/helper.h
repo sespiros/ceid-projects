@@ -8,13 +8,23 @@
 
 class Helper {
 public:
-        static sf::Vector2f** getWorldScreenMapping();
-		static void cleanup();
-		static void swapDir(int, int);
-        static sf::Vector2i getLocalCoords(float, float);
+    //initializes worldToPixel
+    static sf::Vector2f** getWorldScreenMapping();
 
-        static sf::Vector2f** worldToPixel;
-		static int dir[8][2];
+    //deallocates worldToPixel
+    static void cleanup();
+
+    //swaps dir for implementing Fisher-Yates shuffle
+    static void swapDir(int, int);
+
+    //conversion from screen coordinates to local coordinates
+    static sf::Vector2i getLocalCoords(float, float);
+
+    //conversion from local coordinates to screen coordinates
+    static sf::Vector2f** worldToPixel;
+
+    //Array holding available moves
+    static int dir[8][2];
 };
 
 #endif

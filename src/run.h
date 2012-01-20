@@ -242,7 +242,8 @@ int RunScreen::Run(sf::RenderWindow &App)
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Right){
                 if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
                     if(IScreen::actionChoice == 1){
-                        //add nets
+                        int ran = (Ocean::worldIsBig)?rand()%5 + 1:rand()%2 + 1;
+                        Ocean::throwNet(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x, Helper::getLocalCoords(MousePosView.x, MousePosView.y).y, 10);
                     }
                 }
             }
@@ -500,9 +501,9 @@ int RunScreen::Run(sf::RenderWindow &App)
         std::for_each(Ocean::pollution.begin(), Ocean::pollution.end(), std::mem_fun(&Pollution::draw));
         Pollution::bind(0);
 
-		Net::bind(&App);
-		std::for_each(Ocean::nets.begin(), Ocean::nets.end(), std::mem_fun(&Net::draw));
-		Net::bind(0);
+        Net::bind(&App);
+        std::for_each(Ocean::nets.begin(), Ocean::nets.end(), std::mem_fun(&Net::draw));
+        Net::bind(0);
 
         App.SetView(App.GetDefaultView());
 

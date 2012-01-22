@@ -223,7 +223,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 return(0); // state switch
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
+                if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560){
                     local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
 
                     int hash = local.x + local.y * Ocean::MAX_X;
@@ -341,7 +341,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 tooltip.SetPosition(MousePos.x - 85, MousePos.y - 10);
             }
 
-            if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565 && debug){
+            if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560 && debug){
                 std::stringstream ss;
                 local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
                 ss << local.x <<", "<<local.y;
@@ -403,7 +403,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 sf::Vector2i local = Helper::getLocalCoords(MousePosView.x ,MousePosView.y);
                 int hash = local.x + local.y * Ocean::MAX_X;
 
-                if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
+                if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560){
                     if(Ocean::fishMap.find(hash) == Ocean::fishMap.end()){
                         Ocean::createAndAddFish(drop-1, local.x, local.y) ;
                         std::stringstream ss;

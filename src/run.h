@@ -120,11 +120,11 @@ int RunScreen::Run(sf::RenderWindow &App)
     d_tip.SetSize(13);
     d_tip.SetFont(Ocean::GlobalFont);
 
-    sf::Rect<float> addNew                  (831,39,875,560);
-    sf::Rect<float> averageCategorySize     (871,39,900,560);
-    sf::Rect<float> averageConsumptionWeek  (910,39,935,560);
-    sf::Rect<float> averageDeathRate        (947,39,973,560);
-    sf::Rect<float> averageAge              (986,39,1013,560);
+    sf::Rect<float> addNew                  (831,39,875,555);
+    sf::Rect<float> averageCategorySize     (871,39,900,555);
+    sf::Rect<float> averageConsumptionWeek  (910,39,935,555);
+    sf::Rect<float> averageDeathRate        (947,39,973,555);
+    sf::Rect<float> averageAge              (986,39,1013,555);
 
     sf::Image st_b;
     sf::Image in_b;
@@ -155,9 +155,9 @@ int RunScreen::Run(sf::RenderWindow &App)
     info.SetPosition(787,573);
     slider.SetPosition(583,573);
 
-    if(IScreen::speed == 15.0){
+    if(IScreen::speed == 7.0){
         slider.SetPosition(714,slider.GetPosition().y);
-    }else if (IScreen::speed == 6.0){
+    }else if (IScreen::speed == 5.0){
         slider.SetPosition(668,slider.GetPosition().y);
     }else if(IScreen::speed == 3.0){
         slider.SetPosition(625,slider.GetPosition().y);
@@ -223,7 +223,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 return(0); // state switch
             }
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Left){
-                if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560){
+                if(MousePos.x >= 14 && MousePos.x <= 808 && MousePos.y >= 14 && MousePos.y <= 555){
                     local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
 
                     int hash = local.x + local.y * Ocean::MAX_X;
@@ -240,7 +240,7 @@ int RunScreen::Run(sf::RenderWindow &App)
             }
 
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Right){
-                if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560){
+                if(MousePos.x >= 14 && MousePos.x <= 808 && MousePos.y >= 14 && MousePos.y <= 555){
                     if(IScreen::actionChoice == 1){
                         int ran = (Ocean::worldIsBig)?rand()%5 + 1:rand()%2 + 1;
                         Ocean::throwNet(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x, Helper::getLocalCoords(MousePosView.x, MousePosView.y).y);
@@ -341,7 +341,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 tooltip.SetPosition(MousePos.x - 85, MousePos.y - 10);
             }
 
-            if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560 && debug){
+            if(MousePos.x >= 14 && MousePos.x <= 808 && MousePos.y >= 14 && MousePos.y <= 555 && debug){
                 std::stringstream ss;
                 local = Helper::getLocalCoords(MousePosView.x,MousePosView.y);
                 ss << local.x <<", "<<local.y;
@@ -364,7 +364,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 pollute = true;
             }
             if(pollute){
-                if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560){
+                if(MousePos.x >= 14 && MousePos.x <= 808 && MousePos.y >= 14 && MousePos.y <= 555){
                     int ran = (Ocean::worldIsBig)?rand()%5 + 1:rand()%2 + 1;
                     Ocean::pollute(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y,rand()%8 + 3);
                     pollute = false;
@@ -403,7 +403,7 @@ int RunScreen::Run(sf::RenderWindow &App)
                 sf::Vector2i local = Helper::getLocalCoords(MousePosView.x ,MousePosView.y);
                 int hash = local.x + local.y * Ocean::MAX_X;
 
-                if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560){
+                if(MousePos.x >= 14 && MousePos.x <= 808 && MousePos.y >= 14 && MousePos.y <= 555){
                     if(Ocean::fishMap.find(hash) == Ocean::fishMap.end()){
                         Ocean::createAndAddFish(drop-1, local.x, local.y) ;
                         std::stringstream ss;
@@ -417,10 +417,10 @@ int RunScreen::Run(sf::RenderWindow &App)
 
             if(slider.GetPosition().x > 700){
                 slider.SetPosition(714,slider.GetPosition().y);
-                IScreen::speed = 15.0f;
+                IScreen::speed = 7.0f;
             }else if(slider.GetPosition().x > 653){
                 slider.SetPosition(668,slider.GetPosition().y);
-                IScreen::speed = 6.0f;
+                IScreen::speed = 5.0f;
             }else if(slider.GetPosition().x > 610){
                 slider.SetPosition(625,slider.GetPosition().y);
                 IScreen::speed = 3.0f;

@@ -9,7 +9,7 @@ int main()
     // Ocean Initialization select true for BigWorld
     Ocean::setup();
 
-    sf::RenderWindow App(sf::VideoMode(1024, 600, 32), "Ocean Life v0.2");
+    sf::RenderWindow App(sf::VideoMode(1024, 600, 32), "Ocean Life v1.2");
     std::vector<IScreen *> Screens;
     sf::Image Icon;
     Icon.LoadFromFile("artwork/icon.png");

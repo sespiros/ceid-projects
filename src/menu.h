@@ -6,9 +6,9 @@
 #include "iscreen.h"
 #include "Ocean.h"
 
-/** Menu state class
-  *
-  */
+/**
+ * Menu state class
+ */
 class MenuScreen : public IScreen {
 public:
     MenuScreen();
@@ -50,13 +50,13 @@ int MenuScreen::Run(sf::RenderWindow &App)
     playBigSprite.SetImage(playBigImg);
     playSmallSprite.SetImage(playSmallImg);
 
-    float spacing = 50.0f, offsetY = 0, offsetX = 0;
-    float totalSize = playBigSprite.GetSize().x + playSmallSprite.GetSize().x + spacing;
+    float spacing = 20.0f, offsetY = 0, offsetX = 0;
+    float totalSize = playBigSprite.GetSize().y + playSmallSprite.GetSize().y + spacing;
 
     playBigSprite.SetCenter(playBigSprite.GetSize().x/2.0f, playBigSprite.GetSize().y/2.0f);
-    playBigSprite.SetPosition((App.ConvertCoords(App.GetWidth(), 0).x - totalSize + playBigSprite.GetSize().x)/2.0f, 250);
+    playBigSprite.SetPosition((App.ConvertCoords(App.GetWidth(), 0)).x/2.0f, (App.ConvertCoords(0, App.GetHeight()).y - totalSize + playBigSprite.GetSize().y)/2.0f);
     playSmallSprite.SetCenter(playSmallSprite.GetSize().x/2.0f, playSmallSprite.GetSize().y/2.0f);
-    playSmallSprite.SetPosition((App.ConvertCoords(App.GetWidth(), 0).x - totalSize + playSmallSprite.GetSize().x)/2.0f + playBigSprite.GetSize().x + spacing, 250);
+    playSmallSprite.SetPosition((App.ConvertCoords(App.GetWidth(), 0)).x/2.0f, (App.ConvertCoords(0, App.GetHeight()).y - totalSize + playSmallSprite.GetSize().y)/2.0f + playBigSprite.GetSize().y + spacing);
 
     sf::FloatRect mouseRect, playRect;
     sf::Vector2f orig(0, 0), end;

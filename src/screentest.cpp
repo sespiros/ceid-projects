@@ -30,5 +30,7 @@ int main()
     Helper::cleanup();
     Helper::worldToPixel = NULL;
 
+    Ocean::reset();
+
     return EXIT_SUCCESS;
 }

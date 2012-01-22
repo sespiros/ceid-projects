@@ -83,6 +83,9 @@ int MenuScreen::Run(sf::RenderWindow &App)
 
         end.x = playSmallImg.GetWidth();
         end.y = playSmallImg.GetHeight();
+        // normal - reduced size
+        offsetY = playSmallImg.GetHeight() * (1 - playSmallSprite.GetScale().x);
+        offsetX = playSmallImg.GetWidth() * (1 - playSmallSprite.GetScale().y);
         playRect.Left = playSmallSprite.TransformToGlobal(orig).x - offsetX/2;
         playRect.Top = playSmallSprite.TransformToGlobal(orig).y - offsetY/2;
         playRect.Right = playSmallSprite.TransformToGlobal(end).x + offsetX/2;
@@ -90,9 +93,6 @@ int MenuScreen::Run(sf::RenderWindow &App)
 
         if (mouseRect.Intersects(playRect)) {
             playSmallSprite.SetScale(0.95f, 0.95f);
-            // normal - reduced size
-            offsetY = playSmallImg.GetHeight() * (1 - playSmallSprite.GetScale().x);
-            offsetX = playSmallImg.GetWidth() * (1 - playSmallSprite.GetScale().y);
             if (App.GetInput().IsMouseButtonDown(sf::Mouse::Left)) {
                 Ocean::init(false);
                 return 0;
@@ -106,13 +106,15 @@ int MenuScreen::Run(sf::RenderWindow &App)
 
         end.x = playBigImg.GetWidth();
         end.y = playBigImg.GetHeight();
-        playRect.Left = playBigSprite.TransformToGlobal(orig).x;
-        playRect.Top = playBigSprite.TransformToGlobal(orig).y;
-        playRect.Right = playBigSprite.TransformToGlobal(end).x;
-        playRect.Bottom = playBigSprite.TransformToGlobal(end).y;
+        offsetY = playSmallImg.GetHeight() * (1 - playBigSprite.GetScale().x);
+        offsetX = playSmallImg.GetWidth() * (1 - playBigSprite.GetScale().y);
+        playRect.Left = playBigSprite.TransformToGlobal(orig).x - offsetX/2;
+        playRect.Top = playBigSprite.TransformToGlobal(orig).y - offsetY/2;
+        playRect.Right = playBigSprite.TransformToGlobal(end).x + offsetX/2;
+        playRect.Bottom = playBigSprite.TransformToGlobal(end).y + offsetY/2;
 
         if (mouseRect.Intersects(playRect)) {
-            playBigSprite.SetScale(1.2f, 1.2f);
+            playBigSprite.SetScale(0.95f, 0.95f);
             if (App.GetInput().IsMouseButtonDown(sf::Mouse::Left)) {
                 Ocean::init(true);
                 return 0;

@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "SFML/Audio.hpp"
+
 #include "iscreen.h"
 #include "Ocean.h"
 
@@ -16,6 +18,8 @@ public:
 private:
     sf::Image bgImg;
     sf::Sprite bgSprite;
+    sf::Music introMusic;
+    bool mute;
 };
 
 MenuScreen::MenuScreen()
@@ -24,6 +28,12 @@ MenuScreen::MenuScreen()
         std::cerr << "Error loading background image (about)!" << std::endl;
     }
     bgSprite.SetImage(bgImg);
+    if (!introMusic.OpenFromFile("artwork/intro.ogg")) {
+        std::cerr << "Error loading intro music!" << std::endl;
+    }
+    introMusic.SetLoop(true);
+    introMusic.SetVolume(80);
+    mute = true;
 }
 
 int MenuScreen::Run(sf::RenderWindow &App)
@@ -43,8 +53,6 @@ int MenuScreen::Run(sf::RenderWindow &App)
     help.SetPosition(5,5);
     help.SetText("In Game press F1 for help");
 
-    sf::Clock timer;
-
     if (!playBigImg.LoadFromFile("artwork/playb.png") || !playSmallImg.LoadFromFile("artwork/plays.png"))
         std::cerr << "Error loading text images!" << std::endl;
     playBigSprite.SetImage(playBigImg);
@@ -63,11 +71,22 @@ int MenuScreen::Run(sf::RenderWindow &App)
 
     sf::Event e;
 
+    introMusic.Play();
+
     while (Running) {
         while (App.GetEvent(e)) {
             switch (e.Type) {
             case sf::Event::Closed:
                 return -1;
+                break;
+            case sf::Event::KeyPressed:
+                if (e.Key.Code == sf::Key::M){
+                    if (mute)
+                        introMusic.SetVolume(0);
+                    else
+                        introMusic.SetVolume(80);
+                    mute = !mute;
+                }
                 break;
             default:
                 break;
@@ -94,6 +113,7 @@ int MenuScreen::Run(sf::RenderWindow &App)
         if (mouseRect.Intersects(playRect)) {
             playSmallSprite.SetScale(0.95f, 0.95f);
             if (App.GetInput().IsMouseButtonDown(sf::Mouse::Left)) {
+                introMusic.Stop();
                 Ocean::init(false);
                 return 0;
             }
@@ -116,6 +136,7 @@ int MenuScreen::Run(sf::RenderWindow &App)
         if (mouseRect.Intersects(playRect)) {
             playBigSprite.SetScale(0.95f, 0.95f);
             if (App.GetInput().IsMouseButtonDown(sf::Mouse::Left)) {
+                introMusic.Stop();
                 Ocean::init(true);
                 return 0;
             }
@@ -131,6 +152,7 @@ int MenuScreen::Run(sf::RenderWindow &App)
         App.Clear();
     }
 
+    introMusic.Stop();
     return 0;
 }
 

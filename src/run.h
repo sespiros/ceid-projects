@@ -240,7 +240,7 @@ int RunScreen::Run(sf::RenderWindow &App)
             }
 
             if (Event.Type == sf::Event::MouseButtonPressed && Event.MouseButton.Button == sf::Mouse::Right){
-                if(MousePos.x >= 14 && MousePos.x <= 818 && MousePos.y >= 14 && MousePos.y <= 565){
+                if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560){
                     if(IScreen::actionChoice == 1){
                         int ran = (Ocean::worldIsBig)?rand()%5 + 1:rand()%2 + 1;
                         Ocean::throwNet(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x, Helper::getLocalCoords(MousePosView.x, MousePosView.y).y);
@@ -364,14 +364,13 @@ int RunScreen::Run(sf::RenderWindow &App)
                 pollute = true;
             }
             if(pollute){
-                int ran = (Ocean::worldIsBig)?rand()%5 + 1:rand()%2 + 1;
-                Ocean::pollute(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y,rand()%8 + 3);
-                pollute = false;
+                if(MousePos.x >= 14 && MousePos.x <= 810 && MousePos.y >= 14 && MousePos.y <= 560){
+                    int ran = (Ocean::worldIsBig)?rand()%5 + 1:rand()%2 + 1;
+                    Ocean::pollute(ran, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y,rand()%8 + 3);
+                    pollute = false;
+                }
             }
         }else{
-            if(pollute){
-                Ocean::pollute(rand()%5 + 1, Helper::getLocalCoords(MousePosView.x, MousePosView.y).x,Helper::getLocalCoords(MousePosView.x, MousePosView.y).y , rand()%8 + 3);
-            }
             pollute = false;
         }
 

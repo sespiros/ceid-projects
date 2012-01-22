@@ -287,11 +287,7 @@ void Organism::eat(Organism* o) {
 
     if (foodConsumed >= foodRequired) {
         size += (foodConsumed/foodRequired)*growthRate;
-        if(Ocean::turns < 200){
-            ttl *= 5;
-        }else{
-            ttl *= 4;
-        }
+        ttl += 50;
         foodConsumed = foodConsumed%foodRequired;
         std::stringstream ss;
         ss<<"Size inc! for "<< o;
@@ -309,7 +305,7 @@ bool Organism::levelUpCheck() {
     ttl--;
 
     if(Ocean::easterEggs){
-        if(age > 5 && size > 10 && type == MAGIKARP){
+        if(age > 5 && size > 30 && type == MAGIKARP){
             Ocean::regLog("Gyarados evolve");
             eatField = 1023;
             sprite.SetImage(ClassRegistry::assocMapImages[10]);

@@ -209,8 +209,10 @@ void Ocean::reset() {
 
 void Ocean::add(Organism *toAdd) {
     int hash = toAdd->getX() + toAdd->getY() * MAX_X;
-    fishMap.insert(pair<int, Organism*>(hash, toAdd));
-    count++;
+    if (Ocean::fishMap.count(hash) == 0) {
+        fishMap.insert(pair<int, Organism*>(hash, toAdd));
+        count++;
+    }
 }
 
 void Ocean::createAndAddFish(int t, int x, int y) {
@@ -310,8 +312,8 @@ void Ocean::pollute(int r, int x, int y, int t)
 
 void Ocean::throwNet(int r, int x, int y, int t)
 {
-	Net* n = new Net(r, x, y, t);
-	Ocean::nets.insert(Ocean::nets.begin(), n);
+    Net* n = new Net(r, x, y, t);
+    Ocean::nets.insert(Ocean::nets.begin(), n);
 }
 
 void Ocean::stats(){

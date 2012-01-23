@@ -16,7 +16,6 @@ public:
 private:
     sf::Image bgImg;
     sf::Sprite bgSprite;
-    bool mute;
 };
 
 MenuScreen::MenuScreen()
@@ -29,13 +28,13 @@ MenuScreen::MenuScreen()
         std::cerr << "Error loading intro music!" << std::endl;
     }
     IScreen::introMusic.SetLoop(true);
-    mute = true;
 }
 
 int MenuScreen::Run(sf::RenderWindow &App)
 {
     App.SetFramerateLimit(60);
-    IScreen::introMusic.SetVolume(30);
+    IScreen::introMusic.SetVolume(20);
+    if (mute) introMusic.SetVolume(0);
 
     bool Running = true;
 
@@ -76,11 +75,11 @@ int MenuScreen::Run(sf::RenderWindow &App)
                 break;
             case sf::Event::KeyPressed:
                 if (e.Key.Code == sf::Key::M){
+                    mute = !mute;
                     if (mute)
                         introMusic.SetVolume(0);
                     else
-                        introMusic.SetVolume(30);
-                    mute = !mute;
+                        introMusic.SetVolume(20);
                 }
                 break;
             default:

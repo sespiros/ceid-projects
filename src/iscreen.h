@@ -26,6 +26,7 @@ public:
     static int actionChoice;
 
     static sf::Music introMusic;
+    static bool mute;
 };
 //static variables declaration
 bool IScreen::logChoice = false;
@@ -34,5 +35,6 @@ bool IScreen::info = false;
 float IScreen::speed;
 int IScreen::actionChoice = 0;
 sf::Music IScreen::introMusic;
+bool IScreen::mute = false;
 
 #endif // SCREEN_H

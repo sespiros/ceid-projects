@@ -23,7 +23,8 @@ int Ocean::MAX_Y;
 int PauseScreen::Run(sf::RenderWindow &App)
 {
     App.SetFramerateLimit(23);
-    IScreen::introMusic.SetVolume(10);
+    IScreen::introMusic.SetVolume(5);
+    if (mute) introMusic.SetVolume(0);
 
     sf::Event Event;
     bool Running = true;
@@ -39,7 +40,6 @@ int PauseScreen::Run(sf::RenderWindow &App)
     float CenterX;
     float CenterY;
     bool debug = true;
-    bool mute = false;
 
     sf::Sprite about;
     sf::Image ab_im;
@@ -220,11 +220,11 @@ int PauseScreen::Run(sf::RenderWindow &App)
                 break;
             case sf::Event::KeyPressed:
                 if (Event.Key.Code == sf::Key::M){
+                    mute = !mute;
                     if (mute)
                         introMusic.SetVolume(0);
                     else
-                        introMusic.SetVolume(10);
-                    mute = !mute;
+                        introMusic.SetVolume(5);
                 }
                 break;
             default:

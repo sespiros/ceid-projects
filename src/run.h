@@ -25,7 +25,8 @@ RunScreen::RunScreen(void) : TICKS_PER_SECOND(1.0f), SKIP_TICKS(1.0f / TICKS_PER
 int RunScreen::Run(sf::RenderWindow &App)
 {
     App.SetFramerateLimit(0);
-    IScreen::introMusic.SetVolume(20);
+    IScreen::introMusic.SetVolume(10);
+    if (mute) introMusic.SetVolume(0);
 
     sf::Event Event;
     bool Running = true;
@@ -43,7 +44,6 @@ int RunScreen::Run(sf::RenderWindow &App)
     bool che = false;
     bool debug = true;
     bool pollute = false;
-    bool mute = false;
 
     int zoom = 0;
     int loops = 0;
@@ -223,11 +223,11 @@ int RunScreen::Run(sf::RenderWindow &App)
                 break;
             case sf::Event::KeyPressed:
                 if (Event.Key.Code == sf::Key::M){
+                    mute = !mute;
                     if (mute)
                         introMusic.SetVolume(0);
                     else
-                        introMusic.SetVolume(20);
-                    mute = !mute;
+                        introMusic.SetVolume(10);
                 }
                 break;
             default:

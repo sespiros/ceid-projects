@@ -21,7 +21,6 @@ public:
 	int getAge();
     int getGrowthRate();
     int getFoodRequiredPerWeek();
-    int getWeightof(Organism::fishtype);
     void setX(int );
     void setY(int );
     bool canEat(Organism*);

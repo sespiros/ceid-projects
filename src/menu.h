@@ -3,8 +3,6 @@
 
 #include <iostream>
 
-#include "SFML/Audio.hpp"
-
 #include "iscreen.h"
 #include "Ocean.h"
 
@@ -18,7 +16,6 @@ public:
 private:
     sf::Image bgImg;
     sf::Sprite bgSprite;
-    sf::Music introMusic;
     bool mute;
 };
 
@@ -28,17 +25,17 @@ MenuScreen::MenuScreen()
         std::cerr << "Error loading background image (about)!" << std::endl;
     }
     bgSprite.SetImage(bgImg);
-    if (!introMusic.OpenFromFile("artwork/intro.ogg")) {
+    if (!IScreen::introMusic.OpenFromFile("artwork/intro.ogg")) {
         std::cerr << "Error loading intro music!" << std::endl;
     }
-    introMusic.SetLoop(true);
-    introMusic.SetVolume(80);
+    IScreen::introMusic.SetLoop(true);
     mute = true;
 }
 
 int MenuScreen::Run(sf::RenderWindow &App)
 {
     App.SetFramerateLimit(60);
+    IScreen::introMusic.SetVolume(5);
 
     bool Running = true;
 
@@ -70,8 +67,6 @@ int MenuScreen::Run(sf::RenderWindow &App)
     sf::Vector2f orig(0, 0), end;
 
     sf::Event e;
-
-    introMusic.Play();
 
     while (Running) {
         while (App.GetEvent(e)) {
@@ -113,7 +108,6 @@ int MenuScreen::Run(sf::RenderWindow &App)
         if (mouseRect.Intersects(playRect)) {
             playSmallSprite.SetScale(0.95f, 0.95f);
             if (App.GetInput().IsMouseButtonDown(sf::Mouse::Left)) {
-                introMusic.Stop();
                 Ocean::init(false);
                 return 0;
             }
@@ -136,7 +130,6 @@ int MenuScreen::Run(sf::RenderWindow &App)
         if (mouseRect.Intersects(playRect)) {
             playBigSprite.SetScale(0.95f, 0.95f);
             if (App.GetInput().IsMouseButtonDown(sf::Mouse::Left)) {
-                introMusic.Stop();
                 Ocean::init(true);
                 return 0;
             }
@@ -152,7 +145,6 @@ int MenuScreen::Run(sf::RenderWindow &App)
         App.Clear();
     }
 
-    introMusic.Stop();
     return 0;
 }
 

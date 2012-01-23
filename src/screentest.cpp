@@ -24,6 +24,8 @@ int main()
 
     int curScreen = 2;
 
+    IScreen::introMusic.Play();
+
     while (curScreen >= 0)
         curScreen = Screens[curScreen]->Run(App);
 

@@ -25,6 +25,8 @@ RunScreen::RunScreen(void) : TICKS_PER_SECOND(1.0f), SKIP_TICKS(1.0f / TICKS_PER
 int RunScreen::Run(sf::RenderWindow &App)
 {
     App.SetFramerateLimit(0);
+    IScreen::introMusic.SetVolume(0);
+
     sf::Event Event;
     bool Running = true;
     sf::Image runImage;
@@ -479,10 +481,6 @@ int RunScreen::Run(sf::RenderWindow &App)
 
             float movX = (Helper::worldToPixel[it->second->getX()][it->second->getY()].x - it->second->sprite.GetPosition().x);
             float movY = (Helper::worldToPixel[it->second->getX()][it->second->getY()].y - it->second->sprite.GetPosition().y);
-
-            //if(Ocean::choice && Ocean::choiceHash == it->first){
-            //std::cout<<loops<<"           "<<movX<<"         "<<movY<<std::endl;
-            //}
 
             it->second->sprite.Move(movX * interpolation, movY * interpolation);
         }

@@ -23,6 +23,8 @@ int Ocean::MAX_Y;
 int PauseScreen::Run(sf::RenderWindow &App)
 {
     App.SetFramerateLimit(23);
+    IScreen::introMusic.SetVolume(3);
+
     sf::Event Event;
     bool Running = true;
     sf::Image pauseImage;

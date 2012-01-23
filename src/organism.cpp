@@ -106,7 +106,7 @@ nonPlankton::nonPlankton(int x, int y, int s, float gr, int fr, int v, Organism:
     //familyCount++;
 }
 
-Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 80, 1.0f, 1, 2, SHRIMP){
+Shrimp::Shrimp(int x, int y):nonPlankton(x, y, 80, 1.0f, 1, 1, SHRIMP){
     count++;
 
     eatField = 1 << Organism::ZPL | 1 << Organism::PPL;
@@ -140,7 +140,7 @@ void Jelly::kill() {
     deaths++;
 }
 
-Eel::Eel(int x, int y):nonPlankton(x, y, 60, 1.0f, 1, 5, EEL){
+Eel::Eel(int x, int y):nonPlankton(x, y, 60, 1.0f, 1, 1, EEL){
     count++;
     eatField = (1 << Organism::BALLOON) | (1 << Organism::CLOWN) | (1 << Organism::GTP);
 
@@ -156,7 +156,7 @@ void Eel::kill() {
     deaths++;
 }
 
-Balloon::Balloon(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 3, BALLOON){
+Balloon::Balloon(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 1, BALLOON){
     count++;
 
     eatField = (1 << Organism::SHRIMP) | (1 << Organism::PPL) | (1 << Organism::ZPL) | (1 << Organism::JELLY);
@@ -173,7 +173,7 @@ void Balloon::kill() {
     deaths++;
 }
 
-Clown::Clown(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 4, CLOWN){
+Clown::Clown(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 1, CLOWN){
     count++;
 
     eatField = (1 << Organism::SHRIMP) | (1 << Organism::PPL) | (1 << Organism::ZPL) | (1 << Organism::JELLY);
@@ -190,7 +190,7 @@ void Clown::kill() {
     deaths++;
 }
 
-Gtp::Gtp(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 3, GTP){
+Gtp::Gtp(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 1, GTP){
     count++;
 
     eatField = (1 << Organism::SHRIMP) | (1 << Organism::PPL) | (1 << Organism::ZPL) | (1 << Organism::JELLY);
@@ -207,7 +207,7 @@ void Gtp::kill() {
     deaths++;
 }
 
-Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 4, MAGIKARP){
+Magikarp::Magikarp(int x, int y):nonPlankton(x, y, 70, 1.0f, 1, 1, MAGIKARP){
     count++;
 
     eatField = (1 << Organism::SHRIMP) | (1 << Organism::PPL) | (1 << Organism::ZPL) | (1 << Organism::JELLY);;
@@ -224,7 +224,7 @@ void Magikarp::kill() {
     deaths++;
 }
 
-Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 50, 1.0f, 4, 6, NARWHAL){
+Narwhal::Narwhal(int x, int y):nonPlankton(x, y, 50, 1.0f, 4, 1, NARWHAL){
     count++;
 
     eatField = ~0 & ~(1 << Organism::ZPL | 1 << Organism::PPL | 1 << Organism::NARWHAL);
@@ -305,6 +305,8 @@ bool Organism::levelUpCheck() {
     ttl--;
 
     if(Ocean::easterEggs){
+
+        //Class Magikarp if it is bigger than 30 it is evolving
         if(age > 5 && size > 30 && type == MAGIKARP){
             Ocean::regLog("Gyarados evolve");
             eatField = 1023;
@@ -331,9 +333,3 @@ bool Organism::canEat(Organism* o) {
     else
         return false;
 }
-
-int Organism::getWeightof(Organism::fishtype a){
-    //std::map<Organism::fishtype, int> tmp = Organism::weightMap
-    return 5;
-}
-

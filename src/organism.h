@@ -48,7 +48,7 @@ private:
     const float growthRate;
     const int foodRequired;
 	int foodConsumed, foodConsumedWeek;
-    const int speed;
+    int speed;
     fishtype type;
 };
 

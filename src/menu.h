@@ -79,7 +79,7 @@ int MenuScreen::Run(sf::RenderWindow &App)
                     if (mute)
                         introMusic.SetVolume(0);
                     else
-                        introMusic.SetVolume(80);
+                        introMusic.SetVolume(30);
                     mute = !mute;
                 }
                 break;

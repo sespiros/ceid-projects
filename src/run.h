@@ -43,6 +43,7 @@ int RunScreen::Run(sf::RenderWindow &App)
     bool che = false;
     bool debug = true;
     bool pollute = false;
+    bool mute = false;
 
     int zoom = 0;
     int loops = 0;
@@ -216,6 +217,22 @@ int RunScreen::Run(sf::RenderWindow &App)
 
         while(App.GetEvent(Event))
         {
+            switch (Event.Type) {
+            case sf::Event::Closed:
+                return -1;
+                break;
+            case sf::Event::KeyPressed:
+                if (Event.Key.Code == sf::Key::M){
+                    if (mute)
+                        introMusic.SetVolume(0);
+                    else
+                        introMusic.SetVolume(20);
+                    mute = !mute;
+                }
+                break;
+            default:
+                break;
+            }
             if (Event.Type == sf::Event::Closed)
             {
                 return (-1); // window close
@@ -386,7 +403,7 @@ int RunScreen::Run(sf::RenderWindow &App)
 
             if(drop){
                 drag.SetPosition(MousePos.x,MousePos.y);
-                if(App.GetInput().IsKeyDown(sf::Key::Space)){
+                if(App.GetInput().IsKeyDown(sf::Key::X)){
                     sf::Vector2i local = Helper::getLocalCoords(MousePosView.x ,MousePosView.y);
                     int hash = local.x + local.y * Ocean::MAX_X;
 

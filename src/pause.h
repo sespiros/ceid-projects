@@ -39,6 +39,7 @@ int PauseScreen::Run(sf::RenderWindow &App)
     float CenterX;
     float CenterY;
     bool debug = true;
+    bool mute = false;
 
     sf::Sprite about;
     sf::Image ab_im;
@@ -213,6 +214,22 @@ int PauseScreen::Run(sf::RenderWindow &App)
 
         while(App.GetEvent(Event))
         {
+            switch (Event.Type) {
+            case sf::Event::Closed:
+                return -1;
+                break;
+            case sf::Event::KeyPressed:
+                if (Event.Key.Code == sf::Key::M){
+                    if (mute)
+                        introMusic.SetVolume(0);
+                    else
+                        introMusic.SetVolume(10);
+                    mute = !mute;
+                }
+                break;
+            default:
+                break;
+            }
             if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::Escape){
                 IScreen::info = false;
             }
@@ -425,8 +442,8 @@ int PauseScreen::Run(sf::RenderWindow &App)
         Pollution::bind(0);
 
         Net::bind(&App);
-		std::for_each(Ocean::nets.begin(), Ocean::nets.end(), std::mem_fun(&Net::draw));
-		Net::bind(0);
+        std::for_each(Ocean::nets.begin(), Ocean::nets.end(), std::mem_fun(&Net::draw));
+        Net::bind(0);
 
         App.SetView(App.GetDefaultView());
 

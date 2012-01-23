@@ -126,31 +126,33 @@ mapIter Ocean::collide(int key){
     bool hasEat = false;
     bool hasBred = false;
 
-    for (int i = 7; i > 0; i--) {
-        int j = rand()%(i + 1);
-        dx = Helper::dir[j][0];
-        dy = Helper::dir[j][1];
-        Helper::swapDir(j, i);
+    if(Ocean::fishMap[key]->getSpeed()){
+        for (int i = 7; i > 0; i--) {
+            int j = rand()%(i + 1);
+            dx = Helper::dir[j][0];
+            dy = Helper::dir[j][1];
+            Helper::swapDir(j, i);
 
-        if (!isValid(curX + dx, Ocean::MAX_X) || !isValid(curY + dy, Ocean::MAX_Y))
-            continue;
+            if (!isValid(curX + dx, Ocean::MAX_X) || !isValid(curY + dy, Ocean::MAX_Y))
+                continue;
 
-        x = curX + dx;
-        y = curY + dy;
+            x = curX + dx;
+            y = curY + dy;
 
-        hash = x + y * MAX_X;
-        if(Ocean::fishMap.find(hash) != Ocean::fishMap.end()){
-            if(Ocean::fishMap[key]->canEat(Ocean::fishMap[hash])){
-                hasEat = true;
-            }else if(Ocean::fishMap[hash]->getType() == Ocean::fishMap[key]->getType()){
-                hasBred = true;
+            hash = x + y * MAX_X;
+            if(Ocean::fishMap.find(hash) != Ocean::fishMap.end()){
+                if(Ocean::fishMap[key]->canEat(Ocean::fishMap[hash])){
+                    hasEat = true;
+                }else if(Ocean::fishMap[hash]->getType() == Ocean::fishMap[key]->getType()){
+                    hasBred = true;
+                }
+            }else{
+                hasMoved = true;
             }
-        }else{
-            hasMoved = true;
-        }
 
-        if(hasEat || hasBred || hasMoved)
-            break;
+            if(hasEat || hasBred || hasMoved)
+                break;
+        }
     }
 
 
@@ -169,7 +171,6 @@ mapIter Ocean::collide(int key){
         //add stats print
     }
     else {
-
         next++;
     }
     return next;

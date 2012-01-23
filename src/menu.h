@@ -35,7 +35,7 @@ MenuScreen::MenuScreen()
 int MenuScreen::Run(sf::RenderWindow &App)
 {
     App.SetFramerateLimit(60);
-    IScreen::introMusic.SetVolume(5);
+    IScreen::introMusic.SetVolume(30);
 
     bool Running = true;
 

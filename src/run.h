@@ -25,7 +25,7 @@ RunScreen::RunScreen(void) : TICKS_PER_SECOND(1.0f), SKIP_TICKS(1.0f / TICKS_PER
 int RunScreen::Run(sf::RenderWindow &App)
 {
     App.SetFramerateLimit(0);
-    IScreen::introMusic.SetVolume(0);
+    IScreen::introMusic.SetVolume(20);
 
     sf::Event Event;
     bool Running = true;
@@ -386,6 +386,19 @@ int RunScreen::Run(sf::RenderWindow &App)
 
             if(drop){
                 drag.SetPosition(MousePos.x,MousePos.y);
+                if(App.GetInput().IsKeyDown(sf::Key::Space)){
+                    sf::Vector2i local = Helper::getLocalCoords(MousePosView.x ,MousePosView.y);
+                    int hash = local.x + local.y * Ocean::MAX_X;
+
+                    if(MousePos.x >= 14 && MousePos.x <= 808 && MousePos.y >= 14 && MousePos.y <= 555){
+                        if(Ocean::fishMap.find(hash) == Ocean::fishMap.end()){
+                            Ocean::createAndAddFish(drop-1, local.x, local.y) ;
+                            std::stringstream ss;
+                            ss << "A "<<ClassRegistry::assocMapNames[drop - 1]<<" was added by user";
+                            Ocean::regLog(ss.str());
+                        }
+                    }
+                }
             }else{
                 drag.SetPosition(1024,600);
             }

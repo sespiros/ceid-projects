@@ -153,9 +153,9 @@ int PauseScreen::Run(sf::RenderWindow &App)
     info.SetPosition(787,573);
     slider.SetPosition(583,573);
 
-    if(IScreen::speed == 15.0){
+    if(IScreen::speed == 7.0){
         slider.SetPosition(714,slider.GetPosition().y);
-    }else if (IScreen::speed == 6.0){
+    }else if (IScreen::speed == 5.0){
         slider.SetPosition(668,slider.GetPosition().y);
     }else if(IScreen::speed == 3.0){
         slider.SetPosition(583,slider.GetPosition().y);

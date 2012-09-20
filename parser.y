@@ -11,13 +11,15 @@ void yyerror (char *);
 %token  RW_FUNCTION
 %token  RW_IF 
 %token  RW_THEN 
+%token	RW_ELSE
 %token  RW_WHILE 
 %token  RW_DO 
 %token  RW_BEGIN 
 %token  RW_END
 %token  ID
-%token  INT
 %token  DATATYPE
+%token	ASSIGN
+%token	INT
 %left   OR
 %left   AND
 %left   NOT
@@ -27,16 +29,32 @@ void yyerror (char *);
 %start program
 %%
 
-program:  expression | variable_definition | function_header
-	| procedure_header;
-
-variable_definition: 
-	RW_VAR many_vars 
+program: 
+	RW_PROGRAM ID ';' block
 	;
 
-many_vars: 
-	def_some_variables ';' many_vars 
-	| def_some_variables ';'
+block: 
+	many_locals compound_statement
+	;
+
+many_locals:
+	
+	|local_definition many_locals 
+	;
+
+local_definition:
+	variable_definition
+	| procedure_definition
+	| function_definition
+	;
+
+variable_definition: 
+	RW_VAR def_some_variables ';' more_vars 
+	;
+
+more_vars: 
+
+	| def_some_variables ';' more_vars 
 	; 
 
 def_some_variables: 
@@ -44,26 +62,61 @@ def_some_variables:
 	| ID ':' DATATYPE 
 	;
 
+procedure_definition:
+	procedure_header block ';'
+	;
+
 procedure_header:
 	RW_PROCEDURE ID formal_parameters ';'
 	;
 
+function_definition:
+	function_header block ';'
+	;
+
 function_header:
 	RW_FUNCTION ID formal_parameters ':' DATATYPE ';'
-	;
+	; 
 
 formal_parameters:
 	
-	|'(' many_parameters ')' 
+	|'(' def_some_variables more_parameters ')' 
 	;
 
-many_parameters:
-	def_some_variables ';' many_parameters
-	| def_some_variables
+more_parameters:
+	
+	| ';' def_some_variables more_parameters
 	;
 
-proc_func_call:
-	ID '[''(' actual_parameters ')'']'
+statement:
+	
+	| ID assignment_or_proc_func_call
+	| if_statement
+	| while_statement
+	| compound_statement
+	;
+
+assignment_or_proc_func_call:
+	ASSIGN expression
+	| actual_parameters_or_not
+	;		
+
+actual_parameters_or_not:
+	
+	|'(' actual_parameters ')'
+	;
+
+if_statement:
+	RW_IF expression RW_THEN statement else_statement
+	;
+
+else_statement:
+	
+	| RW_ELSE statement
+	;
+
+while_statement:
+	RW_WHILE expression RW_DO statement
 	;
 
 actual_parameters:
@@ -71,13 +124,21 @@ actual_parameters:
 	| expression
 	;
 
+compound_statement:
+	RW_BEGIN statement more_statements RW_END
+	;
+
+more_statements:
+
+	| ';'statement more_statements
+	;	
+
 expression:
-	expression binary_op expression	{printf("Ex-BinOp-Ex \n");}
-	| unary_op expression		{printf("UnOp-Ex \n");}
-	| '(' expression ')'	  	{printf("(-Ex-) \n");}
-	| proc_func_call
+	expression binary_op expression
+	| unary_op expression
+	| '(' expression ')'
+	| ID actual_parameters_or_not
 	| INT
-	| ID
 	;
 
 binary_op:

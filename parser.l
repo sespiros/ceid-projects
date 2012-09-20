@@ -12,11 +12,13 @@
 "function"			return RW_FUNCTION;
 "if"				return RW_IF;
 "then"				return RW_THEN;
+"else"				return RW_ELSE;
 "while"				return RW_WHILE;
 "do"				return RW_DO;
 "begin"				return RW_BEGIN;
 "end"				return RW_END;
 "integer"|"boolean"		return DATATYPE;
+":="				return ASSIGN;
 [0-9]+				return INT;
 "("				return '(';
 ")"				return ')';

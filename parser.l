@@ -24,6 +24,7 @@
 ")"				return ')';
 ";"				return ';';
 ":"				return ':';
+","				return ',';
 "="         			return EQ;  
 "<>"        			return NE;  
 "<"         			return LT;  

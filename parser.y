@@ -30,26 +30,26 @@ void yyerror (char *);
 %%
 
 program: 
-	RW_PROGRAM ID ';' block
+	RW_PROGRAM ID ';' block   		{printf("PROGRAM! \n");}
 	;
 
 block: 
-	many_locals compound_statement
+	many_locals compound_statement		{printf("Block \n");}			
 	;
 
 many_locals:
-	
-	|local_definition many_locals 
+						{printf("Many Locals: NOTHING \n");}
+	|local_definition many_locals 		{printf("Many Locals: LocalDef \n");}
 	;
 
 local_definition:
-	variable_definition
-	| procedure_definition
-	| function_definition
+	variable_definition        	  	{printf("LocDef : VarDef \n");}
+	| procedure_definition			{printf("LocDef : ProcDef \n");}
+	| function_definition			{printf("LocDef : FunDef \n");}
 	;
 
 variable_definition: 
-	RW_VAR def_some_variables ';' more_vars 
+	RW_VAR def_some_variables ';' more_vars 	{printf("Variable Definition \n");}
 	;
 
 more_vars: 
@@ -58,87 +58,91 @@ more_vars:
 	; 
 
 def_some_variables: 
-	ID ',' def_some_variables
-	| ID ':' DATATYPE 
+	ID more_IDs ':' DATATYPE		{printf("Defined some vars \n");}
+	;
+
+more_IDs:
+						{printf("No More IDs \n");}
+	| ',' ID more_IDs			{printf("One More ID \n");}
 	;
 
 procedure_definition:
-	procedure_header block ';'
+	procedure_header block ';'		{printf("Procedure Definition \n");}
 	;
 
 procedure_header:
-	RW_PROCEDURE ID formal_parameters ';'
+	RW_PROCEDURE ID formal_parameters ';'	{printf("Procedure Header \n");}
 	;
 
 function_definition:
-	function_header block ';'
+	function_header block ';'		{printf("Function Definition \n");}
 	;
 
 function_header:
-	RW_FUNCTION ID formal_parameters ':' DATATYPE ';'
+	RW_FUNCTION ID formal_parameters ':' DATATYPE ';'	{printf("Function Header \n");}
 	; 
 
 formal_parameters:
-	
-	|'(' def_some_variables more_parameters ')' 
+								{printf("Formal Params: NOTHING \n");}
+	|'(' def_some_variables more_parameters ')' 		{printf("Formal Params: OK\n");}
 	;
 
 more_parameters:
-	
-	| ';' def_some_variables more_parameters
+								{printf("-a- \n");}
+	| ';' def_some_variables more_parameters		{printf("-aaa- \n");}
 	;
 
 statement:
 	
-	| ID assignment_or_proc_func_call
-	| if_statement
-	| while_statement
-	| compound_statement
+	| ID assignment_or_proc_func_call		{printf("Statement: Assign OR Proc_Func_Call \n");}
+	| if_statement					{printf("Statement: IF \n");}
+	| while_statement				{printf("Statement: WHILE \n");}
+	| compound_statement				{printf("Statement: Compound \n");}
 	;
 
 assignment_or_proc_func_call:
-	ASSIGN expression
-	| actual_parameters_or_not
+	ASSIGN expression				{printf("Assign \n");}
+	| actual_parameters_or_not			{printf("Parameters \n");}
 	;		
 
 actual_parameters_or_not:
-	
-	|'(' actual_parameters ')'
+							{printf("Actual Params: NOTHING \n");}
+	|'(' actual_parameters ')'			{printf("Actual Params: (some params)\n");}
 	;
 
 if_statement:
-	RW_IF expression RW_THEN statement else_statement
+	RW_IF expression RW_THEN statement else_statement	{printf("IF statement \n");}
 	;
 
 else_statement:
-	
-	| RW_ELSE statement
+
+	| RW_ELSE statement					{printf("ELSE statement \n");}
 	;
 
 while_statement:
-	RW_WHILE expression RW_DO statement
+	RW_WHILE expression RW_DO statement		{printf("WHILE statement \n");}
 	;
 
 actual_parameters:
-	expression ',' actual_parameters
-	| expression
+	expression ',' actual_parameters		{printf("Actual Params: More Exs \n");}
+	| expression					{printf("Actual Params: One Ex \n");}
 	;
 
 compound_statement:
-	RW_BEGIN statement more_statements RW_END
+	RW_BEGIN statement more_statements RW_END	{printf("Compound Statement \n");}
 	;
 
 more_statements:
-
-	| ';'statement more_statements
+							{printf("No more statements \n");}
+	| ';'statement more_statements			{printf("; One More Statement \n");}
 	;	
 
 expression:
-	expression binary_op expression
-	| unary_op expression
-	| '(' expression ')'
-	| ID actual_parameters_or_not
-	| INT
+	expression binary_op expression			{printf("Ex BinOp Ex \n");}
+	| unary_op expression				{printf("UnOp Ex \n");}
+	| '(' expression ')'				{printf("( Ex ) \n");}
+	| ID actual_parameters_or_not			{printf("ID or Proc_Func_Call \n");}
+	| INT						{printf("INT \n");}
 	;
 
 binary_op:
@@ -175,7 +179,7 @@ int main (int argc, char **argv){
 		yyin = fopen(argv[0], "r");
 	else
 		yyin = stdin;
-	yyout = fopen ("output","w");
+	yyout = fopen("output","w");
 	yyparse();
 	return 0;
 }

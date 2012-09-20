@@ -1,1 +1,16 @@
-((4+8))
+program kati;
+	var g,h :boolean;
+	
+	begin 
+	
+	g:=0;
+	f:=0;	
+
+	end 
+
+
+
+
+
+
+         

@@ -134,7 +134,7 @@ compound_statement:
 
 more_statements:
 							{printf("No more statements \n");}
-	| ';'statement more_statements			{printf("; One More Statement \n");}
+	| ';' statement more_statements			{printf("; One More Statement \n");}
 	;	
 
 expression:

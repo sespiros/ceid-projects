@@ -1,7 +1,7 @@
 %{		
 #include <stdio.h>
 #include "parser.tab.h"
-
+int lineNum = 0;
 %} 
 %option noyywrap
 
@@ -25,6 +25,7 @@
 ";"				return ';';
 ":"				return ':';
 ","				return ',';
+"."				return '.';
 "="         			return EQ;  
 "<>"        			return NE;  
 "<"         			return LT;  
@@ -40,5 +41,8 @@
 "-"         			return MINUS; 
 "not"				return NOT;
 [a-zA-Z][a-zA-Z0-9]*		return ID;
+"\n"				{lineNum++;}
+"\t"|" "			{}
+.				return UNKNOWN_TOKEN;
 
 %%

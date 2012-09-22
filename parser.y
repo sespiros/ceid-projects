@@ -1,9 +1,11 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 extern FILE *yyin;
 extern FILE *yyout;
-void yyerror (char *);
+void yyerror (char *s);
+extern lineNum;
 %}
 
 %token  RW_PROGRAM 
@@ -21,6 +23,7 @@ void yyerror (char *);
 %token  DATATYPE
 %token	ASSIGN
 %token	INT
+%token	UNKNOWN_TOKEN
 %left   OR
 %left   AND
 %left   NOT
@@ -31,7 +34,7 @@ void yyerror (char *);
 %%
 
 program: 
-	RW_PROGRAM ID ';' block
+	RW_PROGRAM ID ';' block '.'
 	;
 
 block: 
@@ -39,6 +42,7 @@ block:
 	;
 
 many_locals:
+
 	|local_definition many_locals
 	;
 
@@ -169,27 +173,36 @@ unary_op:
 %%
 
 void yyerror(char *s){
-	fprintf(stderr,"%s\n",s);
+	printf("parser: Wrong Buzen program \n");
+	printf("parser: Error in line %d : %s \n", lineNum, s);
 }
 
 int main (int argc, char **argv){
 	++argv; 
 	--argc;
 	int result;
+	char* extension = 0;
 	if (argc > 0 ){
 		yyin = fopen(argv[0], "r");
 		if(yyin == 0){
 			printf("parser: %s: No such file \n", argv[0]);
+			fclose(yyin);
+			exit(1);
+		}
+		extension = strrchr(argv[0], '.');
+		if( !extension || strcmp(extension,".buz") ){
+			printf("parser: %s: File format not recognized \n", argv[0]);
+			printf("parser: Target file should be .buz \n");
+			fclose(yyin);
 			exit(1);
 		}
 		yyout = fopen("output","w");
 		result = yyparse();
 		if(result == 0){
 			printf("parser: Corrent Buzen program \n");
-		}else{
-			printf("parser: Wrong Buzen program \n");
-			printf("parser: Mistake in line -WHAT LINE?- \n");
 		}
+		fclose(yyin);
+		fclose(yyout);
 		return 0;
 	}else{
 		printf("parser: No input file \n");

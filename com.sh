@@ -1,3 +1,3 @@
 #!/bin/sh
 
-sed -e:t -e's|\(.*\)/\*.*\*/|\1|;tt;/\/\*/!b;N;bt' savvas.orig > savvas;
+sed -e:t -e's|\(.*\)/\*.*\*/|\1|;tt;/\/\*/!b;N;bt' test.buz > test.buz;

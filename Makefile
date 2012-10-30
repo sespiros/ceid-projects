@@ -1,8 +1,15 @@
 CC = gcc
 CFLAGS = 
+DEPS = common.h 
 
-server: server.c
-	$(CC) -o server server.c 
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-client: client.c
-	$(CC) -o client client.c 
+all: server client
+
+server: server.o
+	$(CC) -o $@ $^ $(CFLAGS)
+
+client: client.o
+	$(CC) -o $@ $^ $(CFLAGS)
+

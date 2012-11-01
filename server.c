@@ -89,8 +89,11 @@ int main(int argc, char **argv){
 
 	} server_info;
 
+	//test
 	server_info.bak |=0x00000010;
 	printf("%x\n",server_info.bak);
+
+	//test
 
 	if ((shmid = shmget(key,SHMSZ,IPC_CREAT | 0666))<0)
 		fatal("in shmget");
@@ -119,20 +122,42 @@ int main(int argc, char **argv){
 			send(sockfd, "Server: Pizza Ceid, tell me your order!\n",39,0);
 			recv(sockfd,&buffer,(NPIZZAS+1)*sizeof(char),0);
 
+			/* Setting shared memory for use between each order-dealing process and bakers/deliveries  */
+			int shmpid;
+			int shmp;
+			key_t child_key = getpid();
+			if ((shmpid = shmget(child_key,SHMSZ,IPC_CREAT | 0666))<0)
+				fatal("in shmget");
+		
+			if ((shmp = shmat(shmpid,NULL,0))==-1)
+				fatal("in shmat");http://netcins.ceid.upatras.gr/OpSys-I/index.php
+
+			/* this variable holds a number that indicates how many pizzas remain until the order is complete  */
+			/* a baker as a process will be given the shared memory of the pizza it habdles and will subrtact  */
+			/* when he finished making the pizza of this process */
+			int check = strlen(buffer)-1;
+
 			/* order parser */
 			int i;
 			char type = buffer[strlen(buffer)-1];
 			printf("%c\n", type);
 			for (i=strlen(buffer)-2;i>=0; i--){
+				/* code that constantly checking for free baker to apply a pizza to him */
 				printf("Pizza of type %c\n",buffer[i]);
-			}
+				
+				/* code to check for a free baker */
 
+
+
+			}
 			exit(0);
-		}
+		}//Here terminates the cild
+
 		close(sockfd);
 
-
 	}
+	shmdt()
+	shmctl();
 }
 
 void sig_chld( int signo) {

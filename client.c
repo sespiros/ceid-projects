@@ -67,7 +67,7 @@ int read_order(char *buffer, int flags){
 		gettimeofday(&time,NULL);
 		srand((time.tv_sec*1000)+(time.tv_usec/1000));
 		int i;
-		for(i=0;i<3;i++)
+		for(i=0;i<(rand()%3)+1;i++)
 			buffer[i]='0'+rand()%3;
 		buffer[i++]='0'+rand()%2;
 		buffer[i]='\0';
@@ -76,16 +76,19 @@ int read_order(char *buffer, int flags){
 		printf("[%d] for margarita\t[%d]near\n[%d] for peperoni\t[%d]far\n[%d] for special\n",margarita,near,peperoni,far,special);
 		printf("Place your order under %d pizzas and 1 char for distance:%s(eg.1221 1 marg, 2 peperoni, far)%s\n ",NPIZZAS,KBLU,KNRM);
 		while(!done){
-			if (fgets(buffer, NPIZZAS+3, stdin)!=NULL){
-				buffer[NPIZZAS+1]='\0';
-				printf("%s \n",buffer);
-				if(!(buffer[NPIZZAS]=='0' || buffer[NPIZZAS]=='1'))
-					printf("%s[!!]Wrong distance given(last byte), only 0 or 1 accepted%s\n",KRED,KNRM);
-				else{
-					printf("%s[!]Warning:Input will truncate to the first %d chars%s\n",KYEL,NPIZZAS+1,KNRM);		
-					done=1;
-				}
+			scanf("%s",buffer);
+			getchar();
+			strncpy(buffer,buffer,NPIZZAS+1);
+			buffer[NPIZZAS+1]='\0';
+			printf("%s\n",buffer);
+			printf("%d length of buffer",strlen(buffer));
+			if(!(buffer[strlen(buffer)-1]=='0' || buffer[strlen(buffer)-1]=='1'))
+				printf("%s[!!]Wrong distance given(last byte), only 0 or 1 accepted%s\n",KRED,KNRM);
+			else{
+				printf("%s[!]Warning:Input will truncate to the first %d chars%s\n",KYEL,NPIZZAS+1,KNRM);		
+				done=1;
 			}
-		}	
+		}
 	}	
-}
+}	
+

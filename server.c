@@ -26,6 +26,9 @@
 #include <sys/wait.h>
 #include <sys/un.h>
 
+#include <sys/ipc.h>
+#include <sys/ipc.h>
+
 /*Size of request queue*/
 #define LISTENQ  20
 
@@ -73,6 +76,30 @@ int main(int argc, char **argv){
 	if (listen(listenfd, LISTENQ)==-1)
 		fatal("listening to socket");
 
+	/* setting shared memory of the server */
+	int shmid;
+	key_t key;
+	key = SHMGLOBAL;
+	int shm;
+	
+	/* struct for storing the delivery boys and roasters status using bitfields */
+	struct info_struct {
+		unsigned int bak:NBAKERS;
+		unsigned int deliv:NDELIVERY;
+
+	} server_info;
+
+	server_info.bak |=0x00000010;
+	printf("%x\n",server_info.bak);
+
+	if ((shmid = shmget(key,SHMSZ,IPC_CREAT | 0666))<0)
+		fatal("in shmget");
+	
+	if ((shm = shmat(shmid,NULL,0))==-1)
+		fatal("in shmat");
+
+
+
 	while(1){
 		client_size = sizeof(client_addr);
 
@@ -91,8 +118,14 @@ int main(int argc, char **argv){
 			close(listenfd);/* no reason to continue listening for orders */
 			send(sockfd, "Server: Pizza Ceid, tell me your order!\n",39,0);
 			recv(sockfd,&buffer,(NPIZZAS+1)*sizeof(char),0);
-			printf("%s\n",&buffer);
-			
+
+			/* order parser */
+			int i;
+			char type = buffer[strlen(buffer)-1];
+			printf("%c\n", type);
+			for (i=strlen(buffer)-2;i>=0; i--){
+				printf("Pizza of type %c\n",buffer[i]);
+			}
 
 			exit(0);
 		}

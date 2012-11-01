@@ -3,4 +3,5 @@
 for i in {1..10}
 do
 	./client 1 >/dev/null &
+	sleep 1
 done

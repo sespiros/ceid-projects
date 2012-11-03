@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = 
+CFLAGS = -lpthread 
 DEPS = common.h 
 
 %.o: %.c $(DEPS)

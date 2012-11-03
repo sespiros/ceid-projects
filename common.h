@@ -3,21 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+/* Global constants */
+#define NPIZZAS   3
+#define NBAKERS   10
+#define NDELIVERY 100
+#define TVERYLONG 500
 #define UNIX_PATH "/tmp/ser_global.str"
 
 /* Useful enums for easier access eg. timeofPizza[peperoni] */
 enum pizzaTypes	{margarita, peperoni, special};
 enum distanceTypes {near, far};
-
-/* Global constants */
-#define NPIZZAS   3
-#define NBAKERS   10
-#define NDELIVERY 10
-#define TVERYLONG 50
-
-#define SHMSZ 16
-#define SHMGLOBAL 5070
 
 /* Some color codes for eye-friendly printing */
 #define KNRM  "\x1B[0m"

@@ -48,7 +48,6 @@
 /* max orders issued for setting the size of the 3rd shared memory */
 #define MAX_ORDERS 200
 
-
 /* ----------------------------------------------------------------------------------------
  * the order information is its client socket file descriptor and its status
  * also the order_info struct is used as an object in a list in shared memory
@@ -67,18 +66,30 @@ typedef struct _order{
  *	head   shows the address of the head of the list
  *	end    shows the address of the end of the list
  *	offset shows the relative position of the next free segment
+ *	front  shows the front of the queue for memory management of this list
+ *	rear   shows the rear of the queue for memory management of this list
+ *
  *	
  *	Deleting a node from the list pushes its address in a memory management queue
  *	When inserting a node, first chooses a free space from that queue.
  *	If this queue is empty the offset value shows the next free segment in the shared memory
  *-------------------------------------------------------------------------------------------
- *  */
+ */
+
+/* struct node of queue used for better memory management */
+typedef struct queue{
+	int data;
+	struct queue *next;
+}node;
+
 typedef struct _list{
 	order_info *START;
 	order_info *head;
 	order_info *end;
 	int offset;
 	sem_t *sem;
+	node *front;
+	node *rear;
 }list_info;
 
 /* Deletes a order_info node from shared memory
@@ -144,8 +155,7 @@ void sig_chld( int sig) {
  }
 
 void sig_alarm(int sig){
-
-	printf("Coca colla received\n");
+	printf("Coca colla received %d\n",getpid());
 }
 /* ======================================================================================
  *                                                                                 MAIN 
@@ -154,7 +164,7 @@ void sig_alarm(int sig){
 int main(int argc, char **argv){
 	
 	/* definitions of standard times (used better with the enums defined in common.h)*/	
-	int timeofPizza[]={10000,120,150};
+	int timeofPizza[]={450,120,150};
 	int timeofClient[]={50,100};
 
 	/* ------------------------------------------------------------
@@ -229,16 +239,20 @@ int main(int argc, char **argv){
 	 * the head and the and of the list and the offset that shows the next free space
 	 */
 	pending.START = addr3;
-	pending.head = NULL;
-	pending.end = NULL;
+	pending.head = 0;
+	pending.end = 0;
+	pending.front = 0;
+	pending.rear = 0;
 	pending.offset = 0;
 
 	/* the ready list holds the starting point of shared memory4,
 	 * the head and the and of the list and the offset that shows the next free space
 	 */
 	ready.START = addr4;
-	ready.head = NULL;
-	ready.end = NULL;
+	ready.head = 0;
+	ready.end = 0;
+	ready.front = 0;
+	ready.rear = 0;
 	ready.offset = 0;
 
 	/* =================================================================================
@@ -301,7 +315,6 @@ int main(int argc, char **argv){
 	if (listen(listenfd, LISTENQ)==-1)
 		fatal("listening to socket");
 
-
 	/* ----------------------------------------------------------------------------------
 	 * Server starts and accepts connections
 	 * ----------------------------------------------------------------------------------
@@ -325,6 +338,7 @@ int main(int argc, char **argv){
 		 *                                                                CHILD PROCESS
 		 * -----------------------------------------------------------------------------*/
 		if(childpid==0){ /* child process */
+			close(listenfd);/* no reason to continue listening for orders */
 
 			/* sigalarm handler */
 			struct sigaction sig;
@@ -336,12 +350,15 @@ int main(int argc, char **argv){
 
 			//setting vars for use with setitimer
 			struct itimerval itv;
-			itv.it_value.tv_sec = 5;
-			itv.it_value.tv_usec = 500;
-			itv.it_interval.tv_sec = 0;
+			itv.it_value.tv_sec = 0;			/*  it_value holds the time to sleep */
+			itv.it_value.tv_usec = TVERYLONG * 1000;
+			itv.it_interval.tv_sec = 0;			/*  it_interval holds the time to  */
 			itv.it_interval.tv_usec = 0;
 
-			close(listenfd);/* no reason to continue listening for orders */
+			//setting vars for use with nanosleep
+			struct timespec request,remain;
+			request.tv_sec = 0L;
+
 			int recv_len = (NPIZZAS+2)*sizeof(char);
 			write(sockfd, "Server: Pizza Ceid, tell me your order!\n",39);
 			recv(sockfd,&buffer,recv_len,0);
@@ -385,8 +402,12 @@ int main(int argc, char **argv){
 					 */
 					if (bakerpid==0){ /* baker process */
 						int pizzatype=codes[c-1];
-						//printf("pizza time: %d\n",timeofPizza[pizzatype]);
-						usleep(timeofPizza[pizzatype]*1000);
+						printf("pizza time: %d\n",timeofPizza[pizzatype]);
+						request.tv_nsec = (long)timeofPizza[pizzatype]*1000000;
+						//usleep(timeofPizza[pizzatype]*1000);
+						int s = nanosleep(&request,&remain);
+						if (s == -1 && errno !=EINTR)
+							fatal("in nanosleep");
 
 						sem_wait(sem3);
 						addr->status-=1;
@@ -415,7 +436,6 @@ int main(int argc, char **argv){
 				}else
 					sem_post(sem1);
 			}
-			
 			//the loop will end when the order process has succesfully given all of its pizzas to bakers
 			//and now it constantly checks its shared memory for ready status
 			int baked=0;
@@ -441,7 +461,6 @@ int main(int argc, char **argv){
 
 			//insert in shared memory shm4
 			addr = insertshm(sockfd,type,&ready);//when the type becomes 2 the delivery is done
-			printf("inserted in shm4\n");
 
 			c = 1;
 			while(c){
@@ -456,15 +475,19 @@ int main(int argc, char **argv){
 					 * ==================================================================
 					 */
 					if (delpid==0){ /*  delivery process */
-						usleep(timeofClient[type]*1000);
+						request.tv_nsec = (long)timeofClient[type]*1000000;
+						//usleep(timeofClient[type]*1000);
+						int s = nanosleep(&request,&remain);
+						if (s == -1 && errno !=EINTR)
+							fatal("in nanosleep");
 
 						sem_wait(sem4);
 						addr->status=2;
+						printf("I'm %d and i just delivered order of type %d\n",getpid(),type);
 						sem_post(sem4);
 						
 						sem_wait(sem2);
 						(*deliver_info)--;
-						printf("I'm %d and i just delivered order of type %d\n",getpid(),sockfd);
 						sem_post(sem2);
 
 						sem_close(sem1);
@@ -520,45 +543,37 @@ int main(int argc, char **argv){
  *		 |##| <- |##|  <- |##|
  * ======================================================================================
  */
-typedef struct queue{
-	int data;
-	struct queue *next;
-}node;
-
-node *front=NULL;
-node *rear=NULL; 
-
-void printq(void){
-	printf("Queue of free memory is: ");
-	node *next = rear;
-	while(next!=NULL){
+void printq(list_info *list){
+	printf("---Queue of free memory is: ");
+	node *next = list->rear;
+	while(next!=0){
 		printf("%d ",next->data);
 		next = next->next;
 	}
 	printf("\n");
 }
 
-void insert_front(int s){
+void insert_front(int s,list_info *list){
 	node *new;
 	new = (node *)malloc(sizeof(node));
 	new->data = s;
-	new->next = NULL;
-	if (front == NULL)
-		rear=new;
+	new->next = 0;
+	if (list->front == 0)
+		list->rear=new;
 	else
-		front->next=new;
-	front=new;	
+		list->front->next=new;
+	list->front=new;	
 }
 
-int remove_rear(){
+int remove_rear(list_info *list){
 	int ret;
-	if (rear!=NULL){
-		node *temp=rear;
-		rear = temp->next;
+	if (list->rear!=0){
+		node *temp=list->rear;
+		list->rear = temp->next;
 		ret=temp->data;
 		free(temp);
 	}else
-		ret=-1;
+		ret=0;
 	return ret;
 } 
 
@@ -574,8 +589,8 @@ int remove_rear(){
 
 void printlist(list_info *list){
 	order_info *next = list->START;
-	printf("List: ");
-	while (next!=NULL){
+	printf("---List: ");
+	while (next!=0){
 		printf("%d ",next->client_soc);
 		next=next->next;
 	}
@@ -603,7 +618,7 @@ order_info *insertshm(int sockfd,unsigned int status,list_info *list){
 	 * from the queue, if null i choose the next segment pointed by the offset
 	 * ------------------------------------------------------------------------*/
 	int place;	
- 	if((place = remove_rear())==-1)
+ 	if((place = remove_rear(list))==0)
 		place = (list->offset)++;		
 	
 	order_info *addr = list->START + place*sizeof(order_info);
@@ -611,7 +626,7 @@ order_info *insertshm(int sockfd,unsigned int status,list_info *list){
 	addr->client_soc=sockfd;
 	addr->status=status;
 	sem_post(list->sem);
-	if (list->head==NULL){//if list is empty
+	if (list->head==0){//if list is empty
 		list->head=addr;
 		list->end=addr;
 	}else{
@@ -625,7 +640,6 @@ order_info *insertshm(int sockfd,unsigned int status,list_info *list){
 	return addr;
 }
 
-
 /* --------------------------------------------------------------------------------------
  *                                                                             DELETE----
  * Given a pointer to the order_info object shared memory, memset the memory to 0,
@@ -636,13 +650,13 @@ void deleteshm(order_info *addr,list_info *list){
 	
 	/*  pushes the offset of the node in the queue, to show it is free from now on*/
 	int offset = (addr-list->START)/sizeof(order_info);
-	insert_front(offset);
+	insert_front(offset,list);
 
 	sem_wait(list->sem);
-	if (addr->prev != NULL)
+	if (addr->prev != 0)
 		addr->prev->next=addr->next;
 	bzero(addr,sizeof(order_info));
 	sem_post(list->sem);
-	printq();
+	printq(list);
 	return;
 }

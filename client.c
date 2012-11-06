@@ -31,8 +31,7 @@ int main(int argc, char **argv){
 	int sockfd;
 	struct sockaddr_un server_addr;
 	int pid;
-	char buffer[NPIZZAS+1],greeting[50],response[50];
-	//buffer = (char*)malloc(NPIZZAS+1);
+	char buffer[NPIZZAS+1],greeting[50],response[5];
 	if (argc<=1)printf("Calling Ceid Pizzeria. Terminate call with Ctrl-C.\n");
 
 	sockfd = socket (AF_LOCAL,SOCK_STREAM,0);
@@ -44,19 +43,22 @@ int main(int argc, char **argv){
 	if(connect(sockfd, (struct sockaddr*)&server_addr,sizeof(server_addr))==-1)
 		fatal("in connection to server, maybe server is not up");
 	
-	recv(sockfd,&greeting,39*sizeof(char),0);
+	read(sockfd,&greeting,39*sizeof(char));
 	if(argc<=1) printf("%s\n",greeting);
 
 	read_order(buffer,argc);
 	write(sockfd,buffer,(NPIZZAS+2)*sizeof(char));
-	//free(buffer);
 	while(1){
-		recv(sockfd,&response,50*sizeof(char),0);
+		read(sockfd,&response,5);
 		printf("Server to Client %d: %s\n",getpid(),response);
-		if (strcmp(response,"done")){
+		if (strcmp(response,"DONE!")==0){
 			printf("Client %d closes\n",getpid());
 			exit(0);
+		}else{
+			printf("not equal");
+			exit(0);
 		}
+
 	}
 }
 
@@ -71,7 +73,7 @@ int read_order(char *buffer, int flags){
 			buffer[i]='0'+rand()%3;
 		buffer[i++]='0'+rand()%2;
 		buffer[i]='\0';
-		printf("%s\n",buffer);
+		//printf("%s\n",buffer);
 	}else{			/*  if ./client has no arguments prompts the user for input */
 		int done=0;
 		printf("[%d] for margarita\t[%d]near\n[%d] for peperoni\t[%d]far\n[%d] for special\n",margarita,near,peperoni,far,special);

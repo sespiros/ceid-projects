@@ -52,12 +52,14 @@
  * the order information is its client socket file descriptor and its status
  * also the order_info struct is used as an object in a list in shared memory
  * the struct i use is a double linked list for faster times of insertion and deletion
+ * also it holds the pid of the status so that it can identify the socket to send the coca cola
  * ---------------------------------------------------------------------------------------*/
 typedef struct _order{
 	struct _order *prev;
 	struct _order *next;
 	int client_soc;
 	unsigned int status;
+	pid_t pid;
 }order_info;
 
 /* -----------------------------------------------------------------------------------------
@@ -98,7 +100,10 @@ void deleteshm(order_info*,list_info*);
 
 /* Creates an order_info, inserts it in the shared memory 
  * and returns a pointer to the shared memory */
-order_info *insertshm(int , unsigned int ,list_info*);
+order_info *insertshm(int , unsigned int ,pid_t, list_info*);
+
+/* Sends a coca cola to the socket that matches the give pid */
+void sendcola(pid_t);
 
 /* global declaration of file descriptors and addresses of shared memories to use with sig_int */
 int fd1,fd2,fd3,fd4;
@@ -155,6 +160,7 @@ void sig_chld( int sig) {
  }
 
 void sig_alarm(int sig){
+	sendcola(getpid());
 	printf("Coca colla received %d\n",getpid());
 }
 /* ======================================================================================
@@ -164,7 +170,7 @@ void sig_alarm(int sig){
 int main(int argc, char **argv){
 	
 	/* definitions of standard times (used better with the enums defined in common.h)*/	
-	int timeofPizza[]={450,120,150};
+	int timeofPizza[]={100,120,150};
 	int timeofClient[]={50,100};
 
 	/* ------------------------------------------------------------
@@ -243,7 +249,7 @@ int main(int argc, char **argv){
 	pending.end = 0;
 	pending.front = 0;
 	pending.rear = 0;
-	pending.offset = 0;
+	pending.offset = 1;
 
 	/* the ready list holds the starting point of shared memory4,
 	 * the head and the and of the list and the offset that shows the next free space
@@ -253,7 +259,7 @@ int main(int argc, char **argv){
 	ready.end = 0;
 	ready.front = 0;
 	ready.rear = 0;
-	ready.offset = 0;
+	ready.offset = 1;
 
 	/* =================================================================================
 	 *                                                                 SEMAPHORES SETUP
@@ -384,7 +390,7 @@ int main(int argc, char **argv){
 			int num_pizzas=strlen(buffer)-1;
 
 			/* Insert the order in the shared memory shm3 for pending deliveries */
-			order_info *addr = insertshm(sockfd,num_pizzas,&pending);
+			order_info *addr = insertshm(sockfd,num_pizzas,getpid(),&pending);
 
 			int c=num_pizzas;
 			
@@ -460,7 +466,7 @@ int main(int argc, char **argv){
 			int type = codes[strlen(buffer)-1];
 
 			//insert in shared memory shm4
-			addr = insertshm(sockfd,type,&ready);//when the type becomes 2 the delivery is done
+			addr = insertshm(sockfd,type,0,&ready);//when the type becomes 2 the delivery is done
 
 			c = 1;
 			while(c){
@@ -610,7 +616,7 @@ void printlist(list_info *list){
  * 	 	  for ready list the status shows the type of the delivery (far/near)
  * --------------------------------------------------------------------------------------		
  */
-order_info *insertshm(int sockfd,unsigned int status,list_info *list){
+order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list){
 	/* -------------------------------------------------------------------------
 	 * dynamic choice of free shared memory 
 	 * if a node gets deleted its address is pushed in a queue 
@@ -621,10 +627,11 @@ order_info *insertshm(int sockfd,unsigned int status,list_info *list){
  	if((place = remove_rear(list))==0)
 		place = (list->offset)++;		
 	
-	order_info *addr = list->START + place*sizeof(order_info);
+	order_info *addr = list->START + (place-1)*sizeof(order_info);
 	sem_wait(list->sem);
 	addr->client_soc=sockfd;
 	addr->status=status;
+	if (pid!=0)addr->pid = pid;
 	sem_post(list->sem);
 	if (list->head==0){//if list is empty
 		list->head=addr;
@@ -649,7 +656,7 @@ order_info *insertshm(int sockfd,unsigned int status,list_info *list){
 void deleteshm(order_info *addr,list_info *list){
 	
 	/*  pushes the offset of the node in the queue, to show it is free from now on*/
-	int offset = (addr-list->START)/sizeof(order_info);
+	int offset = (addr-list->START)/sizeof(order_info)+1;
 	insert_front(offset,list);
 
 	sem_wait(list->sem);
@@ -659,4 +666,28 @@ void deleteshm(order_info *addr,list_info *list){
 	sem_post(list->sem);
 	printq(list);
 	return;
+}
+
+/* --------------------------------------------------------------------------------------
+ *																			SENDCOLA----
+ * this function searches in the pending list for the given pid, it finds the socket of 
+ * the client and sends him a message for a coca cola.
+ * This is triggered by the signal handler individually by each order
+ *
+ * --------------------------------------------------------------------------------------
+ */
+
+void sendcola(pid_t pid){
+	order_info *next = pending.head;
+	int found = 0;
+	printf("---------------sendcola\n");
+	while(!found && next!=NULL){
+		printf("--------------comparison of %d with %d\n",next->pid,pid);
+		if (next->pid==pid){
+			printf("-------debug for child %d with socket number %d\n",pid,next->client_soc);
+			write(next->client_soc,"Sorry for the delay, you will receive a free coca cola\n",60);
+			found=1;
+		}
+		next=next->next;
+	}
 }

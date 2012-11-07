@@ -13,3 +13,6 @@ server: server.o
 client: client.o
 	$(CC) -o $@ $^ $(CFLAGS)
 
+clean:
+	rm *.o
+

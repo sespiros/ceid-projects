@@ -31,7 +31,7 @@ int main(int argc, char **argv){
 	int sockfd;
 	struct sockaddr_un server_addr;
 	int pid;
-	char buffer[NPIZZAS+1],greeting[50],response[5];
+	char buffer[NPIZZAS+1],greeting[50],response[60];
 	if (argc<=1)printf("Calling Ceid Pizzeria. Terminate call with Ctrl-C.\n");
 
 	sockfd = socket (AF_LOCAL,SOCK_STREAM,0);
@@ -49,16 +49,13 @@ int main(int argc, char **argv){
 	read_order(buffer,argc);
 	write(sockfd,buffer,(NPIZZAS+2)*sizeof(char));
 	while(1){
-		read(sockfd,&response,5);
+		read(sockfd,&response,60);
 		printf("Server to Client %d: %s\n",getpid(),response);
 		if (strcmp(response,"DONE!")==0){
 			printf("Client %d closes\n",getpid());
 			exit(0);
-		}else{
-			printf("not equal");
-			exit(0);
 		}
-
+		bzero(&response,60);
 	}
 }
 

@@ -7,7 +7,7 @@
 #define NPIZZAS   3
 #define NBAKERS   10
 #define NDELIVERY 10
-#define TVERYLONG 500
+#define TVERYLONG 100
 #define UNIX_PATH "/tmp/ser_global.str"
 
 /* Useful enums for easier access eg. timeofPizza[peperoni] */

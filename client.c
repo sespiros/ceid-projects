@@ -49,7 +49,7 @@ int main(int argc, char **argv){
 	read_order(buffer,argc);
 	write(sockfd,buffer,(NPIZZAS+2)*sizeof(char));
 	while(1){
-		read(sockfd,&response,60);
+		if (read(sockfd,&response,60)==0)exit(0);
 		printf("Server to Client %d: %s\n",getpid(),response);
 		if (strcmp(response,"DONE!")==0){
 			printf("Client %d closes\n",getpid());

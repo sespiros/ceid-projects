@@ -3,16 +3,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Global constants */
-#define NPIZZAS   3
-#define NBAKERS   10
-#define NDELIVERY 10
-#define TVERYLONG 100
 #define UNIX_PATH "/tmp/ser_global.str"
+
+/* max orders issued for setting the size of the 3rd shared memory */
+/* ------- */#define MAX_ORDERS 200
+
+/*Size of request queue*/ // standard value 50
+/* ------- */#define LISTENQ  5
+
+/* Global constants */ // standard values 3 10 10 500
+/* ------- */#define NPIZZAS   3
+/* ------- */#define NBAKERS   10
+/* ------- */#define NDELIVERY 10
+/* ------- */#define TVERYLONG 5000 //in milliseconds
+
+/* definitions of standard times */ //standard times 100 120 150 50 100
+/* ------ */int timeofPizza[]={1000,1000,1000}; //in milliseconds
+/* ------ */int timeofClient[]={1000,1000};		//in milliseconds
 
 /* Useful enums for easier access eg. timeofPizza[peperoni] */
 enum pizzaTypes	{margarita, peperoni, special};
 enum distanceTypes {near, far};
+
+
+
 
 /* Some color codes for eye-friendly printing */
 #define KNRM  "\x1B[0m"

@@ -33,9 +33,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-/*Size of request queue*/
-#define LISTENQ  20
-
 /* shared memory identifier */
 #define SHMGLOBAL 5070
 
@@ -44,9 +41,6 @@
 #define SEM_DELIVERIES "deliveries"
 #define SEM_ORD_PEND "pending"
 #define SEM_ORD_READY "done"
-
-/* max orders issued for setting the size of the 3rd shared memory */
-#define MAX_ORDERS 200
 
 /* ----------------------------------------------------------------------------------------
  * the order information is its client socket file descriptor and its status
@@ -68,6 +62,7 @@ typedef struct _order{
  *	head   shows the address of the head of the list
  *	end    shows the address of the end of the list
  *	offset shows the relative position of the next free segment
+ *
  *	front  shows the front of the queue for memory management of this list
  *	rear   shows the rear of the queue for memory management of this list
  *
@@ -155,13 +150,12 @@ void sig_chld( int sig) {
        int stat;
 
        while ( ( pid = waitpid( -1, &stat, WNOHANG ) ) > 0 ) {
-              printf( "Child %d terminated.\n", pid );
+              printf( "--------------Child %d terminated.\n", pid );
         }
  }
 
 void sig_alarm(int sig){
 	sendcola(getpid());
-	printf("Coca colla received %d\n",getpid());
 }
 /* ======================================================================================
  *                                                                                 MAIN 
@@ -169,10 +163,6 @@ void sig_alarm(int sig){
  */
 int main(int argc, char **argv){
 	
-	/* definitions of standard times (used better with the enums defined in common.h)*/	
-	int timeofPizza[]={100,120,150};
-	int timeofClient[]={50,100};
-
 	/* ------------------------------------------------------------
 	 * holds the client order information in the following way
 	 *      |===============================================|
@@ -356,19 +346,21 @@ int main(int argc, char **argv){
 
 			//setting vars for use with setitimer
 			struct itimerval itv;
-			itv.it_value.tv_sec = 0;			/*  it_value holds the time to sleep */
-			itv.it_value.tv_usec = TVERYLONG * 1000;
+			itv.it_value.tv_sec = TVERYLONG/1000;			/*  it_value holds the time to sleep */
+			itv.it_value.tv_usec = TVERYLONG%1000 * 1000;
 			itv.it_interval.tv_sec = 0;			/*  it_interval holds the time to  */
 			itv.it_interval.tv_usec = 0;
 
 			//setting vars for use with nanosleep
 			struct timespec request,remain;
-			request.tv_sec = 0L;
 
 			int recv_len = (NPIZZAS+2)*sizeof(char);
 			write(sockfd, "Server: Pizza Ceid, tell me your order!\n",39);
-			recv(sockfd,&buffer,recv_len,0);
-			printf("Received order from %d, %s\n",sockfd,buffer);
+			if (read(sockfd,&buffer,recv_len)==0){
+				printf ("Rude client hanged up\n");
+				exit(0);
+			}
+			printf("============== Received order from %d, the order %s ================\n",sockfd,buffer);
 
 			/* Starts the timer */
 			if (setitimer(ITIMER_REAL,&itv,0) == -1)
@@ -408,17 +400,14 @@ int main(int argc, char **argv){
 					 */
 					if (bakerpid==0){ /* baker process */
 						int pizzatype=codes[c-1];
-						printf("pizza time: %d\n",timeofPizza[pizzatype]);
-						request.tv_nsec = (long)timeofPizza[pizzatype]*1000000;
-						//usleep(timeofPizza[pizzatype]*1000);
+						request.tv_sec = (long)timeofPizza[pizzatype]/1000;
+						request.tv_nsec = (long)timeofPizza[pizzatype]%1000*1000000;
 						int s = nanosleep(&request,&remain);
 						if (s == -1 && errno !=EINTR)
 							fatal("in nanosleep");
 
 						sem_wait(sem3);
 						addr->status-=1;
-						//in sem block for correct debug	
-						printf("I'm %d and i just baked pizza of type %d\n",getpid(),pizzatype);
 						sem_post(sem3);
 
 						sem_wait(sem1);
@@ -481,15 +470,14 @@ int main(int argc, char **argv){
 					 * ==================================================================
 					 */
 					if (delpid==0){ /*  delivery process */
-						request.tv_nsec = (long)timeofClient[type]*1000000;
-						//usleep(timeofClient[type]*1000);
+						request.tv_sec = (long)timeofClient[type]/1000;
+						request.tv_nsec = (long)timeofClient[type]%1000*1000000;
 						int s = nanosleep(&request,&remain);
 						if (s == -1 && errno !=EINTR)
 							fatal("in nanosleep");
 
 						sem_wait(sem4);
 						addr->status=2;
-						printf("I'm %d and i just delivered order of type %d\n",getpid(),type);
 						sem_post(sem4);
 						
 						sem_wait(sem2);
@@ -524,7 +512,9 @@ int main(int argc, char **argv){
 				}
 			}
 			//delete from shared memory shm4
+			printf("[DEBUG]-- deleteshm\n");
 			deleteshm(addr,&ready);
+			printf("[DEBUG]-- deleteshm ends\n");
 
 			sem_close(sem1);
 			sem_close(sem2);
@@ -643,7 +633,6 @@ order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list)
 		list->end=addr;
 		sem_post(list->sem);
 	}
-	printlist(list);
 	return addr;
 }
 
@@ -664,7 +653,6 @@ void deleteshm(order_info *addr,list_info *list){
 		addr->prev->next=addr->next;
 	bzero(addr,sizeof(order_info));
 	sem_post(list->sem);
-	printq(list);
 	return;
 }
 
@@ -680,11 +668,8 @@ void deleteshm(order_info *addr,list_info *list){
 void sendcola(pid_t pid){
 	order_info *next = pending.head;
 	int found = 0;
-	printf("---------------sendcola\n");
 	while(!found && next!=NULL){
-		printf("--------------comparison of %d with %d\n",next->pid,pid);
 		if (next->pid==pid){
-			printf("-------debug for child %d with socket number %d\n",pid,next->client_soc);
 			write(next->client_soc,"Sorry for the delay, you will receive a free coca cola\n",60);
 			found=1;
 		}

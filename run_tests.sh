@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {1..2}
+for i in `seq 1 $1`
 do
 	./client 1 & 
 done

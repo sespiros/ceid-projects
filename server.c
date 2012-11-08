@@ -146,7 +146,7 @@ void sig_chld( int sig) {
        int stat;
 
        while ( ( pid = waitpid( -1, &stat, WNOHANG ) ) > 0 ) {
-              printf( "------------Child %d terminated.\n", pid );
+              //printf( "%s------------Child %d terminated.%s\n",KRED,pid,KNRM );
         }
  }
 
@@ -158,6 +158,13 @@ void sig_alarm(int sig){
  *                                                                                 MAIN 
  * ======================================================================================
  */
+
+void showsem(char * message,sem_t *sem){
+	int val;
+	sem_getvalue(sem,&val);
+	printf("%s[SEMAPHORE] - %d - %s%s\n",KYEL,val,message,KNRM);
+}
+
 int main(int argc, char **argv){
 	
 
@@ -339,7 +346,7 @@ int main(int argc, char **argv){
 				exit(0);
 			}
 				
-			printf("============== Received order from %d, the order %s ================\n",sockfd,buffer);
+			printf("%s============== Received order from %d, the order %s ================%s\n",KGRN,sockfd,buffer,KNRM);
 
 			/* Starts the timer */
 			if (setitimer(ITIMER_REAL,&itv,0) == -1)
@@ -358,18 +365,21 @@ int main(int argc, char **argv){
 			 */
 
 			/* order parser */
-			int num_pizzas=strlen(buffer)-1;
+			int num_pizzas=strlen(buffer);
 
 			/* Insert the order in the shared memory shm3 for pending deliveries */
+			sem_wait(sem1);
+			debug("insertshm",getpid());
 			order_info *addr = insertshm(sockfd,num_pizzas,getpid(),&pending);
+			sem_post(sem1);
 
-			int c=num_pizzas,val;
+			int c=num_pizzas-1,val;
 			
 			/* Begin loop for pizzas to bake */
 			while(c>0){
 				sem_wait(sem_bak);
-				sem_getvalue(sem_bak,&val);
-				printf("[DEBUG]--baker starts %d\n",val);
+				showsem("sem_bak waits",sem1);
+				int parent = getpid();
 				int bakerpid = fork();
 
 				/* ------------------------------------------------------------------
@@ -387,10 +397,10 @@ int main(int argc, char **argv){
 					sem_wait(sem1);
 					addr->status-=1;
 					sem_post(sem1);
+					printf("%s[DEBUG] - %d - addr->status: %d %s\n",KMAG,parent,addr->status,KNRM);
 
-					sem_getvalue(sem_bak,&val);
-					printf("[DEBUG]--baker ends %d\n",val);
 					sem_post(sem_bak);
+					showsem("sem_bak posts",sem_bak);
 
 					sem_close(sem1);
 					sem_close(sem2);
@@ -417,11 +427,13 @@ int main(int argc, char **argv){
 				if (check){
 					printf("DONE baking\n");
 					baked=1;
-				}else
-					printf("%d\n",addr->status);
+				}
 			}
-			//delete from shared memory shm3 
+			//delete from shared memory shm1 
+			sem_wait(sem1);
+			debug("deleteshm",getpid());
 			deleteshm(addr,&pending);
+			sem_post(sem1);
 
 			/* ==========================================================================
 			 *                                                                 DELIVERY
@@ -431,14 +443,17 @@ int main(int argc, char **argv){
 			/* the type is 0 if near and 1 if far according to the enum in common.h */
 			int type = codes[strlen(buffer)-1];
 
-			//insert in shared memory shm4
+			//insert in shared memory shm2
+			sem_wait(sem2);
+			showsem("sem2 waits",sem2);
 			addr = insertshm(sockfd,type,0,&ready);//when the type becomes 2 the delivery is done
+			sem_post(sem2);
+			showsem("sem2 posts",sem2);
 
 			c = 1;
 			while(c){
 				sem_wait(sem_del);
-				sem_getvalue(sem_del,&val);
-				printf("[DEBUG]--delivery starts %d\n",val);
+				showsem("sem_del waits",sem_del);
 				int delpid = fork();
 					
 				/* ==================================================================
@@ -456,9 +471,8 @@ int main(int argc, char **argv){
 					addr->status=2;
 					sem_post(sem2);
 						
-					sem_getvalue(sem_del,&val);
-					printf("[DEBUG]--delivery ends %d\n",val);
 					sem_post(sem_del);
+					showsem("sem_del posts",sem_del);
 
 					sem_close(sem1);
 					sem_close(sem2);
@@ -486,7 +500,9 @@ int main(int argc, char **argv){
 				}
 			}
 			//delete from shared memory shm4
+			sem_wait(sem2);
 			deleteshm(addr,&ready);
+			sem_post(sem2);
 
 			sem_close(sem1);
 			sem_close(sem2);
@@ -586,24 +602,24 @@ order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list)
 	 * from the queue, if null i choose the next segment pointed by the offset
 	 * ------------------------------------------------------------------------*/
 	int place;	
- 	if((place = remove_rear(list))==0)
-		place = (list->offset)++;		
+ 	if((place = remove_rear(list))==0){
+		place = (list->offset);	
+		list->offset=list->offset+1;
+		debug("empty queue",0);
+	}
 	
 	order_info *addr = list->START + (place-1)*sizeof(order_info);
-	sem_wait(list->sem);
+	printf("start= %x,addr= %x,place= %x\n",list->START,addr,place);
 	addr->client_soc=sockfd;
 	addr->status=status;
 	if (pid!=0)addr->pid = pid;
-	sem_post(list->sem);
 	if (list->head==0){//if list is empty
 		list->head=addr;
 		list->end=addr;
 	}else{
-		sem_wait(list->sem);
 		list->end->next=addr;
 		addr->prev=list->end;
 		list->end=addr;
-		sem_post(list->sem);
 	}
 	return addr;
 }
@@ -620,11 +636,9 @@ void deleteshm(order_info *addr,list_info *list){
 	int offset = (addr-list->START)/sizeof(order_info)+1;
 	insert_front(offset,list);
 
-	sem_wait(list->sem);
 	if (addr->prev != 0)
 		addr->prev->next=addr->next;
 	bzero(addr,sizeof(order_info));
-	sem_post(list->sem);
 	return;
 }
 

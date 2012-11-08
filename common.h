@@ -1,5 +1,6 @@
 #ifndef __COMMON__
 #define __COMMON__
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -46,6 +47,11 @@ void fatal(char * message){
 	strncat(error_message, message, 83);
 	perror(error_message);
 	exit(-1);
+}
+
+/* Helper function to print debug messages */
+void debug(char * message,pid_t pid){
+	printf("%s[DEBUG] - %d - %s%s\n",KMAG,pid,message,KNRM);
 }
 
 #endif

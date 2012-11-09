@@ -1,13 +1,21 @@
 #ifndef __COMMON__
 #define __COMMON__
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+#include <sys/types.h>		/* Type definitions */
+#include <stdio.h> 			/* standard I/O */
+#include <stdlib.h>			/* Prototypes of commonly used library functions */
+
+#include <unistd.h>			/* Prototypes of many system calls */
+#include <errno.h>			/* Declares errno and defines error constants */
+#include <string.h>			/* Commonly used string-handling functions */
+
+#include <sys/socket.h> 	/* socket library */
+#include <sys/un.h>			/* Definition for UNIX domain sockets*/
 
 #define UNIX_PATH "/tmp/ser_global.str"
 
 /*Size of request queue*/ // standard value 50
-/* ------- */#define LISTENQ  5
+/* ------- */#define LISTENQ  4
 
 /* max orders issued for setting the size of shared memory shm3 and shm4*/
 /* ------- */#define MAX_ORDERS LISTENQ
@@ -16,18 +24,15 @@
 /* ------- */#define NPIZZAS   3
 /* ------- */#define NBAKERS   10
 /* ------- */#define NDELIVERY 10
-/* ------- */#define TVERYLONG 5000 //in milliseconds
+/* ------- */#define TVERYLONG 600 //in milliseconds
 
 /* definitions of standard times */ //standard times 100 120 150 50 100
-/* ------ */int timeofPizza[]={1000,1000,1000}; //in milliseconds
-/* ------ */int timeofClient[]={1000,1000};		//in milliseconds
+/* ------ */int getPizzaTime[]={500,120,150}; //in milliseconds
+/* ------ */int getDistanceTime[]={50,100};		//in milliseconds
 
-/* Useful enums for easier access eg. timeofPizza[peperoni] */
-enum pizzaTypes	{margarita, peperoni, special};
-enum distanceTypes {near, far};
-
-
-
+/* typedef pizzaType and distanceType for reference */
+typedef enum { margarita, peperoni, special } pizzaType;
+typedef enum { near, far } distanceType;
 
 /* Some color codes for eye-friendly printing */
 #define KNRM  "\x1B[0m"

@@ -6,11 +6,11 @@
 
 #define UNIX_PATH "/tmp/ser_global.str"
 
-/* max orders issued for setting the size of the 3rd shared memory */
-/* ------- */#define MAX_ORDERS 200
-
 /*Size of request queue*/ // standard value 50
 /* ------- */#define LISTENQ  5
+
+/* max orders issued for setting the size of shared memory shm3 and shm4*/
+/* ------- */#define MAX_ORDERS LISTENQ
 
 /* Global constants */ // standard values 3 10 10 500
 /* ------- */#define NPIZZAS   3

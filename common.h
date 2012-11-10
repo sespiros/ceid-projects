@@ -27,8 +27,8 @@
 /* ------- */#define TVERYLONG 500 //in milliseconds
 
 /* definitions of standard times */ //standard times 100 120 150 50 100
-/* ------ */int getPizzaTime[]={150,150,150}; //in milliseconds
-/* ------ */int getDistanceTime[]={100,100};		//in milliseconds
+/* ------ */int getPizzaTime[]={100,120,150}; //in milliseconds
+/* ------ */int getDistanceTime[]={50,100};		//in milliseconds
 
 /* typedef pizzaType and distanceType for reference */
 typedef enum { margarita, peperoni, special } pizzaType;
@@ -44,7 +44,7 @@ typedef enum { near, far } distanceType;
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
 
-/* Helper function to print fatal errors */
+/* Simple function to print fatal errors */
 void fatal(char * message){
 	char error_message[100];
 
@@ -54,7 +54,7 @@ void fatal(char * message){
 	exit(-1);
 }
 
-/* Helper function to print debug messages */
+/* Simple function to print debug messages */
 void debug(char * message,pid_t pid){
 	printf("%s[DEBUG] - %d - %s%s\n",KMAG,pid,message,KNRM);
 }

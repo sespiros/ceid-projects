@@ -61,12 +61,10 @@ int read_order(char *buffer, int flags){
 		gettimeofday(&time,NULL);
 		srand((time.tv_sec*1000)+(time.tv_usec/1000));
 		int i;
-		//for(i=0;i<(rand()%3)+1;i++)
-		for(i=0;i<3;i++)
+		for(i=0;i<(rand()%3)+1;i++)
 			buffer[i]='0'+rand()%3;
 		buffer[i++]='0'+rand()%2;
 		buffer[i]='\0';
-		//printf("%s\n",buffer);
 	}else{			/*  if ./client has no arguments prompts the user for input */
 		int done=0;
 		printf("[%d] for margarita\t[%d]near\n[%d] for peperoni\t[%d]far\n[%d] for special\n",margarita,near,peperoni,far,special);

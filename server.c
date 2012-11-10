@@ -35,6 +35,7 @@
 #define SEM_ORD_READY "done"
 #define SEM_BAKERS "bakers"
 #define SEM_DELIVERIES "deliveries"
+#define SEM_TH "stack_throttling"
 
 /* ----------------------------------------------------------------------------------------
  * the order information is its client socket file descriptor and its status
@@ -108,6 +109,11 @@ list_info *ready;
 
 /* Declaration of 4 semaphores, 2 for the shared memory segments and 2 for the bakers and the deliveries */
 sem_t *sem1,*sem2,*sem_bak,*sem_del;
+
+/* This semaphore is needed by the optional addition of dynamic memory management
+ * so that i can handle more orders than the MAX_ORDERS
+ */
+sem_t *sem_throttle;
 
 /* Global declaration of socket file descriptor to use with sig_int() */
 int listenfd;
@@ -268,6 +274,12 @@ int main(int argc, char **argv){
 	if (sem_del == SEM_FAILED)
 		fatal("in sem_open del");
 
+	/* optional semaphore */
+	sem_unlink(SEM_TH);
+	sem_throttle = sem_open(SEM_TH,O_CREAT|O_RDWR,S_IRUSR|S_IWUSR, MAX_ORDERS);
+	if (sem_throttle == SEM_FAILED)
+		fatal("in sem_open throttle");
+
 	/* each list (pending/ready) contains 
 	 * a pointer to its shared memory and to its semaphore */
 	pending->sem = sem1;
@@ -356,8 +368,8 @@ int main(int argc, char **argv){
 			printf("%s============== Received order %d, the order %s ================%s\n",KGRN,getpid(),buffer,KNRM);
 
 			/* Starts the timer */
-			if (setitimer(ITIMER_REAL,&itv,0) == -1)
-				fatal("in setitimer");
+			//if (setitimer(ITIMER_REAL,&itv,0) == -1)
+		//		fatal("in setitimer");
 				
 			/* converts the buffer to int codes */
 			int i = 0;
@@ -610,21 +622,21 @@ order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list)
 	 * when one of these first 50 gets deleted, it pushes its relative position into the stack so that 
 	 * the order 50+1 can be saved in the list by pulling its address.
 	 */
-	if(list->offset>MAX_ORDERS){ 
+	sem_wait(list->sem);
+	showsem("sem_throttle before wait", sem_throttle);
+	sem_wait(sem_throttle);
+	if(place>MAX_ORDERS){ 
+		write(4,"out of free memory",20);
 		if(list->sem==sem1)debug("Throttled in pending",getpid());
 		if(list->sem==sem2)debug("Throttled in ready",getpid());
-		//write(4,"out of free memory",20);
-		//_exit(0);
-		do{ 
-			place = pull(list);
-			havemem = (place == 0)?0:1;
-		}while (!havemem);
+	
+		place = pull(list);
 		printf("%d displacement: %d\n",getpid(),place);
 		printstack(list);
+		//_exit(0);
 	}else
 		(list->offset)++;
 	
-	sem_wait(list->sem);
 	if(list->sem==sem1)debug("insertshm in pending",getpid());
 	if(list->sem==sem2)debug("insertshm in ready",getpid());
 	order_info *addr = list->START + (place-1);
@@ -659,6 +671,7 @@ void deleteshm(order_info *addr,list_info *list){
 	if(list->sem==sem1)debug("deleteshm in pending",getpid());
 	if(list->sem==sem2)debug("deleteshm in ready",getpid());
 	
+	sem_wait(list->sem);
 	if (addr->prev != 0)//it is not the head
 		addr->prev->next=addr->next;
 	else{				//it is the head
@@ -670,12 +683,15 @@ void deleteshm(order_info *addr,list_info *list){
 	}
 	bzero(addr,sizeof(order_info));
 	
-	//printlist(list);
-	
 	/*  pushes the offset of the node in the queue, to show it is free from now on*/
 	//printf("addr: %x , list->START: %x , difference %d\n",addr,list->START,addr-list->START);
 	int offset = addr-list->START+1;
+	printf("I will push %d\n",offset);
 	push(offset,list);
+	sem_post(sem_throttle);
+	showsem("sem_throttle after post",sem_throttle);
+
+	sem_post(list->sem);
 	
 	return;
 }
@@ -702,3 +718,4 @@ void sendcola(pid_t pid){
 		next=next->next;
 	}
 }
+

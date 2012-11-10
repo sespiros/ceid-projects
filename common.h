@@ -15,7 +15,7 @@
 #define UNIX_PATH "/tmp/ser_global.str"
 
 /*Size of request queue*/ // standard value 50
-/* ------- */#define LISTENQ  4
+/* ------- */#define LISTENQ  5
 
 /* max orders issued for setting the size of shared memory shm3 and shm4*/
 /* ------- */#define MAX_ORDERS LISTENQ
@@ -24,11 +24,11 @@
 /* ------- */#define NPIZZAS   3
 /* ------- */#define NBAKERS   10
 /* ------- */#define NDELIVERY 10
-/* ------- */#define TVERYLONG 600 //in milliseconds
+/* ------- */#define TVERYLONG 500 //in milliseconds
 
 /* definitions of standard times */ //standard times 100 120 150 50 100
-/* ------ */int getPizzaTime[]={500,120,150}; //in milliseconds
-/* ------ */int getDistanceTime[]={50,100};		//in milliseconds
+/* ------ */int getPizzaTime[]={150,150,150}; //in milliseconds
+/* ------ */int getDistanceTime[]={100,100};		//in milliseconds
 
 /* typedef pizzaType and distanceType for reference */
 typedef enum { margarita, peperoni, special } pizzaType;

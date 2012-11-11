@@ -3,11 +3,11 @@
  *
  *       Filename:  client.c
  *  	  Project:  Operating Systems I - Project 1 - 5th Semester 2012
- *    Description:  Client acc
+ *    Description:  The client is responsible for delivering an order to the server
  *          Usage:  Calling ./client prompts user for input 
  *          		Calling ./client with an argument creates random order
  *
- *        Version:  1.0
+ *        Version:  1.1
  *        Created:  10/30/2012 04:36:15 AM
  *       Revision:  none
  *       Compiler:  gcc
@@ -41,8 +41,13 @@ int main(int argc, char **argv){
 	read(sockfd,&greeting,39*sizeof(char));
 	if(argc<=1) printf("%s\n",greeting);
 
+	/* The read_order function will prompt user for input if argc == 1 else will create random order */
 	read_order(buffer,argc);
+
+	/* Send order to server */
 	write(sockfd,buffer,(NPIZZAS+2)*sizeof(char));
+
+	/* Wait for server to send done or coca collas messages */
 	while(1){
 		if (read(sockfd,&response,52)==0)exit(0);
 		printf("Server to Client %d: %s \n",getpid(),response);
@@ -61,8 +66,8 @@ int read_order(char *buffer, int flags){
 		gettimeofday(&time,NULL);
 		srand((time.tv_sec*1000)+(time.tv_usec/1000));
 		int i;
-		//for(i=0;i<(rand()%3)+1;i++)
-		for(i=0;i<3;i++)
+		for(i=0;i<(rand()%3)+1;i++)
+		//for(i=0;i<3;i++)
 			buffer[i]='0'+rand()%3;
 		buffer[i++]='0'+rand()%2;
 		buffer[i]='\0';

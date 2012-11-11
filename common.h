@@ -12,23 +12,23 @@
 #include <sys/socket.h> 	/* socket library */
 #include <sys/un.h>			/* Definition for UNIX domain sockets*/
 
-#define UNIX_PATH "/tmp/ser_global.str"
+#define UNIX_PATH "/tmp/ser_global.str" /* for UNIX domain socket */
 
-/*Size of request queue*/ // standard value 50
-/* ------- */#define LISTENQ  5
+/*Size of request queue*/ 
+/* ------- */#define LISTENQ  200
 
-/* max orders issued for setting the size of shared memory shm3 and shm4*/
+/* max orders issued for setting the size of shared memory lists*/
 /* ------- */#define MAX_ORDERS LISTENQ
 
-/* Global constants */ // standard values 3 10 10 500
+/* Global constants */ 
 /* ------- */#define NPIZZAS   3
-/* ------- */#define NBAKERS   1
-/* ------- */#define NDELIVERY 1
-/* ------- */#define TVERYLONG 1000 //in milliseconds
+/* ------- */#define NBAKERS   10
+/* ------- */#define NDELIVERY 10
+/* ------- */#define TVERYLONG 500 				/* in milliseconds */
 
-/* definitions of standard times */ //standard times 100 120 150 50 100
-/* ------ */int getPizzaTime[]={1000,1000,1000}; //in milliseconds
-/* ------ */int getDistanceTime[]={50,100};		//in milliseconds
+/* definitions of standard times */ 
+/* ------ */int getPizzaTime[]={100,120,150}; 	/* in milliseconds */
+/* ------ */int getDistanceTime[]={50,100};		/* in milliseconds */
 
 /* typedef pizzaType and distanceType for reference */
 typedef enum { margarita, peperoni, special } pizzaType;

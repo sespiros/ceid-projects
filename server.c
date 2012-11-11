@@ -3,9 +3,9 @@
  *
  *       Filename:  server.c
  *		  Project:  Operating Systems I - Project 1 - 5th Semester 2012
- *    Description:  Accepts orders
+ *    Description:  Accepts orders.
  *
- *        Version:  1.0
+ *        Version:  4.2
  *        Created:  10/30/2012 02:14:20 AM
  *       Revision:  none
  *       Compiler:  gcc
@@ -23,22 +23,19 @@
 #include <signal.h>			/* signals */
 #include <time.h>			/* for the POSIX timer functions */
 
-#include <sys/stat.h>
-#include <sys/mman.h>
+#include <sys/mman.h>		/* for shared mapping mmap */
 
 #define TIMER_SIG SIGRTMAX 	/* The timer notification signal i used
 						 	 * SIGRTMAX is the max number of realtime signals */
 
 /* ----------------------------------------------------------------------------------------
- * the order information is its client socket file descriptor and its status
+ * the order information is its status and his process id
  * also the order_info struct is used as an object in a list in shared memory
  * I use a double linked list for faster times of insertion and deletion
- * also it holds the pid of the status so that it can identify the socket to send the coca cola
  * ---------------------------------------------------------------------------------------*/
 typedef struct _order{
 	struct _order *prev;
 	struct _order *next;
-	int client_soc;
 	unsigned int status;
 	pid_t pid;
 }order_info;
@@ -46,7 +43,7 @@ typedef struct _order{
 /* -----------------------------------------------------------------------------------------
  *  This struct holds information about:
  *  - the list in shared memory
- *		START  		shows the address taken from shmget
+ *		START  		shows the starting address of the list in shared memory
  *		head   		shows the address of the head of the list
  *		end    		shows the address of the end of the list
  *		offset 		shows the relative position of the next free segment
@@ -70,7 +67,7 @@ typedef struct _order{
  *-------------------------------------------------------------------------------------------
  */
 
-/* struct node of queue used for better memory management */
+/* struct node of memory management stack */
 typedef struct queue{
 	int data;
 	struct queue *next;
@@ -97,14 +94,21 @@ void deleteshm(order_info*,list_info*);
 
 /* Creates an order_info, inserts it in the shared memory 
  * and returns a pointer to the shared memory */
-order_info *insertshm(int , unsigned int ,pid_t, list_info*);
+order_info *insertshm(unsigned int ,pid_t, list_info*);
 
 /* Given a pointer to list_info creates its semaphores returns -1 if it fails */
 int init_sem(list_info *,unsigned int);
 
-/* Creation of 2 lists for the pending pizzas and the ready pizzas */
+/* Pointers to 2 lists for the pending pizzas(for baking) and the ready pizzas(for delivery) */
 list_info *pending;
 list_info *ready;
+
+/*  debugging function to show info about a semaphore */
+void showsem(char * message,sem_t *sem){
+	int val;
+	sem_getvalue(sem,&val);
+	printf("%s[SEMAPHORE] - %d - %s%s\n",KYEL,val,message,KNRM);
+}
 
 /* ======================================================================================
  *                                                                       SIGNAL HANDLERS
@@ -121,24 +125,20 @@ static void sig_chld( int sig) {
  }
 
 /* Invoked by the timer in each of the order childs */
+int sockfd;
 static void sig_timer(int sig, siginfo_t *si, void *uc){
 	timer_t *tid;
 	tid = si->si_value.sival_ptr;
 
-	write(4,"Sorry for the delay you will receive a free cocacola",52);	/* async-signal-safe (the use of write) */
+	write(sockfd,"Sorry for the delay you will receive a free cocacola",52);	/* async-signal-safe (the use of write) */
 }
+
 /* ======================================================================================
  *                                                                                 MAIN 
  * ======================================================================================
  */
 pid_t parent;
 
-/*  debugging function to show info about a semaphore */
-void showsem(char * message,sem_t *sem){
-	int val;
-	sem_getvalue(sem,&val);
-	printf("%s[SEMAPHORE] - %d - %s%s\n",KYEL,val,message,KNRM);
-}
 
 int main(int argc, char **argv){
 
@@ -221,7 +221,7 @@ int main(int argc, char **argv){
 	 *                                                                    SOCKETS SETUP
 	 *===================================================================================
 	 */
-	int sockfd, listenfd;
+	int listenfd;
 	pid_t childpid;
 	socklen_t client_size;
 	struct sockaddr_un server_addr, client_addr;
@@ -285,7 +285,7 @@ int main(int argc, char **argv){
 			if (sigaction(TIMER_SIG,&sig,NULL) == -1)
 				fatal("sigaction child");
 
-			/* Creation of POSIX timer */
+			/* Creation of POSIX timer that sends realtime signal TIMER_SIG*/
 			struct itimerspec ts;							/* settings for the timer */
 			ts.it_value.tv_sec = TVERYLONG/1000;			/* it_value specifies the value the timer will expire */
 			ts.it_value.tv_nsec= TVERYLONG%1000 * 1000000;	
@@ -301,9 +301,10 @@ int main(int argc, char **argv){
 			if(timer_create(CLOCK_REALTIME, &sev, &tid) == -1)
 				fatal("in timer_create");
 
-			//setting vars for use with nanosleep
+			/* Declaration of vars for use with nanosleep */
 			struct timespec request,remain;
 
+			/* Server gets order from client */
 			int recv_len = (NPIZZAS+2)*sizeof(char);
 			write(sockfd, "Server: Pizza Ceid, tell me your order!\n",39);
 			if (read(sockfd,&buffer,recv_len)==0){
@@ -329,17 +330,18 @@ int main(int argc, char **argv){
 			 * ==========================================================================
 			 */
 
-			/* order parser */
 			int num_pizzas=strlen(buffer)-1;
 
 			/* Insert the order in the shared memory shm3 for pending deliveries */
-			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
-			order_info *addr = insertshm(sockfd,num_pizzas,getpid(),pending);
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);	/* block the TIMER_SIG */
+			order_info *addr = insertshm(num_pizzas,getpid(),pending);
 
 			int c=num_pizzas;
 			
 			/* Begin loop for pizzas to bake */
 			while(c>0){
+				/* pending->sem_res is initialized with the number of bakers 
+				 * it is reduced and throw a baker process	*/
 				//showsem("in baker",pending->sem_res);
 				sem_wait(pending->sem_res);
 				int bakerpid = fork();
@@ -356,10 +358,13 @@ int main(int argc, char **argv){
 					if (s == -1 && errno !=EINTR)
 						fatal("in nanosleep");
 
+					/* Reduction of status of order (until 0) 
+					 * pending->sem is the mutex that locks and unlocks the access in the pending list */
 					sem_wait(pending->sem);
 					addr->status-=1;
 					sem_post(pending->sem);
 
+					/* Baker has finished show increases the pending->sem_res semaphore for the bakers */
 					sem_post(pending->sem_res);
 
 					_exit(0);
@@ -370,8 +375,13 @@ int main(int argc, char **argv){
 				c--;
 			}//the loop will end when the order process has succesfully given all of its pizzas to bakers
 			
-			sigprocmask(SIG_SETMASK, &prevMask, NULL);
-			int overrun1=timer_getoverrun(tid);
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);	/* unblock TIMER_SIG */
+		
+			/* while blocked many TIMER_SIGs may have occured 
+			 * TIMER_SIG is a realtime signal that is queued 
+			 * and with timer_getoverrun we obtain the number of these occurences
+			 * and send cocacolas to the clients */
+			int overrun1=timer_getoverrun(tid);				
 			for (i=0;i<overrun1;i++)
 				write(4,"Sorry for the delay you will receive a free cocacola",52);
 			
@@ -384,10 +394,12 @@ int main(int argc, char **argv){
 				}
 			}
 
-			//delete from shared memory shm1 
+			//delete from shared memory shm1 with blocking and unblocking of the signal 
 			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			deleteshm(addr,pending);
 			sigprocmask(SIG_SETMASK, &prevMask, NULL);
+
+			/* Again i catch signals that might occured while blocked */
 			int overrun2=timer_getoverrun(tid)-overrun1;
 			for (i=0;i<overrun2;i++)
 				write(4,"Sorry for the delay you will receive a free cocacola",52);
@@ -402,7 +414,7 @@ int main(int argc, char **argv){
 
 			//insert in shared memory shm2
 			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
-			addr = insertshm(sockfd,type,0,ready);//when the type becomes 2 the delivery is done
+			addr = insertshm(type,0,ready);//when the type becomes 2 the delivery is done
 
 			c = 1;
 			while(c){
@@ -453,8 +465,8 @@ int main(int argc, char **argv){
 			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			deleteshm(addr,ready);
 			sigprocmask(SIG_SETMASK, &prevMask, NULL);
+
 			int overrun4 = timer_getoverrun(tid) - overrun3;
-			printf("%d %d %d %d \n",overrun1,overrun2,overrun3,overrun4);
 			for (i=0;i<overrun4;i++)
 				write(4,"Sorry for the delay you will receive a free cocacola",52);
 
@@ -468,6 +480,8 @@ int main(int argc, char **argv){
 	}
 }
 
+/* Initialization of unnamed semaphores of the structure list_info 
+ * the resources option is given in case the NBAKERS are not the same as NDELIVERY*/
 int init_sem(list_info *list,unsigned int resources){
 	if(sem_init(list->sem,1,1) == -1)
 		return -1;
@@ -569,7 +583,7 @@ void printlist(list_info *list){
  * 	 	  for ready list the status shows the type of the delivery (far/near)
  * --------------------------------------------------------------------------------------		
  */
-order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list){
+order_info *insertshm(unsigned int status,pid_t pid, list_info *list){
 	/* -------------------------------------------------------------------------
 	 * dynamic choice of free shared memory 
 	 * if a node gets deleted its address is pushed in a queue 
@@ -602,7 +616,6 @@ order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list)
 	sem_wait(list->sem);
 	order_info *addr = list->START + (place-1);
 
-	addr->client_soc = sockfd;
 	addr->status = status;
 	addr->prev = 0;
 	if (pid!=0)addr->pid = pid;

@@ -26,6 +26,9 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
+#define TIMER_SIG SIGRTMAX 	/* The timer notification signal i used
+						 	 * SIGRTMAX is the max number of realtime signals */
+
 /* ----------------------------------------------------------------------------------------
  * the order information is its client socket file descriptor and its status
  * also the order_info struct is used as an object in a list in shared memory
@@ -97,13 +100,7 @@ void deleteshm(order_info*,list_info*);
 order_info *insertshm(int , unsigned int ,pid_t, list_info*);
 
 /* Given a pointer to list_info creates its semaphores returns -1 if it fails */
-int init_sem(list_info *);
-
-/*  Given a pointer to list_info creates its shared memory returns -1 if fails */
-int init_sharedlist(list_info *);
-
-/* Sends a coca cola to the socket that matches the given pid */
-void sendcola(pid_t);
+int init_sem(list_info *,unsigned int);
 
 /* Creation of 2 lists for the pending pizzas and the ready pizzas */
 list_info *pending;
@@ -111,9 +108,10 @@ list_info *ready;
 
 /* ======================================================================================
  *                                                                       SIGNAL HANDLERS
- * ======================================================================================*/
+ * ======================================================================================
+ */
 /*  Helper function to avoid zombie processes */
-void sig_chld( int sig) {
+static void sig_chld( int sig) {
        pid_t pid;
        int stat;
 
@@ -123,8 +121,11 @@ void sig_chld( int sig) {
  }
 
 /* Invoked by the timer in each of the order childs */
-void sig_alarm(int sig){
-	sendcola(getpid());
+static void sig_timer(int sig, siginfo_t *si, void *uc){
+	timer_t *tid;
+	tid = si->si_value.sival_ptr;
+
+	write(4,"Sorry for the delay you will receive a free cocacola",52);	/* async-signal-safe (the use of write) */
 }
 /* ======================================================================================
  *                                                                                 MAIN 
@@ -140,7 +141,6 @@ void showsem(char * message,sem_t *sem){
 }
 
 int main(int argc, char **argv){
-	
 
 	/* ------------------------------------------------------------
 	 * holds the client order information in the following way
@@ -164,7 +164,7 @@ int main(int argc, char **argv){
 	/* ==================================================================================
 	 *                                                               SHARED MEMORY SETUP
 	 * ==================================================================================
-	 */
+	 * /
 	
 	/* Definitions of sizes */
 	size_t list_size = MAX_ORDERS * sizeof(order_info);
@@ -172,8 +172,6 @@ int main(int argc, char **argv){
 	size_t stack_size = LISTENQ * sizeof(node);
 	size_t sem_size = 4 * sizeof(sem_t);
 	size_t shm_size = list_size + list_info_size + stack_size + sem_size;
-	printf("shm_size= %d\n",shm_size);
-
 
 	void *addr = mmap(NULL, shm_size*2, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
 	if (addr == MAP_FAILED)
@@ -208,15 +206,15 @@ int main(int argc, char **argv){
 	ready->end = 0;
 	ready->top = 0;
 	ready->offset = 1;
-	printf("Succesfully initialized---------------\n");
 	
 	/* ==================================================================================
 	 *                                                                 SEMAPHORES SETUP
 	 * ==================================================================================
 	 */
-	if (init_sem(pending) == -1)
+	/* init_sem initialize all the semaphores used by the structure */
+	if (init_sem(pending,NBAKERS) == -1)
 		fatal("in setup_sem for pending");
-	if (init_sem(ready) == -1)
+	if (init_sem(ready,NDELIVERY) == -1)
 		fatal("in setup_sem for ready");
 
 	/*===================================================================================
@@ -272,14 +270,19 @@ int main(int argc, char **argv){
 		 *                                                                CHILD PROCESS
 		 * -----------------------------------------------------------------------------*/
 		if(childpid==0){ /* child process */
-			close(listenfd);/* no reason to continue listening for orders */
+			close(listenfd);			/* no reason to continue listening for orders */
 			
 			/* sigalarm handler */
+			sigset_t prevMask, blockMask;
+
+			sigemptyset(&blockMask);	/* setting the blockMask to block TIMER_SIG */
+			sigaddset(&blockMask,TIMER_SIG);	
+
 			struct sigaction sig;
-			sig.sa_flags=0;
-			sig.sa_handler=sig_alarm;
+			sig.sa_flags = SA_SIGINFO;	/* to pass info to the handler */
+			sig.sa_sigaction = sig_timer;
 			sigemptyset(&sig.sa_mask);
-			if (sigaction(SIGALRM,&sig,NULL) == -1)
+			if (sigaction(TIMER_SIG,&sig,NULL) == -1)
 				fatal("sigaction child");
 
 			/* Creation of POSIX timer */
@@ -293,8 +296,7 @@ int main(int argc, char **argv){
 			timer_t tid;						/* timer handle */
 
 			sev.sigev_notify = SIGEV_SIGNAL;	/* Notify via signal */
-			sev.sigev_signo = SIGALRM;			/* Notify using SIGALRM */
-			//sev.sigev_value = &tid;				/* This allows handler to get ID of this timer */
+			sev.sigev_signo = TIMER_SIG;		/* Notify using TIMER_SIG realtime signal */
 
 			if(timer_create(CLOCK_REALTIME, &sev, &tid) == -1)
 				fatal("in timer_create");
@@ -331,12 +333,14 @@ int main(int argc, char **argv){
 			int num_pizzas=strlen(buffer)-1;
 
 			/* Insert the order in the shared memory shm3 for pending deliveries */
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			order_info *addr = insertshm(sockfd,num_pizzas,getpid(),pending);
 
 			int c=num_pizzas;
 			
 			/* Begin loop for pizzas to bake */
 			while(c>0){
+				//showsem("in baker",pending->sem_res);
 				sem_wait(pending->sem_res);
 				int bakerpid = fork();
 
@@ -366,18 +370,27 @@ int main(int argc, char **argv){
 				c--;
 			}//the loop will end when the order process has succesfully given all of its pizzas to bakers
 			
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);
+			int overrun1=timer_getoverrun(tid);
+			for (i=0;i<overrun1;i++)
+				write(4,"Sorry for the delay you will receive a free cocacola",52);
+			
 			//and now it constantly checks its shared memory for ready status
 			int baked=0;
 			while(!baked){
 				int check = (addr->status==0)?1:0;
 				if (check){
-					//printf("DONE baking\n");
 					baked=1;
 				}
 			}
 
 			//delete from shared memory shm1 
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			deleteshm(addr,pending);
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);
+			int overrun2=timer_getoverrun(tid)-overrun1;
+			for (i=0;i<overrun2;i++)
+				write(4,"Sorry for the delay you will receive a free cocacola",52);
 
 		 	/* ==========================================================================
 			 *                                                                 DELIVERY
@@ -388,6 +401,7 @@ int main(int argc, char **argv){
 			distanceType type = buffer[strlen(buffer)-1]-'0';
 
 			//insert in shared memory shm2
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			addr = insertshm(sockfd,type,0,ready);//when the type becomes 2 the delivery is done
 
 			c = 1;
@@ -421,16 +435,28 @@ int main(int argc, char **argv){
 				c--;
 			}//the loop will end when the order process has succesfully given its pizzas to
 
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);
+			int overrun3 = timer_getoverrun(tid) - overrun2;
+			for (i=0;i<overrun3;i++)
+				write(4,"Sorry for the delay you will receive a free cocacola",52);
+			
 			//a delivery and now it constantly checks its shared memory for ready status
 			int done=0;
 			while(!done){
 				int check = (addr->status==2)?1:0;
-				if(check)
+				if(check){
 					done=1;
+				}
 			}
 
 			//delete from shared memory shm2
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			deleteshm(addr,ready);
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);
+			int overrun4 = timer_getoverrun(tid) - overrun3;
+			printf("%d %d %d %d \n",overrun1,overrun2,overrun3,overrun4);
+			for (i=0;i<overrun4;i++)
+				write(4,"Sorry for the delay you will receive a free cocacola",52);
 
 			write(sockfd,"DONE!",5);
 			close(sockfd);
@@ -442,14 +468,14 @@ int main(int argc, char **argv){
 	}
 }
 
-int init_sem(list_info *list){
+int init_sem(list_info *list,unsigned int resources){
 	if(sem_init(list->sem,1,1) == -1)
 		return -1;
 	if(sem_init(list->stack_full,1,MAX_ORDERS) == -1)
 		return -1;
 	if(sem_init(list->stack_empty,1,MAX_ORDERS) == -1)
 		return -1;
-	if(sem_init(list->sem_res,1,1) == -1)
+	if(sem_init(list->sem_res,1,resources) == -1)
 		return -1;
 
 	/* zero the list->stack_full semaphore */
@@ -457,39 +483,7 @@ int init_sem(list_info *list){
 	for (i=0;i<MAX_ORDERS;i++)
 		sem_wait(list->stack_full);
 }
-int init_sharedlist(list_info *list){
-	size_t list_size = MAX_ORDERS * sizeof(order_info);
-	size_t list_info_size = sizeof(list_info);
-	size_t stack_size = LISTENQ * sizeof(node);
-	size_t sem_size = 4 * sizeof(sem_t);
-	size_t shm_size = list_size + list_info_size + stack_size + sem_size;
-	printf("shm_size= %d\n",shm_size);
 
-
-	void *addr = mmap(NULL, shm_size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
-	if (addr == MAP_FAILED)
-		return -1;
-
-	/* Initialization of list_info structs for the pending and the ready list */
-	list = addr + list_size;			/* Where list_info list exists in shared memory */
-	list->START = addr;
-	list->stack_start = (void *)list + list_info_size;
-	list->stack_end = (void *)list->stack_start + stack_size;
-	list->sem = (void *)list->stack_end;
-	list->stack_full = list->sem + 1;
-	printf("list->stack_full: %x\n",list->stack_full);
-	list->stack_empty = list->stack_full + 1;
-	printf("list->stack_empty: %x\n",list->stack_empty);
-	list->sem_res = list->stack_empty + 1;
-	printf("list->stack_res: %x\n",list->stack_empty);
-
-	list->head = 0;
-	list->end = 0;
-	list->top = 0;
-	list->offset = 1;
-	printf("Succesfully initialized---------------\n");
-
-}
 /* ======================================================================================
  * 																	       MEMORY STACK
  * Functions to manage the stack of free memory space
@@ -512,7 +506,7 @@ void printstack(list_info *list){
 void push(int s,list_info *list){
 	node *new;
 	sem_wait(list->stack_empty);
-	showsem("stack_empty after wait",list->stack_empty);
+	//showsem("stack_empty after wait",list->stack_empty);
 
 	if (list->top == 0) // stack is empty
 		new = list->stack_start;
@@ -524,7 +518,7 @@ void push(int s,list_info *list){
 	list->top=new;
 	sem_post(list->stack_full);
 
-	printstack(list);
+	//printstack(list);
 }
 
 int pull(list_info *list){
@@ -593,17 +587,17 @@ order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list)
 	 */
 	if(place>MAX_ORDERS){ 
 		//write(4,"out of free memory",20);
-		if(list->sem==pending->sem)debug("Throttled in pending",getpid());
-		if(list->sem==ready->sem)debug("Throttled in ready",getpid());
+	//	if(list->sem==pending->sem)debug("Throttled in pending",getpid());
+	//	if(list->sem==ready->sem)debug("Throttled in ready",getpid());
 	
 		place = pull(list);
-		printf("%d displacement: %d\n",getpid(),place);
-		printstack(list);
+	//	printf("%d displacement: %d\n",getpid(),place);
+	//	printstack(list);
 	}else
 		(list->offset)++;
 	
-	if(list->sem==pending->sem)debug("insertshm in pending",getpid());
-	if(list->sem==ready->sem)debug("insertshm in ready",getpid());
+	//if(list->sem==pending->sem)debug("insertshm in pending",getpid());
+	//if(list->sem==ready->sem)debug("insertshm in ready",getpid());
 	
 	sem_wait(list->sem);
 	order_info *addr = list->START + (place-1);
@@ -621,7 +615,7 @@ order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list)
 	list->end=addr;
 	list->end->next = 0;
 	
-	printlist(list);
+	//printlist(list);
 
 	sem_post(list->sem);
 	return addr;
@@ -635,8 +629,8 @@ order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list)
  */
 void deleteshm(order_info *addr,list_info *list){
 	
-	if(list->sem==pending->sem)debug("deleteshm in pending",getpid());
-	if(list->sem==ready->sem)debug("deleteshm in ready",getpid());
+	//if(list->sem==pending->sem)debug("deleteshm in pending",getpid());
+	//if(list->sem==ready->sem)debug("deleteshm in ready",getpid());
 	
 	sem_wait(list->sem);
 	if (addr->prev != 0)//it is not the head
@@ -657,30 +651,6 @@ void deleteshm(order_info *addr,list_info *list){
 	int offset = addr-list->START+1;
 	push(offset,list);
 
-	
 	return;
-}
-
-/* --------------------------------------------------------------------------------------
- *																			SENDCOLA----
- * this function searches in the pending list for the given pid, it finds the socket of 
- * the client and sends him a message for a coca cola.
- * This is triggered by the signal handler individually by each order
- *
- * --------------------------------------------------------------------------------------
- */
-
-void sendcola(pid_t pid){
-	sem_wait(pending->sem);
-	order_info *next = pending->head;
-	sem_post(pending->sem);
-	int found = 0;
-	while(!found && next!=NULL){
-		if (next->pid==pid){
-			write(next->client_soc,"Sorry for the delay, you will receive a free coca cola\n",60);
-			found=1;
-		}
-		next=next->next;
-	}
 }
 

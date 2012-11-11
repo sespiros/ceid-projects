@@ -22,12 +22,12 @@
 
 /* Global constants */ // standard values 3 10 10 500
 /* ------- */#define NPIZZAS   3
-/* ------- */#define NBAKERS   10
-/* ------- */#define NDELIVERY 10
-/* ------- */#define TVERYLONG 500 //in milliseconds
+/* ------- */#define NBAKERS   1
+/* ------- */#define NDELIVERY 1
+/* ------- */#define TVERYLONG 1000 //in milliseconds
 
 /* definitions of standard times */ //standard times 100 120 150 50 100
-/* ------ */int getPizzaTime[]={100,120,150}; //in milliseconds
+/* ------ */int getPizzaTime[]={1000,1000,1000}; //in milliseconds
 /* ------ */int getDistanceTime[]={50,100};		//in milliseconds
 
 /* typedef pizzaType and distanceType for reference */

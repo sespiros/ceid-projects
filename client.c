@@ -26,7 +26,7 @@ int main(int argc, char **argv){
 	int sockfd;
 	struct sockaddr_un server_addr;
 	int pid;
-	char buffer[NPIZZAS+1],greeting[50],response[60];
+	char buffer[NPIZZAS+1],greeting[50],response[52];
 	if (argc<=1)printf("Calling Ceid Pizzeria. Terminate call with Ctrl-C.\n");
 
 	sockfd = socket (AF_LOCAL,SOCK_STREAM,0);
@@ -44,8 +44,8 @@ int main(int argc, char **argv){
 	read_order(buffer,argc);
 	write(sockfd,buffer,(NPIZZAS+2)*sizeof(char));
 	while(1){
-		if (read(sockfd,&response,60)==0)exit(0);
-		printf("Server to Client %d: %s\n",getpid(),response);
+		if (read(sockfd,&response,52)==0)exit(0);
+		printf("Server to Client %d: %s \n",getpid(),response);
 		if (strcmp(response,"DONE!")==0){
 			printf("Client %d closes\n",getpid());
 			exit(0);
@@ -61,7 +61,8 @@ int read_order(char *buffer, int flags){
 		gettimeofday(&time,NULL);
 		srand((time.tv_sec*1000)+(time.tv_usec/1000));
 		int i;
-		for(i=0;i<(rand()%3)+1;i++)
+		//for(i=0;i<(rand()%3)+1;i++)
+		for(i=0;i<3;i++)
 			buffer[i]='0'+rand()%3;
 		buffer[i++]='0'+rand()%2;
 		buffer[i]='\0';

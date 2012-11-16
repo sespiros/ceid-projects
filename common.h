@@ -1,29 +1,48 @@
 #ifndef __COMMON__
 #define __COMMON__
-#include <stdlib.h>
-#include <string.h>
 
-#define UNIX_PATH "/tmp/ser_global.str"
+/* if _STACKOP_ is defined then the stack optimization mechanism is used
+ * and the server can handle more than LISTENQ clients simultaneously!!:)
+ *
+ * if commented out then server handles at max LISTENQ simultaneous orders
+ * with the rest thrown away :(
+ */
+#define _STACKOP_
+/* if _DEBUG_ is defined the output of the server will be veeeeery verbose */
+//#define _DEBUG_
 
-/* max orders issued for setting the size of the 3rd shared memory */
-/* ------- */#define MAX_ORDERS 200
+#include <sys/types.h>		/* Type definitions */
+#include <stdio.h> 			/* standard I/O */
+#include <stdlib.h>			/* Prototypes of commonly used library functions */
 
-/*Size of request queue*/ // standard value 50
-/* ------- */#define LISTENQ  5
+#include <unistd.h>			/* Prototypes of many system calls */
+#include <errno.h>			/* Declares errno and defines error constants */
+#include <string.h>			/* Commonly used string-handling functions */
 
-/* Global constants */ // standard values 3 10 10 500
+#include <sys/socket.h> 	/* socket library */
+#include <sys/un.h>			/* Definition for UNIX domain sockets*/
+
+#define UNIX_PATH "/tmp/ser_global.str" /* for UNIX domain socket */
+
+/*Size of request queue*/ 
+/* ------- */#define LISTENQ  500
+
+/* max orders issued for setting the size of shared memory lists*/
+/* ------- */#define MAX_ORDERS LISTENQ
+
+/* Global constants */ 
 /* ------- */#define NPIZZAS   3
 /* ------- */#define NBAKERS   10
 /* ------- */#define NDELIVERY 10
-/* ------- */#define TVERYLONG 5000 //in milliseconds
+/* ------- */#define TVERYLONG 500 				/* in milliseconds */
 
-/* definitions of standard times */ //standard times 100 120 150 50 100
-/* ------ */int timeofPizza[]={1000,1000,1000}; //in milliseconds
-/* ------ */int timeofClient[]={1000,1000};		//in milliseconds
+/* definitions of standard times */ 
+/* ------ */int getPizzaTime[]={100,120,150}; 	/* in milliseconds */
+/* ------ */int getDistanceTime[]={50,100};		/* in milliseconds */
 
-/* Useful enums for easier access eg. timeofPizza[peperoni] */
-enum pizzaTypes	{margarita, peperoni, special};
-enum distanceTypes {near, far};
+/* typedef pizzaType and distanceType for reference */
+typedef enum { margarita, peperoni, special } pizzaType;
+typedef enum { near, far } distanceType;
 
 
 
@@ -38,7 +57,7 @@ enum distanceTypes {near, far};
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
 
-/* Helper function to print fatal errors */
+/* Simple function to print fatal errors */
 void fatal(char * message){
 	char error_message[100];
 
@@ -46,6 +65,11 @@ void fatal(char * message){
 	strncat(error_message, message, 83);
 	perror(error_message);
 	exit(-1);
+}
+
+/* Simple function to print debug messages */
+void debug(char * message,pid_t pid){
+	printf("%s[DEBUG] - %d - %s%s\n",KMAG,pid,message,KNRM);
 }
 
 #endif

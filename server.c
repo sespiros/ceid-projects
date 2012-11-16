@@ -3,9 +3,9 @@
  *
  *       Filename:  server.c
  *		  Project:  Operating Systems I - Project 1 - 5th Semester 2012
- *    Description:  Accepts orders
+ *    Description:  Accepts orders.
  *
- *        Version:  1.0
+ *        Version:  4.2
  *        Created:  10/30/2012 02:14:20 AM
  *       Revision:  none
  *       Compiler:  gcc
@@ -15,78 +15,77 @@
  *                  University of Patras
  *
  * =====================================================================================
-  */
+ */
 #include "common.h"
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <sys/un.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <semaphore.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <signal.h>
-#include <sys/time.h>
-#include <time.h>
+#include <sys/wait.h>		/* Declarations for waiting */
+#include <semaphore.h>		/* semaphores */
+#include <fcntl.h>			/* file control options */
+#include <signal.h>			/* signals */
+#include <time.h>			/* for the POSIX timer functions */
 
-/* shared memory identifier */
-#define SHMGLOBAL 5070
-
-/* semaphore identifiers */
-#define SEM_BAKERS "bakers"
-#define SEM_DELIVERIES "deliveries"
-#define SEM_ORD_PEND "pending"
-#define SEM_ORD_READY "done"
+#include <sys/mman.h>		/* for shared mapping mmap */
 
 /* ----------------------------------------------------------------------------------------
- * the order information is its client socket file descriptor and its status
+ * the order information is its status and his process id
  * also the order_info struct is used as an object in a list in shared memory
- * the struct i use is a double linked list for faster times of insertion and deletion
- * also it holds the pid of the status so that it can identify the socket to send the coca cola
+ * I use a double linked list for faster times of insertion and deletion
  * ---------------------------------------------------------------------------------------*/
 typedef struct _order{
 	struct _order *prev;
 	struct _order *next;
-	int client_soc;
 	unsigned int status;
 	pid_t pid;
 }order_info;
 
 /* -----------------------------------------------------------------------------------------
- * 4 pointers to handle a list in shared memory
- *	START  shows the address taken from shmget
- *	head   shows the address of the head of the list
- *	end    shows the address of the end of the list
- *	offset shows the relative position of the next free segment
+ *  This struct holds information about:
+ *  - the list in shared memory
+ *		START  		shows the starting address of the list in shared memory
+ *		head   		shows the address of the head of the list
+ *		end    		shows the address of the end of the list
+ *		offset 		shows the relative position of the next free segment
  *
- *	front  shows the front of the queue for memory management of this list
- *	rear   shows the rear of the queue for memory management of this list
+ *	- the semaphores to handle the list
+ *		sem	   		semaphore to lock the access in the list
+ *		sem_res		for the pending list controls the bakers
+ *					for the ready list controls the delivery boys
  *
+ *  - the dynamic memory management information of the list
+ *		stack_full	semaphore that shows how many places are full in the stack 
+ *  	stack_empty	semaphore that shows how many places are empty in the stack
+ *
+ *  	top  		shows the top of the stack
+ *		stack_start shows the starting memory of the stack
+ *		stack_end   shows the ending memory of the stack
  *	
- *	Deleting a node from the list pushes its address in a memory management queue
- *	When inserting a node, first chooses a free space from that queue.
- *	If this queue is empty the offset value shows the next free segment in the shared memory
+ *	Deleting a order_info from the list pushes a node with its address in a memory management stack
+ *	that is controlled by 2 semaphores.When inserting an order_info in the list that exceeds the limits
+ *	of the list, it is placed in unused memory segment that is pulled from the stack. 
  *-------------------------------------------------------------------------------------------
  */
-
-/* struct node of queue used for better memory management */
+#ifdef _STACKOP_
+/* struct node of memory management stack */
 typedef struct queue{
 	int data;
 	struct queue *next;
 }node;
+#endif
 
 typedef struct _list{
 	order_info *START;
 	order_info *head;
 	order_info *end;
 	int offset;
-	sem_t *sem;
-	node *front;
-	node *rear;
+	sem_t *sem,*sem_res;
+
+#ifdef _STACKOP_
+	/* stack management */
+	sem_t *stack_full, *stack_empty;
+	
+	node *top;
+	node *stack_start;
+	node *stack_end;
+#endif
 }list_info;
 
 /* Deletes a order_info node from shared memory
@@ -95,82 +94,67 @@ void deleteshm(order_info*,list_info*);
 
 /* Creates an order_info, inserts it in the shared memory 
  * and returns a pointer to the shared memory */
-order_info *insertshm(int , unsigned int ,pid_t, list_info*);
+order_info *insertshm(unsigned int ,pid_t, list_info*);
 
-/* Sends a coca cola to the socket that matches the give pid */
-void sendcola(pid_t);
+/* Given a pointer to list_info creates its semaphores returns -1 if it fails */
+int init_sem(list_info *,unsigned int);
 
-/* global declaration of file descriptors and addresses of shared memories to use with sig_int */
-int fd1,fd2,fd3,fd4;
-void *addr1,*addr2,*addr3,*addr4;
+/* Pointers to 2 lists for the pending pizzas(for baking) and the ready pizzas(for delivery) */
+list_info *pending;
+list_info *ready;
 
-/* Creation of 2 lists for the pending pizzas and the ready pizzas */
-list_info pending;
-list_info ready;
-
-/* Declaration of 3 semaphores for each of the shared memory segments */
-sem_t *sem1,*sem2,*sem3,*sem4;
-
-/*  Global declaration of socket file descriptor to use with sig_int*/
-int listenfd;
-
+#ifdef _DEBUG_
+/*  debugging function to show info about a semaphore */
+void showsem(char * message,sem_t *sem){
+	int val;
+	sem_getvalue(sem,&val);
+	printf("%s[SEMAPHORE] - %d - %s%s\n",KYEL,val,message,KNRM);
+}
+#endif
 /* ======================================================================================
  *                                                                       SIGNAL HANDLERS
- * ======================================================================================*/
-/*  Function to properly release resources when a process is terminated with Ctrl-C */
-void sig_int (int sig){
-	close(listenfd);
-
-	/* detach and delete the 4 shm */
-	shmdt(addr1);
-	shmctl(fd1,IPC_RMID,NULL);
-	shmdt(addr2);
-	shmctl(fd2,IPC_RMID,NULL);
-	shmdt(addr3);
-	shmctl(fd3,IPC_RMID,NULL);
-	shmdt(addr4);
-	shmctl(fd4,IPC_RMID,NULL);
-
-	/*  unlink and close the 4 sem */
-	sem_close(sem1);
-	sem_close(sem2);
-	sem_close(sem3);
-	sem_close(sem4);
-	sem_unlink(SEM_BAKERS);
-	sem_unlink(SEM_DELIVERIES);
-	sem_unlink(SEM_ORD_PEND);
-	sem_unlink(SEM_ORD_READY);
-
-	exit(0);
-}
-
+ * ======================================================================================
+ */
 /*  Helper function to avoid zombie processes */
-void sig_chld( int sig) {
-       pid_t pid;
-       int stat;
+static void sig_chld( int sig) {
+    pid_t pid;
+    int stat;
 
-       while ( ( pid = waitpid( -1, &stat, WNOHANG ) ) > 0 ) {
-              printf( "--------------Child %d terminated.\n", pid );
-        }
+    while ( ( pid = waitpid( -1, &stat, WNOHANG ) ) > 0 ) {
+#ifdef _DEBUG_
+        printf( "%s------------Child %d terminated.%s\n",KRED,pid,KNRM );
+#endif 
+    }
  }
 
-void sig_alarm(int sig){
-	sendcola(getpid());
+/* I declare the sockfd up here because the server closes it everytime after accepting
+ * a connection and as a result all the orders have the same socket number in their 
+ * process space. So the sockfd is the same and i can write with this fixed number */
+int sockfd;
+
+/* Invoked by the timer in each of the order childs */
+static void sig_timer(int sig){
+	write(sockfd,"Sorry for the delay you will receive a free cocacola",52);	/* async-signal-safe (the use of write) */
 }
+
 /* ======================================================================================
  *                                                                                 MAIN 
  * ======================================================================================
  */
+pid_t parent;
+
+
 int main(int argc, char **argv){
-	
+
 	/* ------------------------------------------------------------
 	 * holds the client order information in the following way
-	 *      |===============================================|
-	 * 		|pizza #1 | pizza #2 | pizza #NPIZZA | near/far |
-	 *      |===============================================|
+	 *      |=====================...==========================|
+	 * 		|pizza #1 | pizza #2 |...pizza #NPIZZA |  near/far |
+	 *      |=====================...==========================|
 	 *		to order 2 peperonis, 1 special for far is 1|1|2|1
 	 *		according to the enum defined in common.h
-	 * ----------------------------------------------------- ----*/
+	 * ------------------------------------------------------------
+	 */
 	char buffer[NPIZZAS+1];
 
 	/* sigchld handler to avoid zombie process generation*/
@@ -181,112 +165,80 @@ int main(int argc, char **argv){
 	if (sigaction(SIGCHLD,&sa,NULL) == -1)
 			fatal("sigaction child");
 
-	/* instead of closing correctly terminates and takes care of resources */
-	sa2.sa_flags=0;
-	sa2.sa_handler=sig_int;
-	sigemptyset(&sa2.sa_mask);
-	if (sigaction(SIGINT,&sa2,NULL) == -1)
-		fatal("sigaction for Ctrl-C");
-
 	/* ==================================================================================
 	 *                                                               SHARED MEMORY SETUP
-	 * - shared memory for the status of bakers
-	 * - shared memory for the status of deliveries
-	 * - shared memory for the order statuses
+	 * ==================================================================================
+	 * /
+	
+	/* Definitions of sizes */
+	size_t list_size = MAX_ORDERS * sizeof(order_info);
+	size_t list_info_size = sizeof(list_info);
+#ifdef _STACKOP_
+	size_t stack_size = LISTENQ * sizeof(node);
+#else
+	size_t stack_size = 0;
+#endif
+	size_t sem_size = 4 * sizeof(sem_t);
+	size_t shm_size = list_size + list_info_size + stack_size + sem_size;
+
+	void *addr = mmap(NULL, shm_size*2, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+	if (addr == MAP_FAILED)
+		return -1;
+	
+	/* Initialization of list_info structs for the pending and the ready list */
+	pending = addr + list_size;			/* Where list_info pending exists in shared memory */
+	pending->START = addr;
+#ifdef _STACKOP_
+	pending->stack_start = (void *)pending + list_info_size;
+	pending->stack_end = (void *)pending->stack_start + stack_size;
+	pending->sem = (void *)pending->stack_end;
+	pending->stack_full = pending->sem + 1;
+	pending->stack_empty = pending->stack_full + 1;
+	pending->sem_res = pending->stack_empty + 1;
+	pending->top = 0;
+#else
+	pending->sem = (void *)pending + list_info_size;
+	pending->sem_res = pending->sem + 1;
+#endif
+	pending->head = 0;
+	pending->end = 0;
+	pending->offset = 1;
+
+	addr += shm_size;
+
+	ready = addr + list_size;			/* Where list_info ready exists in shared memory */
+	ready->START = addr;
+#ifdef _STACKOP_
+	ready->stack_start = (void *)ready + list_info_size;
+	ready->stack_end = (void *)ready->stack_start + stack_size;
+	ready->sem = (void *)ready->stack_end;
+	ready->stack_full = ready->sem + 1;
+	ready->stack_empty = ready->stack_full + 1;
+	ready->sem_res = ready->stack_empty + 1;
+	ready->top = 0;
+#else
+	ready->sem = (void *)ready + list_info_size;
+	ready->sem_res = ready->sem + 1;
+#endif
+	ready->head = 0;
+	ready->end = 0;
+	ready->offset = 1;
+	
+	/* ==================================================================================
+	 *                                                                 SEMAPHORES SETUP
 	 * ==================================================================================
 	 */
-	key_t key1 = SHMGLOBAL;
-	key_t key2 = SHMGLOBAL+1;
-	key_t key3 = SHMGLOBAL+2;
-	key_t key4 = SHMGLOBAL+3;
-
-	size_t shm_size1 = sizeof(unsigned int);
-	size_t shm_size2 = sizeof(unsigned int);
-	size_t shm_size3 = MAX_ORDERS*sizeof(order_info);
-	size_t shm_size4 = MAX_ORDERS*sizeof(order_info);
-
-	if ((fd1 = shmget(key1,shm_size1,IPC_CREAT | 0666))==-1)
-		fatal("in shmget 1");
-	if ((fd2 = shmget(key2,shm_size2,IPC_CREAT | 0666))==-1)
-		fatal("in shmget 2");
-	if ((fd3 = shmget(key3,shm_size3,IPC_CREAT | 0666))==-1)
-		fatal("in shmget 3");
-	if ((fd4 = shmget(key4,shm_size4,IPC_CREAT | 0666))==-1)
-		fatal("in shmget 4");
-	
-	if ((addr1 = shmat(fd1,NULL,0)) == (void*)-1)
-		fatal("in shmat 1");
-	if ((addr2 = shmat(fd2,NULL,0)) == (void*)-1)
-		fatal("in shmat 2");
-	if ((addr3 = shmat(fd3,NULL,0)) == (void*)-1)
-		fatal("in shmat 3");
-	if ((addr4 = shmat(fd4,NULL,0)) == (void*)-1)
-		fatal("in shmat 4");
-
-	/* pointer to shared memory1 that holds the number of bakers currently active */
-	unsigned int *bak_info = addr1;
-	*bak_info = 0;
-
-	/* pointer to shared memory2 that holds the number of deliveries currently active */
-	unsigned int *deliver_info = addr2;
-	*deliver_info = 0;
-
-	/* the pending list holds the starting point of shared memory3,
-	 * the head and the and of the list and the offset that shows the next free space
-	 */
-	pending.START = addr3;
-	pending.head = 0;
-	pending.end = 0;
-	pending.front = 0;
-	pending.rear = 0;
-	pending.offset = 1;
-
-	/* the ready list holds the starting point of shared memory4,
-	 * the head and the and of the list and the offset that shows the next free space
-	 */
-	ready.START = addr4;
-	ready.head = 0;
-	ready.end = 0;
-	ready.front = 0;
-	ready.rear = 0;
-	ready.offset = 1;
-
-	/* =================================================================================
-	 *                                                                 SEMAPHORES SETUP
-	 * - sem1 for the bakers status shared memory
-	 * - sem2 for the deliveries status shared memory
-	 * - sem3 for the shared_memory that holds the pending list
-	 * - sem4 for the shared_memory that holds the ready list for delivery
-	 * =================================================================================
-	 */
-	sem_unlink(SEM_BAKERS);
-	sem_unlink(SEM_DELIVERIES);
-	sem_unlink(SEM_ORD_PEND);
-	sem_unlink(SEM_ORD_READY);
-
-	sem1 = sem_open(SEM_BAKERS,O_CREAT|O_RDWR,S_IRUSR|S_IWUSR, 1);
-	if (sem1 == SEM_FAILED)
-		fatal("in sem_open 1");
-	sem2 = sem_open(SEM_DELIVERIES,O_CREAT|O_RDWR,S_IRUSR|S_IWUSR, 1);
-	if (sem2 == SEM_FAILED)
-		fatal("in sem_open 2");
-	sem3 = sem_open(SEM_ORD_PEND,O_CREAT|O_RDWR,S_IRUSR|S_IWUSR, 1);
-	if (sem3 == SEM_FAILED)
-		fatal("in sem_open 3");
-	sem4 = sem_open(SEM_ORD_READY,O_CREAT|O_RDWR,S_IRUSR|S_IWUSR, 1);
-	if (sem4 == SEM_FAILED)
-		fatal("in sem_open 4");
-
-	/* each list (pending/ready) contains 
-	 * a pointer to its shared memory and to its semaphore */
-	pending.sem = sem3;
-	ready.sem = sem4;
+	/* init_sem initialize all the semaphores used by the structure */
+	if (init_sem(pending,NBAKERS) == -1)
+		fatal("in setup_sem for pending");
+	if (init_sem(ready,NDELIVERY) == -1)
+		fatal("in setup_sem for ready");
 
 	/*===================================================================================
 	 *                                                                    SOCKETS SETUP
 	 *===================================================================================
 	 */
-	int sockfd;
+	int listenfd;
 	pid_t childpid;
 	socklen_t client_size;
 	struct sockaddr_un server_addr, client_addr;
@@ -316,12 +268,13 @@ int main(int argc, char **argv){
 	 * ----------------------------------------------------------------------------------
 	 */
 	while(1){
+		parent=getpid();
 		client_size = sizeof(client_addr);
 
 		sockfd = accept(listenfd, (struct sockaddr*)&client_addr,&client_size);
 
 		if(sockfd < 0 ){
-			if (errno == EINTR ) /* If interrupt received the system call continues normally*/
+			if (errno == EINTR ) 		/* If interrupt received the system call continues normally*/
 				continue;
 			else
 				fatal("in accepting connection");
@@ -334,43 +287,59 @@ int main(int argc, char **argv){
 		 *                                                                CHILD PROCESS
 		 * -----------------------------------------------------------------------------*/
 		if(childpid==0){ /* child process */
-			close(listenfd);/* no reason to continue listening for orders */
-
+			close(listenfd);			/* no reason to continue listening for orders */
+			
 			/* sigalarm handler */
+			sigset_t prevMask, blockMask;
+
+			sigemptyset(&blockMask);	/* setting the blockMask to block TIMER_SIG */
+			sigaddset(&blockMask,SIGALRM);//TIMER_SIG);	
+
 			struct sigaction sig;
-			sig.sa_flags=0;
-			sig.sa_handler=sig_alarm;
+			sig.sa_flags = SA_RESTART;	/* to restart any blocking calls */
+			sig.sa_handler = sig_timer;
 			sigemptyset(&sig.sa_mask);
 			if (sigaction(SIGALRM,&sig,NULL) == -1)
 				fatal("sigaction child");
 
-			//setting vars for use with setitimer
-			struct itimerval itv;
-			itv.it_value.tv_sec = TVERYLONG/1000;			/*  it_value holds the time to sleep */
-			itv.it_value.tv_usec = TVERYLONG%1000 * 1000;
-			itv.it_interval.tv_sec = 0;			/*  it_interval holds the time to  */
-			itv.it_interval.tv_usec = 0;
+			/* Creation of POSIX timer that sends sigalarm*/
+			struct itimerspec ts;							/* settings for the timer */
+			ts.it_value.tv_sec = TVERYLONG/1000;			/* it_value specifies the value the timer will expire */
+			ts.it_value.tv_nsec= TVERYLONG%1000 * 1000000;	
+			ts.it_interval.tv_sec = ts.it_value.tv_sec;		/* it_interval specifies if it is a periodic timer */
+			ts.it_interval.tv_nsec = ts.it_value.tv_nsec;
 
-			//setting vars for use with nanosleep
+			struct sigevent sev;
+			timer_t tid;						/* timer handle */
+
+			sev.sigev_notify = SIGEV_SIGNAL;	/* Notify via signal */
+			sev.sigev_signo = SIGALRM;			/* Notify using SIGALRM signal */
+
+			if(timer_create(CLOCK_REALTIME, &sev, &tid) == -1)
+				fatal("in timer_create");
+
+			/* Declaration of vars for use with nanosleep */
 			struct timespec request,remain;
 
+			/* Server gets order from client */
 			int recv_len = (NPIZZAS+2)*sizeof(char);
 			write(sockfd, "Server: Pizza Ceid, tell me your order!\n",39);
 			if (read(sockfd,&buffer,recv_len)==0){
 				printf ("Rude client hanged up\n");
 				exit(0);
 			}
-			printf("============== Received order from %d, the order %s ================\n",sockfd,buffer);
+			
+			printf("%s============== Received order %d, the order %s ================%s\n",KGRN,getpid(),buffer,KNRM);
 
 			/* Starts the timer */
-			if (setitimer(ITIMER_REAL,&itv,0) == -1)
-				fatal("in setitimer");
-				
+			if(timer_settime(tid,0,&ts,NULL) == -1)
+				fatal("in timer_settime");
+
 			/* converts the buffer to int codes */
 			int i = 0;
-			int codes[NPIZZAS];
-			for(i;i<strlen(buffer);i++){
-				codes[i] = buffer[i]-'0';
+			pizzaType pizzas[NPIZZAS];
+			for(i;i<strlen(buffer)-1;i++){
+				pizzas[i] = buffer[i]-'0';
 			}
 
 			/* ==========================================================================
@@ -378,201 +347,219 @@ int main(int argc, char **argv){
 			 * ==========================================================================
 			 */
 
-			/* order parser */
 			int num_pizzas=strlen(buffer)-1;
 
 			/* Insert the order in the shared memory shm3 for pending deliveries */
-			order_info *addr = insertshm(sockfd,num_pizzas,getpid(),&pending);
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);	/* block the TIMER_SIG */
+			order_info *addr = insertshm(num_pizzas,getpid(),pending);
 
 			int c=num_pizzas;
 			
 			/* Begin loop for pizzas to bake */
 			while(c>0){
-				sem_wait(sem1);
-				if (*bak_info<NBAKERS){
-					(*bak_info)++;
-					sem_post(sem1);
-					int bakerpid = fork();
+				/* pending->sem_res is initialized with the number of bakers 
+				 * it is reduced and throw a baker process	*/
+				//showsem("in baker",pending->sem_res);
+				sem_wait(pending->sem_res);
+				int bakerpid = fork();
 
-					/* ------------------------------------------------------------------
-					 *                                                     BAKER PROCESS
-					 * ------------------------------------------------------------------
-					 */
-					if (bakerpid==0){ /* baker process */
-						int pizzatype=codes[c-1];
-						request.tv_sec = (long)timeofPizza[pizzatype]/1000;
-						request.tv_nsec = (long)timeofPizza[pizzatype]%1000*1000000;
-						int s = nanosleep(&request,&remain);
-						if (s == -1 && errno !=EINTR)
-							fatal("in nanosleep");
+				/* ------------------------------------------------------------------
+				 *                                                     BAKER PROCESS
+				 * ------------------------------------------------------------------
+				 */
+				if (bakerpid==0){ /* baker process */
+					/* Sleeping */
+					request.tv_sec = (long)getPizzaTime[pizzas[c-1]]/1000;
+					request.tv_nsec = (long)getPizzaTime[pizzas[c-1]]%1000*1000000;
+					int s = nanosleep(&request,&remain);
+					if (s == -1 && errno !=EINTR)
+						fatal("in nanosleep");
 
-						sem_wait(sem3);
-						addr->status-=1;
-						sem_post(sem3);
+					/* Reduction of status of order (until 0) 
+					 * pending->sem is the mutex that locks and unlocks the access in the pending list */
+					sem_wait(pending->sem);
+					addr->status-=1;
+					sem_post(pending->sem);
 
-						sem_wait(sem1);
-						(*bak_info)--;
-						sem_post(sem1);
+					/* Baker has finished show increases the pending->sem_res semaphore for the bakers */
+					sem_post(pending->sem_res);
 
-						sem_close(sem1);
-						sem_close(sem2);
-						sem_close(sem3);
-						sem_close(sem4);
+					_exit(0);
+				}//END OF BAKER PROCESS
 
-						exit(0);
-					}//END OF BAKER PROCESS
+				/* i reduce the c before the pizza is ready(addr->status)
+				 * to show that i gave the order to a baker */
+				c--;
+			}//the loop will end when the order process has succesfully given all of its pizzas to bakers
 
-					/* i reduce the c before the pizza is ready(addr->status)
-					 * so that the next baker reads correct pizzatype
-					 * doesn't affect the time of pizza because the actual state
-					 * of the order is in shared memory (addr->status)
-					 */
-					c--;
-				}else
-					sem_post(sem1);
-			}
-			//the loop will end when the order process has succesfully given all of its pizzas to bakers
-			//and now it constantly checks its shared memory for ready status
-			int baked=0;
-			while(!baked){
-				sem_wait(sem3);
-				int check = (addr->status==0)?1:0;
-				sem_post(sem3);
-				if (check){
-					printf("DONE baking\n");
-					baked=1;
-				}
-			}
-			//delete from shared memory shm3 
-			deleteshm(addr,&pending);
+			/* Waiting for the childs(bakers) to finish */
+			while((childpid = wait(NULL)) != -1)
+					continue;
+			if (errno != ECHILD)
+				fatal("in wait");
 
-			/* ==========================================================================
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);	/* unblock TIMER_SIG */
+		
+			/* while blocked, several tverylong intervals may have occured 
+			 * with timer_getoverrun we obtain the number of these occurences
+			 * and send cocacolas to the clients explicitly */
+			int overrun1=timer_getoverrun(tid);				
+			for (i=0;i<overrun1;i++)
+				write(4,"Sorry for the delay you will receive a free cocacola",52);
+			
+			//delete from shared memory shm1 with blocking and unblocking of the signal 
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
+			deleteshm(addr,pending);
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);
+
+			/* Again i catch signals that might have occured while blocked */
+			int overrun2=timer_getoverrun(tid)-overrun1;
+			for (i=0;i<overrun2;i++)
+				write(4,"Sorry for the delay you will receive a free cocacola",52);
+
+		 	/* ==========================================================================
 			 *                                                                 DELIVERY
 			 * ==========================================================================
 			 */
 			
 			/* the type is 0 if near and 1 if far according to the enum in common.h */
-			int type = codes[strlen(buffer)-1];
+			distanceType type = buffer[strlen(buffer)-1]-'0';
 
-			//insert in shared memory shm4
-			addr = insertshm(sockfd,type,0,&ready);//when the type becomes 2 the delivery is done
+			//insert in shared memory shm2
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
+			addr = insertshm(type,0,ready);//when the type becomes 2 the delivery is done
 
 			c = 1;
 			while(c){
-				sem_wait(sem2);
-				if (*deliver_info<NDELIVERY){
-					(*deliver_info)++;
-					sem_post(sem2);
-					int delpid = fork();
+				sem_wait(ready->sem_res);
+				int delpid = fork();
 					
-					/* ==================================================================
-					 *                                                  DELIVERY PROCESS
-					 * ==================================================================
-					 */
-					if (delpid==0){ /*  delivery process */
-						request.tv_sec = (long)timeofClient[type]/1000;
-						request.tv_nsec = (long)timeofClient[type]%1000*1000000;
-						int s = nanosleep(&request,&remain);
-						if (s == -1 && errno !=EINTR)
-							fatal("in nanosleep");
+				/* ==================================================================
+				 *                                                  DELIVERY PROCESS
+				 * ==================================================================
+				 */
+				if (delpid==0){ /*  delivery process */
+					/* Sleeping */
+					request.tv_sec = (long)getDistanceTime[type]/1000;
+					request.tv_nsec = (long)getDistanceTime[type]%1000*1000000;
+					int s = nanosleep(&request,&remain);
+					if (s == -1 && errno !=EINTR)
+						fatal("in nanosleep");
 
-						sem_wait(sem4);
-						addr->status=2;
-						sem_post(sem4);
+					sem_wait(ready->sem);
+					addr->status=2;
+					sem_post(ready->sem);
 						
-						sem_wait(sem2);
-						(*deliver_info)--;
-						sem_post(sem2);
+					sem_post(ready->sem_res);
 
-						sem_close(sem1);
-						sem_close(sem2);
-						sem_close(sem3);
-						sem_close(sem4);
+					_exit(0);							
+				}//END OF DELIVERY PROCESS
 
-						exit(0);							
-					}//END OF DELIVERY PROCESS
+				/* i reduce c before pizza is delivered, to show that i gave the order to
+				 * a delivery boy */
+				c--;
+			}//the loop will end when the order process has succesfully given its pizzas to
+			
+			/* Waiting for the childs(deliveries) to finish */
+			while((childpid = wait(NULL)) != -1)
+					continue;
+			if (errno != ECHILD)
+				fatal("in wait");
+			
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);
+			int overrun3 = timer_getoverrun(tid) - overrun2;
+			for (i=0;i<overrun3;i++)
+				write(4,"Sorry for the delay you will receive a free cocacola",52);
+			
+			//delete from shared memory shm2
+			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
+			deleteshm(addr,ready);
+			sigprocmask(SIG_SETMASK, &prevMask, NULL);
 
-					/* i reduce c before pizza is delivered, to show that i gave the order to
-					 * a delivery boy */
-					c--;
-				}else
-					sem_post(sem2);
-			}
-				
-			//the loop will end when the order process has succesfully given its pizzas to
-			//a delivery and now it constantly checks its shared memory for ready status
-			int done=0;
-			while(!done){
-				sem_wait(sem4);
-				int check = (addr->status==2)?1:0;
-				sem_post(sem4);
-				if(check){
-					printf("DONE delivering\n");
-					done=1;
-				}
-			}
-			//delete from shared memory shm4
-			printf("[DEBUG]-- deleteshm\n");
-			deleteshm(addr,&ready);
-			printf("[DEBUG]-- deleteshm ends\n");
+			int overrun4 = timer_getoverrun(tid) - overrun3;
+			for (i=0;i<overrun4;i++)
+				write(4,"Sorry for the delay you will receive a free cocacola",52);
 
-			sem_close(sem1);
-			sem_close(sem2);
-			sem_close(sem3);
-			sem_close(sem4);
 			write(sockfd,"DONE!",5);
 			close(sockfd);
 
-			exit(0);
+			_exit(0);
 		}//END OF THE ORDER PROCESS
 
 		close(sockfd);
 	}
 }
 
+/* Initialization of unnamed semaphores of the structure list_info 
+ * the resources option is given in case the NBAKERS are not the same as NDELIVERY*/
+int init_sem(list_info *list,unsigned int resources){
+	if(sem_init(list->sem,1,1) == -1)
+		return -1;
+	if(sem_init(list->sem_res,1,resources) == -1)
+		return -1;
+#ifdef _STACKOP_
+	if(sem_init(list->stack_full,1,MAX_ORDERS) == -1)
+		return -1;
+	if(sem_init(list->stack_empty,1,MAX_ORDERS) == -1)
+		return -1;
+	
+	/* zero the list->stack_full semaphore */
+	int i;
+	for (i=0;i<MAX_ORDERS;i++)
+		sem_wait(list->stack_full);
+#endif
+}
 
 /* ======================================================================================
- * 																	       MEMORY QUEUE
- * Functions to manage the queue of free memory space
+ * 																	       MEMORY STACK
+ * Functions to manage the stack of free memory space
  *	
- *		front             rear
- *		 |##| <- |##|  <- |##|
+ *		stack_start              top                stack_end
+ *		    |##|    <-  |##|  <- |##| .................
  * ======================================================================================
  */
-void printq(list_info *list){
-	printf("---Queue of free memory is: ");
-	node *next = list->rear;
+#ifdef _STACKOP_
+void printstack(list_info *list){
+	if (list->sem==pending->sem)printf("---Stack of pending is:TOP--> ");
+	if (list->sem==ready->sem)printf("---Stack of ready is:TOP--> ");
+	node *next = list->top;
 	while(next!=0){
 		printf("%d ",next->data);
 		next = next->next;
-	}
-	printf("\n");
+	}	
+	printf("<--BOTTOM\n");
 }
 
-void insert_front(int s,list_info *list){
+void push(int s,list_info *list){
 	node *new;
-	new = (node *)malloc(sizeof(node));
-	new->data = s;
-	new->next = 0;
-	if (list->front == 0)
-		list->rear=new;
+	sem_wait(list->stack_empty);
+#ifdef _DEBUG_
+	showsem("stack_empty after wait",list->stack_empty);
+#endif
+	if (list->top == 0) // stack is empty
+		new = list->stack_start;
 	else
-		list->front->next=new;
-	list->front=new;	
+		new = list->top + 1;
+	
+	new->data=s;
+	new->next=list->top;
+	list->top=new;
+	sem_post(list->stack_full);
+#ifdef _DEBUG_
+	printstack(list);
+#endif
 }
 
-int remove_rear(list_info *list){
+int pull(list_info *list){
 	int ret;
-	if (list->rear!=0){
-		node *temp=list->rear;
-		list->rear = temp->next;
-		ret=temp->data;
-		free(temp);
-	}else
-		ret=0;
+	sem_wait(list->stack_full);
+	ret=list->top->data;
+	list->top=list->top->next;
+	sem_post(list->stack_empty);
 	return ret;
 } 
 
+#endif
 
 /* ======================================================================================
  *                                                                          ORDERS LIST
@@ -584,11 +571,17 @@ int remove_rear(list_info *list){
  */
 
 void printlist(list_info *list){
-	order_info *next = list->START;
-	printf("---List: ");
+	order_info *next = list->head;
+	if(list->sem==pending->sem)printf("---List of pending: ");
+	if(list->sem==ready->sem)printf("---List of ready: ");
+	int c=0;
 	while (next!=0){
-		printf("%d ",next->client_soc);
+		printf("%d ",next->pid);
 		next=next->next;
+		if (c++>MAX_ORDERS){
+			next=0;
+			printf("-------------error in end of list\n");
+		}
 	}
 	printf("\n");	
 }
@@ -606,33 +599,63 @@ void printlist(list_info *list){
  * 	 	  for ready list the status shows the type of the delivery (far/near)
  * --------------------------------------------------------------------------------------		
  */
-order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list){
+order_info *insertshm(unsigned int status,pid_t pid, list_info *list){
 	/* -------------------------------------------------------------------------
 	 * dynamic choice of free shared memory 
 	 * if a node gets deleted its address is pushed in a queue 
 	 * the next time i write in shared memory i choose first a free address
 	 * from the queue, if null i choose the next segment pointed by the offset
 	 * ------------------------------------------------------------------------*/
-	int place;	
- 	if((place = remove_rear(list))==0)
-		place = (list->offset)++;		
-	
-	order_info *addr = list->START + (place-1)*sizeof(order_info);
+	int place=list->offset;
+	/* The first MAX_ORDERS orders will be placed in continuous positions in shared memory
+	 * after these orders the next orders will take its position by pulling from a stack from 
+	 * free position. The stack of free positions is populated after an order gets deleted.
+	 * 
+	 * eg. for a MAX_ORDERS of 50, the shared memory will have 50 positions for the data of each order
+	 * when one of these first 50 gets deleted, it pushes its relative position into the stack so that 
+	 * the order 50+1 can be saved in the list by pulling its address.
+	 */
+	if(place>MAX_ORDERS){ 
+#ifdef _DEBUG_
+		if(list->sem==pending->sem)debug("Throttled in pending",getpid());
+		if(list->sem==ready->sem)debug("Throttled in ready",getpid());
+#endif
+#ifdef _STACKOP_	
+		place = pull(list);
+	#ifdef _DEBUG_
+		printstack(list);
+	#endif
+#else
+		write(4,"out of free memory",20);
+		_exit(0);
+#endif
+#ifdef _DEBUG_
+		printf("%d displacement: %d\n",getpid(),place);
+#endif
+	}else
+		(list->offset)++;
+#ifdef _DEBUG_	
+	if(list->sem==pending->sem)debug("insertshm in pending",getpid());
+	if(list->sem==ready->sem)debug("insertshm in ready",getpid());
+#endif
 	sem_wait(list->sem);
-	addr->client_soc=sockfd;
-	addr->status=status;
+	order_info *addr = list->START + (place-1);
+
+	addr->status = status;
+	addr->prev = 0;
 	if (pid!=0)addr->pid = pid;
-	sem_post(list->sem);
 	if (list->head==0){//if list is empty
 		list->head=addr;
-		list->end=addr;
 	}else{
-		sem_wait(list->sem);
 		list->end->next=addr;
 		addr->prev=list->end;
-		list->end=addr;
-		sem_post(list->sem);
 	}
+	list->end=addr;
+	list->end->next = 0;
+#ifdef _DEBUG_
+	printlist(list);
+#endif
+	sem_post(list->sem);
 	return addr;
 }
 
@@ -643,36 +666,30 @@ order_info *insertshm(int sockfd,unsigned int status,pid_t pid, list_info *list)
  * --------------------------------------------------------------------------------------
  */
 void deleteshm(order_info *addr,list_info *list){
-	
-	/*  pushes the offset of the node in the queue, to show it is free from now on*/
-	int offset = (addr-list->START)/sizeof(order_info)+1;
-	insert_front(offset,list);
-
+#ifdef _DEBUG_
+	if(list->sem==pending->sem)debug("deleteshm in pending",getpid());
+	if(list->sem==ready->sem)debug("deleteshm in ready",getpid());
+#endif
 	sem_wait(list->sem);
-	if (addr->prev != 0)
+	if (addr->prev != 0)//it is not the head
 		addr->prev->next=addr->next;
+	else{				//it is the head
+		list->head=addr->next;
+		if (list->head==0) //it is also the end
+			list->end=0;
+		else
+			list->head->prev=0;
+	}
 	bzero(addr,sizeof(order_info));
+	
 	sem_post(list->sem);
+	
+#ifdef _STACKOP_
+	/*  pushes the offset of the node in the queue, to show it is free from now on*/
+	//printf("addr: %x , list->START: %x , difference %d\n",addr,list->START,addr-list->START);
+	int offset = addr-list->START+1;
+	push(offset,list);
+#endif
 	return;
 }
 
-/* --------------------------------------------------------------------------------------
- *																			SENDCOLA----
- * this function searches in the pending list for the given pid, it finds the socket of 
- * the client and sends him a message for a coca cola.
- * This is triggered by the signal handler individually by each order
- *
- * --------------------------------------------------------------------------------------
- */
-
-void sendcola(pid_t pid){
-	order_info *next = pending.head;
-	int found = 0;
-	while(!found && next!=NULL){
-		if (next->pid==pid){
-			write(next->client_soc,"Sorry for the delay, you will receive a free coca cola\n",60);
-			found=1;
-		}
-		next=next->next;
-	}
-}

@@ -3,11 +3,11 @@
  *
  *       Filename:  client.c
  *  	  Project:  Operating Systems I - Project 1 - 5th Semester 2012
- *    Description:  Client acc
+ *    Description:  The client is responsible for delivering an order to the server
  *          Usage:  Calling ./client prompts user for input 
  *          		Calling ./client with an argument creates random order
  *
- *        Version:  1.0
+ *        Version:  1.1
  *        Created:  10/30/2012 04:36:15 AM
  *       Revision:  none
  *       Compiler:  gcc
@@ -19,11 +19,6 @@
  * =====================================================================================
 */
 #include "common.h"
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
 int read_order(char *, int );
 
@@ -31,7 +26,7 @@ int main(int argc, char **argv){
 	int sockfd;
 	struct sockaddr_un server_addr;
 	int pid;
-	char buffer[NPIZZAS+1],greeting[50],response[60];
+	char buffer[NPIZZAS+1],greeting[50],response[52];
 	if (argc<=1)printf("Calling Ceid Pizzeria. Terminate call with Ctrl-C.\n");
 
 	sockfd = socket (AF_LOCAL,SOCK_STREAM,0);
@@ -46,11 +41,16 @@ int main(int argc, char **argv){
 	read(sockfd,&greeting,39*sizeof(char));
 	if(argc<=1) printf("%s\n",greeting);
 
+	/* The read_order function will prompt user for input if argc == 1 else will create random order */
 	read_order(buffer,argc);
+
+	/* Send order to server */
 	write(sockfd,buffer,(NPIZZAS+2)*sizeof(char));
+
+	/* Wait for server to send done or coca collas messages */
 	while(1){
-		if (read(sockfd,&response,60)==0)exit(0);
-		printf("Server to Client %d: %s\n",getpid(),response);
+		if (read(sockfd,&response,52)==0)exit(0);
+		printf("Server to Client %d: %s \n",getpid(),response);
 		if (strcmp(response,"DONE!")==0){
 			printf("Client %d closes\n",getpid());
 			exit(0);
@@ -67,10 +67,10 @@ int read_order(char *buffer, int flags){
 		srand((time.tv_sec*1000)+(time.tv_usec/1000));
 		int i;
 		for(i=0;i<(rand()%3)+1;i++)
+		//for(i=0;i<3;i++)
 			buffer[i]='0'+rand()%3;
 		buffer[i++]='0'+rand()%2;
 		buffer[i]='\0';
-		//printf("%s\n",buffer);
 	}else{			/*  if ./client has no arguments prompts the user for input */
 		int done=0;
 		printf("[%d] for margarita\t[%d]near\n[%d] for peperoni\t[%d]far\n[%d] for special\n",margarita,near,peperoni,far,special);

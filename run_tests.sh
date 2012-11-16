@@ -28,22 +28,24 @@ clients(){
 #if argument is not supplied, call usage
 [[ $# -eq 0 ]] && usage
 
-#if one argument is supplied call without options
-[[ $# -eq 1	]] && clients ${@: -1}
+#if one argument is supplied without options
+if [[ $# -eq 1	]]; then
+	clients ${@: -1}
+else
+	output=$(clients ${@: -1});
 
-output=$(clients ${@: -1});
+	while getopts :abv opt; do
+		case $opt in
+			a) 	echo  -n 'Coca colas given: ';
+			   	echo "$output"|grep cola|wc -l ;;
 
-while getopts :abv opt; do
-	case $opt in
-		a) 	echo  -n 'Coca colas given: ';
-		   	echo "$output"|grep cola|wc -l ;;
-
-		b) 	echo  -n 'Clients that got colas: ';
-			echo "$output"|grep cola|uniq -c|wc -l ;;
+			b) 	echo  -n 'Clients that got colas: ';
+				echo "$output"|grep cola|uniq -c|wc -l ;;
 		
-		v) 	echo "$output"|grep cola|uniq -c ;;
+			v) 	echo "$output"|grep cola|uniq -c ;;
 
-	    \?) Invalid option -$OPTARG >&2 ;;
-	esac
-done
+	   		 \?) Invalid option -$OPTARG >&2 ;;
+		esac
+	done
+fi
 

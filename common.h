@@ -1,6 +1,16 @@
 #ifndef __COMMON__
 #define __COMMON__
 
+/* if _STACKOP_ is defined then the stack optimization mechanism is used
+ * and the server can handle more than LISTENQ clients simultaneously!!:)
+ *
+ * if commented out then server handles at max LISTENQ simultaneous orders
+ * with the rest thrown away :(
+ */
+#define _STACKOP_
+/* if _DEBUG_ is defined the output of the server will be veeeeery verbose */
+//#define _DEBUG_
+
 #include <sys/types.h>		/* Type definitions */
 #include <stdio.h> 			/* standard I/O */
 #include <stdlib.h>			/* Prototypes of commonly used library functions */
@@ -15,7 +25,7 @@
 #define UNIX_PATH "/tmp/ser_global.str" /* for UNIX domain socket */
 
 /*Size of request queue*/ 
-/* ------- */#define LISTENQ  200
+/* ------- */#define LISTENQ  500
 
 /* max orders issued for setting the size of shared memory lists*/
 /* ------- */#define MAX_ORDERS LISTENQ

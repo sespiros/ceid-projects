@@ -25,9 +25,6 @@
 
 #include <sys/mman.h>		/* for shared mapping mmap */
 
-#define TIMER_SIG SIGRTMAX 	/* The timer notification signal i used
-						 	 * SIGRTMAX is the max number of realtime signals */
-
 /* ----------------------------------------------------------------------------------------
  * the order information is its status and his process id
  * also the order_info struct is used as an object in a list in shared memory
@@ -66,12 +63,13 @@ typedef struct _order{
  *	of the list, it is placed in unused memory segment that is pulled from the stack. 
  *-------------------------------------------------------------------------------------------
  */
-
+#ifdef _STACKOP_
 /* struct node of memory management stack */
 typedef struct queue{
 	int data;
 	struct queue *next;
 }node;
+#endif
 
 typedef struct _list{
 	order_info *START;
@@ -79,13 +77,15 @@ typedef struct _list{
 	order_info *end;
 	int offset;
 	sem_t *sem,*sem_res;
-	
+
+#ifdef _STACKOP_
 	/* stack management */
 	sem_t *stack_full, *stack_empty;
 	
 	node *top;
 	node *stack_start;
 	node *stack_end;
+#endif
 }list_info;
 
 /* Deletes a order_info node from shared memory
@@ -103,33 +103,37 @@ int init_sem(list_info *,unsigned int);
 list_info *pending;
 list_info *ready;
 
+#ifdef _DEBUG_
 /*  debugging function to show info about a semaphore */
 void showsem(char * message,sem_t *sem){
 	int val;
 	sem_getvalue(sem,&val);
 	printf("%s[SEMAPHORE] - %d - %s%s\n",KYEL,val,message,KNRM);
 }
-
+#endif
 /* ======================================================================================
  *                                                                       SIGNAL HANDLERS
  * ======================================================================================
  */
 /*  Helper function to avoid zombie processes */
 static void sig_chld( int sig) {
-       pid_t pid;
-       int stat;
+    pid_t pid;
+    int stat;
 
-       while ( ( pid = waitpid( -1, &stat, WNOHANG ) ) > 0 ) {
-              //printf( "%s------------Child %d terminated.%s\n",KRED,pid,KNRM );
-        }
+    while ( ( pid = waitpid( -1, &stat, WNOHANG ) ) > 0 ) {
+#ifdef _DEBUG_
+        printf( "%s------------Child %d terminated.%s\n",KRED,pid,KNRM );
+#endif 
+    }
  }
 
-/* Invoked by the timer in each of the order childs */
+/* I declare the sockfd up here because the server closes it everytime after accepting
+ * a connection and as a result all the orders have the same socket number in their 
+ * process space. So the sockfd is the same and i can write with this fixed number */
 int sockfd;
-static void sig_timer(int sig, siginfo_t *si, void *uc){
-	timer_t *tid;
-	tid = si->si_value.sival_ptr;
 
+/* Invoked by the timer in each of the order childs */
+static void sig_timer(int sig){
 	write(sockfd,"Sorry for the delay you will receive a free cocacola",52);	/* async-signal-safe (the use of write) */
 }
 
@@ -169,7 +173,11 @@ int main(int argc, char **argv){
 	/* Definitions of sizes */
 	size_t list_size = MAX_ORDERS * sizeof(order_info);
 	size_t list_info_size = sizeof(list_info);
+#ifdef _STACKOP_
 	size_t stack_size = LISTENQ * sizeof(node);
+#else
+	size_t stack_size = 0;
+#endif
 	size_t sem_size = 4 * sizeof(sem_t);
 	size_t shm_size = list_size + list_info_size + stack_size + sem_size;
 
@@ -180,31 +188,40 @@ int main(int argc, char **argv){
 	/* Initialization of list_info structs for the pending and the ready list */
 	pending = addr + list_size;			/* Where list_info pending exists in shared memory */
 	pending->START = addr;
+#ifdef _STACKOP_
 	pending->stack_start = (void *)pending + list_info_size;
 	pending->stack_end = (void *)pending->stack_start + stack_size;
 	pending->sem = (void *)pending->stack_end;
 	pending->stack_full = pending->sem + 1;
 	pending->stack_empty = pending->stack_full + 1;
 	pending->sem_res = pending->stack_empty + 1;
-
+	pending->top = 0;
+#else
+	pending->sem = (void *)pending + list_info_size;
+	pending->sem_res = pending->sem + 1;
+#endif
 	pending->head = 0;
 	pending->end = 0;
-	pending->top = 0;
 	pending->offset = 1;
 
 	addr += shm_size;
+
 	ready = addr + list_size;			/* Where list_info ready exists in shared memory */
 	ready->START = addr;
+#ifdef _STACKOP_
 	ready->stack_start = (void *)ready + list_info_size;
 	ready->stack_end = (void *)ready->stack_start + stack_size;
 	ready->sem = (void *)ready->stack_end;
 	ready->stack_full = ready->sem + 1;
 	ready->stack_empty = ready->stack_full + 1;
 	ready->sem_res = ready->stack_empty + 1;
-
+	ready->top = 0;
+#else
+	ready->sem = (void *)ready + list_info_size;
+	ready->sem_res = ready->sem + 1;
+#endif
 	ready->head = 0;
 	ready->end = 0;
-	ready->top = 0;
 	ready->offset = 1;
 	
 	/* ==================================================================================
@@ -276,16 +293,16 @@ int main(int argc, char **argv){
 			sigset_t prevMask, blockMask;
 
 			sigemptyset(&blockMask);	/* setting the blockMask to block TIMER_SIG */
-			sigaddset(&blockMask,TIMER_SIG);	
+			sigaddset(&blockMask,SIGALRM);//TIMER_SIG);	
 
 			struct sigaction sig;
-			sig.sa_flags = SA_SIGINFO;	/* to pass info to the handler */
-			sig.sa_sigaction = sig_timer;
+			sig.sa_flags = SA_RESTART;	/* to restart any blocking calls */
+			sig.sa_handler = sig_timer;
 			sigemptyset(&sig.sa_mask);
-			if (sigaction(TIMER_SIG,&sig,NULL) == -1)
+			if (sigaction(SIGALRM,&sig,NULL) == -1)
 				fatal("sigaction child");
 
-			/* Creation of POSIX timer that sends realtime signal TIMER_SIG*/
+			/* Creation of POSIX timer that sends sigalarm*/
 			struct itimerspec ts;							/* settings for the timer */
 			ts.it_value.tv_sec = TVERYLONG/1000;			/* it_value specifies the value the timer will expire */
 			ts.it_value.tv_nsec= TVERYLONG%1000 * 1000000;	
@@ -296,7 +313,7 @@ int main(int argc, char **argv){
 			timer_t tid;						/* timer handle */
 
 			sev.sigev_notify = SIGEV_SIGNAL;	/* Notify via signal */
-			sev.sigev_signo = TIMER_SIG;		/* Notify using TIMER_SIG realtime signal */
+			sev.sigev_signo = SIGALRM;			/* Notify using SIGALRM signal */
 
 			if(timer_create(CLOCK_REALTIME, &sev, &tid) == -1)
 				fatal("in timer_create");
@@ -311,7 +328,7 @@ int main(int argc, char **argv){
 				printf ("Rude client hanged up\n");
 				exit(0);
 			}
-				
+			
 			printf("%s============== Received order %d, the order %s ================%s\n",KGRN,getpid(),buffer,KNRM);
 
 			/* Starts the timer */
@@ -374,32 +391,28 @@ int main(int argc, char **argv){
 				 * to show that i gave the order to a baker */
 				c--;
 			}//the loop will end when the order process has succesfully given all of its pizzas to bakers
-			
+
+			/* Waiting for the childs(bakers) to finish */
+			while((childpid = wait(NULL)) != -1)
+					continue;
+			if (errno != ECHILD)
+				fatal("in wait");
+
 			sigprocmask(SIG_SETMASK, &prevMask, NULL);	/* unblock TIMER_SIG */
 		
-			/* while blocked many TIMER_SIGs may have occured 
-			 * TIMER_SIG is a realtime signal that is queued 
-			 * and with timer_getoverrun we obtain the number of these occurences
-			 * and send cocacolas to the clients */
+			/* while blocked, several tverylong intervals may have occured 
+			 * with timer_getoverrun we obtain the number of these occurences
+			 * and send cocacolas to the clients explicitly */
 			int overrun1=timer_getoverrun(tid);				
 			for (i=0;i<overrun1;i++)
 				write(4,"Sorry for the delay you will receive a free cocacola",52);
 			
-			//and now it constantly checks its shared memory for ready status
-			int baked=0;
-			while(!baked){
-				int check = (addr->status==0)?1:0;
-				if (check){
-					baked=1;
-				}
-			}
-
 			//delete from shared memory shm1 with blocking and unblocking of the signal 
 			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			deleteshm(addr,pending);
 			sigprocmask(SIG_SETMASK, &prevMask, NULL);
 
-			/* Again i catch signals that might occured while blocked */
+			/* Again i catch signals that might have occured while blocked */
 			int overrun2=timer_getoverrun(tid)-overrun1;
 			for (i=0;i<overrun2;i++)
 				write(4,"Sorry for the delay you will receive a free cocacola",52);
@@ -446,21 +459,18 @@ int main(int argc, char **argv){
 				 * a delivery boy */
 				c--;
 			}//the loop will end when the order process has succesfully given its pizzas to
-
+			
+			/* Waiting for the childs(deliveries) to finish */
+			while((childpid = wait(NULL)) != -1)
+					continue;
+			if (errno != ECHILD)
+				fatal("in wait");
+			
 			sigprocmask(SIG_SETMASK, &prevMask, NULL);
 			int overrun3 = timer_getoverrun(tid) - overrun2;
 			for (i=0;i<overrun3;i++)
 				write(4,"Sorry for the delay you will receive a free cocacola",52);
 			
-			//a delivery and now it constantly checks its shared memory for ready status
-			int done=0;
-			while(!done){
-				int check = (addr->status==2)?1:0;
-				if(check){
-					done=1;
-				}
-			}
-
 			//delete from shared memory shm2
 			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			deleteshm(addr,ready);
@@ -485,17 +495,19 @@ int main(int argc, char **argv){
 int init_sem(list_info *list,unsigned int resources){
 	if(sem_init(list->sem,1,1) == -1)
 		return -1;
+	if(sem_init(list->sem_res,1,resources) == -1)
+		return -1;
+#ifdef _STACKOP_
 	if(sem_init(list->stack_full,1,MAX_ORDERS) == -1)
 		return -1;
 	if(sem_init(list->stack_empty,1,MAX_ORDERS) == -1)
 		return -1;
-	if(sem_init(list->sem_res,1,resources) == -1)
-		return -1;
-
+	
 	/* zero the list->stack_full semaphore */
 	int i;
 	for (i=0;i<MAX_ORDERS;i++)
 		sem_wait(list->stack_full);
+#endif
 }
 
 /* ======================================================================================
@@ -506,6 +518,7 @@ int init_sem(list_info *list,unsigned int resources){
  *		    |##|    <-  |##|  <- |##| .................
  * ======================================================================================
  */
+#ifdef _STACKOP_
 void printstack(list_info *list){
 	if (list->sem==pending->sem)printf("---Stack of pending is:TOP--> ");
 	if (list->sem==ready->sem)printf("---Stack of ready is:TOP--> ");
@@ -520,8 +533,9 @@ void printstack(list_info *list){
 void push(int s,list_info *list){
 	node *new;
 	sem_wait(list->stack_empty);
-	//showsem("stack_empty after wait",list->stack_empty);
-
+#ifdef _DEBUG_
+	showsem("stack_empty after wait",list->stack_empty);
+#endif
 	if (list->top == 0) // stack is empty
 		new = list->stack_start;
 	else
@@ -531,8 +545,9 @@ void push(int s,list_info *list){
 	new->next=list->top;
 	list->top=new;
 	sem_post(list->stack_full);
-
-	//printstack(list);
+#ifdef _DEBUG_
+	printstack(list);
+#endif
 }
 
 int pull(list_info *list){
@@ -544,6 +559,7 @@ int pull(list_info *list){
 	return ret;
 } 
 
+#endif
 
 /* ======================================================================================
  *                                                                          ORDERS LIST
@@ -600,19 +616,28 @@ order_info *insertshm(unsigned int status,pid_t pid, list_info *list){
 	 * the order 50+1 can be saved in the list by pulling its address.
 	 */
 	if(place>MAX_ORDERS){ 
-		//write(4,"out of free memory",20);
-	//	if(list->sem==pending->sem)debug("Throttled in pending",getpid());
-	//	if(list->sem==ready->sem)debug("Throttled in ready",getpid());
-	
+#ifdef _DEBUG_
+		if(list->sem==pending->sem)debug("Throttled in pending",getpid());
+		if(list->sem==ready->sem)debug("Throttled in ready",getpid());
+#endif
+#ifdef _STACKOP_	
 		place = pull(list);
-	//	printf("%d displacement: %d\n",getpid(),place);
-	//	printstack(list);
+	#ifdef _DEBUG_
+		printstack(list);
+	#endif
+#else
+		write(4,"out of free memory",20);
+		_exit(0);
+#endif
+#ifdef _DEBUG_
+		printf("%d displacement: %d\n",getpid(),place);
+#endif
 	}else
 		(list->offset)++;
-	
-	//if(list->sem==pending->sem)debug("insertshm in pending",getpid());
-	//if(list->sem==ready->sem)debug("insertshm in ready",getpid());
-	
+#ifdef _DEBUG_	
+	if(list->sem==pending->sem)debug("insertshm in pending",getpid());
+	if(list->sem==ready->sem)debug("insertshm in ready",getpid());
+#endif
 	sem_wait(list->sem);
 	order_info *addr = list->START + (place-1);
 
@@ -627,9 +652,9 @@ order_info *insertshm(unsigned int status,pid_t pid, list_info *list){
 	}
 	list->end=addr;
 	list->end->next = 0;
-	
-	//printlist(list);
-
+#ifdef _DEBUG_
+	printlist(list);
+#endif
 	sem_post(list->sem);
 	return addr;
 }
@@ -641,10 +666,10 @@ order_info *insertshm(unsigned int status,pid_t pid, list_info *list){
  * --------------------------------------------------------------------------------------
  */
 void deleteshm(order_info *addr,list_info *list){
-	
-	//if(list->sem==pending->sem)debug("deleteshm in pending",getpid());
-	//if(list->sem==ready->sem)debug("deleteshm in ready",getpid());
-	
+#ifdef _DEBUG_
+	if(list->sem==pending->sem)debug("deleteshm in pending",getpid());
+	if(list->sem==ready->sem)debug("deleteshm in ready",getpid());
+#endif
 	sem_wait(list->sem);
 	if (addr->prev != 0)//it is not the head
 		addr->prev->next=addr->next;
@@ -659,11 +684,12 @@ void deleteshm(order_info *addr,list_info *list){
 	
 	sem_post(list->sem);
 	
+#ifdef _STACKOP_
 	/*  pushes the offset of the node in the queue, to show it is free from now on*/
 	//printf("addr: %x , list->START: %x , difference %d\n",addr,list->START,addr-list->START);
 	int offset = addr-list->START+1;
 	push(offset,list);
-
+#endif
 	return;
 }
 

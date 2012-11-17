@@ -34,11 +34,11 @@
 /* ------- */#define NPIZZAS   3
 /* ------- */#define NBAKERS   10
 /* ------- */#define NDELIVERY 10
-/* ------- */#define TVERYLONG 5000 				/* in milliseconds */
+/* ------- */#define TVERYLONG 500		/* in milliseconds */
 
 /* definitions of standard times */ 
-/* ------ */int getPizzaTime[]={5000,5000,5000}; 	/* in milliseconds */
-/* ------ */int getDistanceTime[]={5000,1000};		/* in milliseconds */
+/* ------ */int getPizzaTime[]={100,120,150}; 	/* in milliseconds */
+/* ------ */int getDistanceTime[]={50,100};	/* in milliseconds */
 
 /* typedef pizzaType and distanceType for reference */
 typedef enum { margarita, peperoni, special } pizzaType;

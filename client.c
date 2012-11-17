@@ -26,7 +26,7 @@ int main(int argc, char **argv){
 	int sockfd;
 	struct sockaddr_un server_addr;
 	int pid;
-	char buffer[NPIZZAS+1],greeting[50],response[52];
+	char buffer[NPIZZAS+1],greeting[40],response[53];
 	if (argc<=1)printf("Calling Ceid Pizzeria. Terminate call with Ctrl-C.\n");
 
 	sockfd = socket (AF_LOCAL,SOCK_STREAM,0);
@@ -38,24 +38,24 @@ int main(int argc, char **argv){
 	if(connect(sockfd, (struct sockaddr*)&server_addr,sizeof(server_addr))==-1)
 		fatal("in connection to server, maybe server is not up");
 	
-	read(sockfd,&greeting,39*sizeof(char));
+	read(sockfd,&greeting,40);
 	if(argc<=1) printf("%s\n",greeting);
 
 	/* The read_order function will prompt user for input if argc == 1 else will create random order */
 	read_order(buffer,argc);
 
 	/* Send order to server */
-	write(sockfd,buffer,(NPIZZAS+2)*sizeof(char));
+	write(sockfd,buffer,(NPIZZAS+2));
 
 	/* Wait for server to send done or coca collas messages */
 	while(1){
-		if (read(sockfd,&response,52)==0)exit(0);
+		if (read(sockfd,&response,53)==0)exit(0);
 		printf("Server to Client %d: %s \n",getpid(),response);
 		if (strcmp(response,"DONE!")==0){
 			printf("Client %d closes\n",getpid());
 			exit(0);
 		}
-		bzero(&response,60);
+		bzero(&response,53);
 	}
 }
 
@@ -66,8 +66,8 @@ int read_order(char *buffer, int flags){
 		gettimeofday(&time,NULL);
 		srand((time.tv_sec*1000)+(time.tv_usec/1000));
 		int i;
-		//for(i=0;i<(rand()%3)+1;i++)
-		for(i=0;i<3;i++)
+		for(i=0;i<(rand()%3)+1;i++)
+		//for(i=0;i<3;i++)
 			buffer[i]='0'+rand()%3;
 		buffer[i++]='0'+rand()%2;
 		buffer[i]='\0';

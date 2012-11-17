@@ -134,7 +134,7 @@ int sockfd;
 
 /* Invoked by the timer in each of the order childs */
 static void sig_timer(int sig){
-	write(sockfd,"Sorry for the delay you will receive a free cocacola",52);	/* async-signal-safe (the use of write) */
+	write(sockfd,"Sorry for the delay you will receive a free cocacola\0",53);	/* async-signal-safe (the use of write) */
 }
 
 /* ======================================================================================
@@ -322,8 +322,8 @@ int main(int argc, char **argv){
 			struct timespec request,remain;
 
 			/* Server gets order from client */
-			int recv_len = (NPIZZAS+2)*sizeof(char);
-			write(sockfd, "Server: Pizza Ceid, tell me your order!\n",39);
+			int recv_len = (NPIZZAS+2);
+			write(sockfd, "Server: Pizza Ceid, tell me your order!",40);
 			if (read(sockfd,&buffer,recv_len)==0){
 				printf ("Rude client hanged up\n");
 				exit(0);
@@ -359,7 +359,6 @@ int main(int argc, char **argv){
 			while(c>0){
 				/* pending->sem_res is initialized with the number of bakers 
 				 * it is reduced and throw a baker process	*/
-				//showsem("in baker",pending->sem_res);
 				sem_wait(pending->sem_res);
 				int bakerpid = fork();
 
@@ -407,7 +406,7 @@ int main(int argc, char **argv){
 			 * and send cocacolas to the clients explicitly */
 			int overrun1=timer_getoverrun(tid);				
 			for (i=0;i<overrun1;i++)
-				write(4,"Sorry for the delay you will receive a free cocacola",52);
+				write(4,"Sorry for the delay you will receive a free cocacola\0",53);
 			
 			//delete from shared memory shm1 with blocking and unblocking of the signal 
 			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
@@ -417,7 +416,7 @@ int main(int argc, char **argv){
 			/* Again i catch signals that might have occured while blocked */
 			int overrun2=timer_getoverrun(tid)-overrun1;
 			for (i=0;i<overrun2;i++)
-				write(4,"Sorry for the delay you will receive a free cocacola",52);
+				write(4,"Sorry for the delay you will receive a free cocacola\0",53);
 
 		 	/* ==========================================================================
 			 *                                                                 DELIVERY
@@ -471,7 +470,7 @@ int main(int argc, char **argv){
 			sigprocmask(SIG_SETMASK, &prevMask, NULL);
 			int overrun3 = timer_getoverrun(tid) - overrun2;
 			for (i=0;i<overrun3;i++)
-				write(4,"Sorry for the delay you will receive a free cocacola",52);
+				write(4,"Sorry for the delay you will receive a free cocacola\0",53);
 			
 			//delete from shared memory shm2
 			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
@@ -480,9 +479,9 @@ int main(int argc, char **argv){
 
 			int overrun4 = timer_getoverrun(tid) - overrun3;
 			for (i=0;i<overrun4;i++)
-				write(4,"Sorry for the delay you will receive a free cocacola",52);
+				write(4,"Sorry for the delay you will receive a free cocacola\0",53);
 
-			write(sockfd,"DONE!",5);
+			write(sockfd,"DONE!\0",6);
 			close(sockfd);
 
 			_exit(0);
@@ -513,7 +512,7 @@ int init_sem(list_info *list,unsigned int resources){
 }
 
 /* ======================================================================================
- * 																	       MEMORY STACK
+ * 									MEMORY STACK
  * Functions to manage the stack of free memory space
  *	
  *		stack_start              top                stack_end

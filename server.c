@@ -5,7 +5,7 @@
  *		  Project:  Operating Systems I - Project 1 - 5th Semester 2012
  *    Description:  Accepts orders.
  *
- *        Version:  4.2
+ *        Version:  1.2
  *        Created:  10/30/2012 02:14:20 AM
  *       Revision:  none
  *       Compiler:  gcc
@@ -286,12 +286,12 @@ int main(int argc, char **argv){
 		/* ------------------------------------------------------------------------------
 		 *                                                                CHILD PROCESS
 		 * -----------------------------------------------------------------------------*/
-		if(childpid==0){ /* child process */
-			close(listenfd);			/* no reason to continue listening for orders */
+		if(childpid==0){ 		/* child process */
+			close(listenfd);	/* no reason to continue listening for orders */
 			
 			/* sigalarm handler */
 			struct sigaction sig;
-			sig.sa_flags = SA_RESTART;	/* to restart any blocking calls */
+			sig.sa_flags = SA_RESTART;		/* to restart any blocking calls */
 			sig.sa_handler = sig_timer;
 			sigemptyset(&sig.sa_mask);
 			if (sigaction(SIGALRM,&sig,NULL) == -1)
@@ -319,7 +319,7 @@ int main(int argc, char **argv){
 			/* Server gets order from client */
 			int recv_len = (NPIZZAS+2);
 			write(sockfd, "Server: Pizza Ceid, tell me your order!",40);
-			if (read(sockfd,&buffer,recv_len)==0){
+			if (read(sockfd,&buffer,recv_len)==0){		/* If clients disconnects before sends order */
 				printf ("Rude client hanged up\n");
 				exit(0);
 			}
@@ -350,43 +350,42 @@ int main(int argc, char **argv){
 			int c=num_pizzas;
 			
 			/* Begin loop for pizzas to bake */
-			while(c>0){
+			for (c=0;c<num_pizzas;c++){
 				/* pending->sem_res is initialized with the number of bakers 
 				 * it is reduced and throw a baker process	(bug #16 fixed)*/
 				sem_wait(pending->sem_res);
-				int bakerpid = fork();
-
-				/* ------------------------------------------------------------------
-				 *                                                     BAKER PROCESS
-				 * ------------------------------------------------------------------
+				/* ----------------------------------------------------------------------
+				 *                                                       BAKER PROCESS
+				 * ----------------------------------------------------------------------
 				 */
-				if (bakerpid==0){ /* baker process */
-					/* Sleeping */
-					request.tv_sec = (long)getPizzaTime[pizzas[c-1]]/1000;
-					request.tv_nsec = (long)getPizzaTime[pizzas[c-1]]%1000*1000000;
-					int s = nanosleep(&request,&remain);
-					if (s == -1 && errno !=EINTR)
-						fatal("in nanosleep");
+				switch(fork()) {
+					case -1:
+						fatal ("in fork");
+					case 0: 	/* Baker process */
+						/* Sleeping */
+						request.tv_sec = getPizzaTime[pizzas[c]]/1000L;
+						request.tv_nsec = getPizzaTime[pizzas[c]]%1000*1000000L;
+						int s = nanosleep(&request,&remain);
+						if (s == -1 && errno !=EINTR)
+							fatal("in nanosleep");
 
-					/* Reduction of status of order (until 0) 
-					 * pending->sem is the mutex that locks and unlocks the access in the pending list */
-					sem_wait(pending->sem);
-					addr->status-=1;
-					sem_post(pending->sem);
+						/* Reduction of status of order (until 0) 
+						 * pending->sem is the mutex that locks and unlocks the access in the pending list */
+						sem_wait(pending->sem);
+						addr->status-=1;
+						sem_post(pending->sem);
 
-					/* Baker has finished show increases the pending->sem_res semaphore for the bakers */
-					sem_post(pending->sem_res);
-#ifdef _DEBUG_
-					int sval;
-					sem_getvalue(pending->sem_res,&sval);
-					printf("sval: %d\n",sval);
+						/* Baker has finished show increases the pending->sem_res semaphore for the bakers */
+						sem_post(pending->sem_res);
+#ifdef _DEBUG_	
+						int sval;
+						sem_getvalue(pending->sem_res,&sval);
+						printf("sval: %d\n",sval);
 #endif
-					_exit(0);
-				}//END OF BAKER PROCESS
-
-				/* i reduce the c before the pizza is ready(addr->status)
-				 * to show that i gave the order to a baker */
-				c--;
+						_exit(0);	//END OF BAKER PROCESS
+					default:
+						break;
+				}
 			}//the loop will end when the order process has succesfully given all of its pizzas to bakers
 
 			/* Waiting for the childs(bakers) to finish */
@@ -409,37 +408,33 @@ int main(int argc, char **argv){
 			//insert in shared memory shm2
 			addr = insertshm(type,0,ready);//when the type becomes 2 the delivery is done
 
-			c = 1;
-			while(c){
-				sem_wait(ready->sem_res);
-				int delpid = fork();
-					
-				/* ==================================================================
-				 *                                                  DELIVERY PROCESS
-				 * ==================================================================
-				 */
-				if (delpid==0){ /*  delivery process */
+			sem_wait(ready->sem_res);
+			/* --------------------------------------------------------------------------
+			 *                                                		  DELIVERY PROCESS
+			 * --------------------------------------------------------------------------
+			 */
+			switch(fork()) {
+				case -1:
+					fatal("in delivery fork");
+				case 0: /*  delivery process */
 					/* Sleeping */
 					request.tv_sec = (long)getDistanceTime[type]/1000;
 					request.tv_nsec = (long)getDistanceTime[type]%1000*1000000;
 					int s = nanosleep(&request,&remain);
 					if (s == -1 && errno !=EINTR)
-						fatal("in nanosleep");
+					fatal("in nanosleep");
 
 					sem_wait(ready->sem);
 					addr->status=2;
 					sem_post(ready->sem);
-						
+					
 					sem_post(ready->sem_res);
 
-					_exit(0);							
-				}//END OF DELIVERY PROCESS
+					_exit(0);	//END OF DELIVERY PROCESS						
+				default:
+					break;
+			}
 
-				/* i reduce c before pizza is delivered, to show that i gave the order to
-				 * a delivery boy */
-				c--;
-			}//the loop will end when the order process has succesfully given its pizzas to
-			
 			/* Waiting for the childs(deliveries) to finish */
 			while((childpid = wait(NULL)) != -1)
 					continue;
@@ -613,7 +608,7 @@ order_info *insertshm(unsigned int status,pid_t pid, list_info *list){
 	addr->status = status;
 	addr->prev = 0;
 	if (pid!=0)addr->pid = pid;
-	if (list->head==0){//if list is empty
+	if (list->head==0){		/* if list is empty */
 		list->head=addr;
 	}else{
 		list->end->next=addr;
@@ -640,11 +635,11 @@ void deleteshm(order_info *addr,list_info *list){
 	if(list->sem==ready->sem)debug("deleteshm in ready",getpid());
 #endif
 	sem_wait(list->sem);
-	if (addr->prev != 0)//it is not the head
+	if (addr->prev != 0)	/* it is not the head */
 		addr->prev->next=addr->next;
-	else{				//it is the head
+	else{					/* it is the head */
 		list->head=addr->next;
-		if (list->head==0) //it is also the end
+		if (list->head==0) 	/* it is also the end */
 			list->end=0;
 		else
 			list->head->prev=0;
@@ -654,8 +649,8 @@ void deleteshm(order_info *addr,list_info *list){
 	sem_post(list->sem);
 	
 #ifdef _STACKOP_
-	/*  pushes the offset of the node in the queue, to show it is free from now on*/
-	//printf("addr: %x , list->START: %x , difference %d\n",addr,list->START,addr-list->START);
+	/*  pushes the offset of the node in the queue, to show it is free from now on */
+	/*	printf("addr: %x , list->START: %x , difference %d\n",addr,list->START,addr-list->START); */
 	int offset = addr-list->START+1;
 	push(offset,list);
 #endif

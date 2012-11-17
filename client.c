@@ -7,7 +7,7 @@
  *          Usage:  Calling ./client prompts user for input 
  *          		Calling ./client with an argument creates random order
  *
- *        Version:  1.1
+ *        Version:  1.2
  *        Created:  10/30/2012 04:36:15 AM
  *       Revision:  none
  *       Compiler:  gcc

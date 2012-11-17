@@ -24,28 +24,41 @@
 
 #define UNIX_PATH "/tmp/ser_global.str" /* for UNIX domain socket */
 
-/*Size of request queue*/ 
-/* ------- */#define LISTENQ  50
+#ifndef _DEBUG_
+	/*Size of request queue*/ 
+	#define LISTENQ  50
 
-/* max orders issued for setting the size of shared memory lists*/
-/* ------- */#define MAX_ORDERS LISTENQ
+	/* max orders issued for setting the size of shared memory lists*/
+	#define MAX_ORDERS LISTENQ
 
-/* Global constants */ 
-/* ------- */#define NPIZZAS   3
-/* ------- */#define NBAKERS   10
-/* ------- */#define NDELIVERY 10
-/* ------- */#define TVERYLONG 500		/* in milliseconds */
+	/* Global constants */ 
+	#define NPIZZAS   3
+	#define NBAKERS   10
+	#define NDELIVERY 10
+	#define TVERYLONG 500					/* in milliseconds */
+	
+	/* definitions of standard times */ 
+	int getPizzaTime[]={100,120,150}; 		/* in milliseconds */
+	int getDistanceTime[]={50,100};			/* in milliseconds */
 
-/* definitions of standard times */ 
-/* ------ */int getPizzaTime[]={100,120,150}; 	/* in milliseconds */
-/* ------ */int getDistanceTime[]={50,100};	/* in milliseconds */
+#else /* debug values */
+
+	#define LISTENQ  5
+
+	#define MAX_ORDERS LISTENQ
+
+	#define NPIZZAS   3
+	#define NBAKERS   10
+	#define NDELIVERY 10
+	#define TVERYLONG 3000					/* in milliseconds */
+
+	int getPizzaTime[]={2000,2000,2000}; 	/* in milliseconds */
+	int getDistanceTime[]={50,100};			/* in milliseconds */
+#endif
 
 /* typedef pizzaType and distanceType for reference */
 typedef enum { margarita, peperoni, special } pizzaType;
 typedef enum { near, far } distanceType;
-
-
-
 
 /* Some color codes for eye-friendly printing */
 #define KNRM  "\x1B[0m"

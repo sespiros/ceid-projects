@@ -159,7 +159,7 @@ int main(int argc, char **argv){
 
 	/* sigchld handler to avoid zombie process generation*/
 	struct sigaction sa,sa2;
-	sa.sa_flags= SA_RESTART;
+	sa.sa_flags= SA_RESTART;	/* useful because of bug #16 when baker interrupts sem_wait of its parent */
 	sa.sa_handler=sig_chld;
 	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGCHLD,&sa,NULL) == -1)
@@ -290,11 +290,6 @@ int main(int argc, char **argv){
 			close(listenfd);			/* no reason to continue listening for orders */
 			
 			/* sigalarm handler */
-			sigset_t prevMask, blockMask;
-
-			sigemptyset(&blockMask);	/* setting the blockMask to block SIGALRM */
-			sigaddset(&blockMask,SIGALRM);	
-
 			struct sigaction sig;
 			sig.sa_flags = SA_RESTART;	/* to restart any blocking calls */
 			sig.sa_handler = sig_timer;
@@ -350,7 +345,6 @@ int main(int argc, char **argv){
 			int num_pizzas=strlen(buffer)-1;
 
 			/* Insert the order in the shared memory shm3 for pending deliveries */
-			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);	/* block the TIMER_SIG */
 			order_info *addr = insertshm(num_pizzas,getpid(),pending);
 
 			int c=num_pizzas;
@@ -358,9 +352,8 @@ int main(int argc, char **argv){
 			/* Begin loop for pizzas to bake */
 			while(c>0){
 				/* pending->sem_res is initialized with the number of bakers 
-				 * it is reduced and throw a baker process	*/
-				if (sem_wait(pending->sem_res)==-1)
-					perror("in pending sem_wait");
+				 * it is reduced and throw a baker process	(bug #16 fixed)*/
+				sem_wait(pending->sem_res);
 				int bakerpid = fork();
 
 				/* ------------------------------------------------------------------
@@ -402,24 +395,8 @@ int main(int argc, char **argv){
 			if (errno != ECHILD)
 				fatal("in wait");
 
-			sigprocmask(SIG_SETMASK, &prevMask, NULL);	/* unblock TIMER_SIG */
-
-			/* while blocked, several tverylong intervals may have occured 
-			 * with timer_getoverrun we obtain the number of these occurences
-			 * and send cocacolas to the clients explicitly */
-			int overrun1=timer_getoverrun(tid);				
-			for (i=0;i<overrun1;i++)
-				write(4,"Sorry for the delay you will receive a free cocacola\0",53);
-			
 			//delete from shared memory shm1 with blocking and unblocking of the signal 
-			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			deleteshm(addr,pending);
-			sigprocmask(SIG_SETMASK, &prevMask, NULL);
-
-			/* Again i catch signals that might have occured while blocked */
-			int overrun2=timer_getoverrun(tid)-overrun1;
-			for (i=0;i<overrun2;i++)
-				write(4,"Sorry for the delay you will receive a free cocacola\0",53);
 
 		 	/* ==========================================================================
 			 *                                                                 DELIVERY
@@ -430,7 +407,6 @@ int main(int argc, char **argv){
 			distanceType type = buffer[strlen(buffer)-1]-'0';
 
 			//insert in shared memory shm2
-			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			addr = insertshm(type,0,ready);//when the type becomes 2 the delivery is done
 
 			c = 1;
@@ -470,19 +446,8 @@ int main(int argc, char **argv){
 			if (errno != ECHILD)
 				fatal("in wait");
 			
-			sigprocmask(SIG_SETMASK, &prevMask, NULL);
-			int overrun3 = timer_getoverrun(tid) - overrun2;
-			for (i=0;i<overrun3;i++)
-				write(4,"Sorry for the delay you will receive a free cocacola\0",53);
-			
 			//delete from shared memory shm2
-			sigprocmask(SIG_BLOCK,&blockMask,&prevMask);
 			deleteshm(addr,ready);
-			sigprocmask(SIG_SETMASK, &prevMask, NULL);
-
-			int overrun4 = timer_getoverrun(tid) - overrun3;
-			for (i=0;i<overrun4;i++)
-				write(4,"Sorry for the delay you will receive a free cocacola\0",53);
 
 			write(sockfd,"DONE!\0",6);
 			close(sockfd);

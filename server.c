@@ -159,7 +159,7 @@ int main(int argc, char **argv){
 
 	/* sigchld handler to avoid zombie process generation*/
 	struct sigaction sa,sa2;
-	sa.sa_flags=0;
+	sa.sa_flags= SA_RESTART;
 	sa.sa_handler=sig_chld;
 	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGCHLD,&sa,NULL) == -1)
@@ -168,7 +168,7 @@ int main(int argc, char **argv){
 	/* ==================================================================================
 	 *                                                               SHARED MEMORY SETUP
 	 * ==================================================================================
-	 * /
+	 */
 	
 	/* Definitions of sizes */
 	size_t list_size = MAX_ORDERS * sizeof(order_info);
@@ -359,7 +359,8 @@ int main(int argc, char **argv){
 			while(c>0){
 				/* pending->sem_res is initialized with the number of bakers 
 				 * it is reduced and throw a baker process	*/
-				sem_wait(pending->sem_res);
+				if (sem_wait(pending->sem_res)==-1)
+					perror("in pending sem_wait");
 				int bakerpid = fork();
 
 				/* ------------------------------------------------------------------
@@ -382,7 +383,11 @@ int main(int argc, char **argv){
 
 					/* Baker has finished show increases the pending->sem_res semaphore for the bakers */
 					sem_post(pending->sem_res);
-
+#ifdef _DEBUG_
+					int sval;
+					sem_getvalue(pending->sem_res,&sval);
+					printf("sval: %d\n",sval);
+#endif
 					_exit(0);
 				}//END OF BAKER PROCESS
 
@@ -399,8 +404,6 @@ int main(int argc, char **argv){
 
 			sigprocmask(SIG_SETMASK, &prevMask, NULL);	/* unblock TIMER_SIG */
 
-			printf("Ended baking\n");
-		
 			/* while blocked, several tverylong intervals may have occured 
 			 * with timer_getoverrun we obtain the number of these occurences
 			 * and send cocacolas to the clients explicitly */

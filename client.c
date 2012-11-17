@@ -67,7 +67,7 @@ int read_order(char *buffer, int flags){
 		srand((time.tv_sec*1000)+(time.tv_usec/1000));
 		int i;
 		for(i=0;i<(rand()%3)+1;i++)
-		//for(i=0;i<3;i++)
+		//for(i=0;i<2;i++)
 			buffer[i]='0'+rand()%3;
 		buffer[i++]='0'+rand()%2;
 		buffer[i]='\0';

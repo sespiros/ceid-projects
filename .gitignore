@@ -1,6 +1,4 @@
-client
 client.o
-server
 server.o
 Session.vim
 b.gdb

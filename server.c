@@ -292,8 +292,8 @@ int main(int argc, char **argv){
 			/* sigalarm handler */
 			sigset_t prevMask, blockMask;
 
-			sigemptyset(&blockMask);	/* setting the blockMask to block TIMER_SIG */
-			sigaddset(&blockMask,SIGALRM);//TIMER_SIG);	
+			sigemptyset(&blockMask);	/* setting the blockMask to block SIGALRM */
+			sigaddset(&blockMask,SIGALRM);	
 
 			struct sigaction sig;
 			sig.sa_flags = SA_RESTART;	/* to restart any blocking calls */
@@ -399,6 +399,8 @@ int main(int argc, char **argv){
 				fatal("in wait");
 
 			sigprocmask(SIG_SETMASK, &prevMask, NULL);	/* unblock TIMER_SIG */
+
+			printf("Ended baking\n");
 		
 			/* while blocked, several tverylong intervals may have occured 
 			 * with timer_getoverrun we obtain the number of these occurences

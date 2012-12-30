@@ -2,7 +2,7 @@
  * =====================================================================================
  *
  *       Filename:  client.c
- *  	  Project:  Operating Systems I - Project 1 - 5th Semester 2012
+ *  	  Project:  Operating Systems I - Project 2 - 5th Semester 2012
  *    Description:  The client is responsible for delivering an order to the server
  *          Usage:  Calling ./client prompts user for input 
  *          		Calling ./client with an argument creates random order

@@ -1,15 +1,8 @@
 #ifndef __COMMON__
 #define __COMMON__
 
-/* if _STACKOP_ is defined then the stack optimization mechanism is used
- * and the server can handle more than LISTENQ clients simultaneously!!:)
- *
- * if commented out then server handles at max LISTENQ simultaneous orders
- * with the rest thrown away :(
- */
-#define _STACKOP_
 /* if _DEBUG_ is defined the output of the server will be veeeeery verbose */
-//#define _DEBUG_
+/* #define _DEBUG_ */
 
 #include <sys/types.h>		/* Type definitions */
 #include <stdio.h> 			/* standard I/O */
@@ -24,37 +17,21 @@
 
 #define UNIX_PATH "/tmp/ser_global.str" /* for UNIX domain socket */
 
-#ifndef _DEBUG_
-	/*Size of request queue*/ 
-	#define LISTENQ  50
+/*Size of request queue*/ 
+#define LISTENQ  50
 
-	/* max orders issued for setting the size of shared memory lists*/
-	#define MAX_ORDERS LISTENQ
+/* max orders issued for setting the size of shared memory lists*/
+#define MAX_ORDERS LISTENQ
 
-	/* Global constants */ 
-	#define NPIZZAS   3
-	#define NBAKERS   10
-	#define NDELIVERY 10
-	#define TVERYLONG 500					/* in milliseconds */
+/* Global constants */ 
+#define NPIZZAS   3
+#define NBAKERS   10
+#define NDELIVERY 10
+#define TVERYLONG 20L					/* in seconds */
 	
-	/* definitions of standard times */ 
-	int getPizzaTime[]={100,120,150}; 		/* in milliseconds */
-	int getDistanceTime[]={50,100};			/* in milliseconds */
-
-#else /* debug values */
-
-	#define LISTENQ  5
-
-	#define MAX_ORDERS LISTENQ
-
-	#define NPIZZAS   3
-	#define NBAKERS   10
-	#define NDELIVERY 10
-	#define TVERYLONG 3000					/* in milliseconds */
-
-	int getPizzaTime[]={2000,2000,2000}; 	/* in milliseconds */
-	int getDistanceTime[]={50,100};			/* in milliseconds */
-#endif
+/* definitions of standard times */ 
+long int getPizzaTime[]={1L,2L,3L}; 		/* in seconds */
+long int getDistanceTime[]={3L,5L};			/* in seconds */
 
 /* typedef pizzaType and distanceType for reference */
 typedef enum { margarita, peperoni, special } pizzaType;
@@ -81,8 +58,8 @@ void fatal(char * message){
 }
 
 /* Simple function to print debug messages */
-void debug(char * message,pid_t pid){
-	printf("%s[DEBUG] - %d - %s%s\n",KMAG,pid,message,KNRM);
+void debug(char * message){
+	printf("%s[DEBUG] - %s%s\n",KMAG,message,KNRM);
 }
 
 #endif

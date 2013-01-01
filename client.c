@@ -60,19 +60,19 @@ int main(int argc, char **argv){
 }
 
 int read_order(char *buffer, int flags){
+	int i;
+
 	if (flags>1){	/* if ./client has arguments creates random order */
 		/* initialize random number generation with a finer time seed */
 		struct timeval time;
 		gettimeofday(&time,NULL);
 		srand((time.tv_sec*1000)+(time.tv_usec/1000));
-		int i;
-#ifdef _DEBUG_
 		for(i=0;i<2;i++)
-#else
-		for(i=0;i<(rand()%3)+1;i++)
-#endif
-			buffer[i]='0'+rand()%3;
-		buffer[i++]='0'+rand()%2;
+			buffer[i]='1';
+		buffer[i++]='0';
+		/* for(i=0;i<(rand()%3)+1;i++) 
+			buffer[i]='0'+rand()%3; 
+		buffer[i++]='0'+rand()%2;*/
 		buffer[i]='\0';
 	}else{			/*  if ./client has no arguments prompts the user for input */
 		int done=0;

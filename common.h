@@ -18,7 +18,8 @@
 #define UNIX_PATH "/tmp/ser_global.str" /* for UNIX domain socket */
 
 /*Size of request queue*/ 
-#define LISTENQ  50
+#define LISTENQ  10
+/* didnt work with small listenq and 4 and 10 orders ERROR CHECK IT */
 
 /* max orders issued for setting the size of shared memory lists*/
 #define MAX_ORDERS LISTENQ
@@ -30,7 +31,7 @@
 #define TVERYLONG 20L					/* in seconds */
 	
 /* definitions of standard times */ 
-long int getPizzaTime[]={1L,2L,3L}; 		/* in seconds */
+long int getPizzaTime[]={1L,5L,3L}; 		/* in seconds */
 long int getDistanceTime[]={3L,5L};			/* in seconds */
 
 /* typedef pizzaType and distanceType for reference */

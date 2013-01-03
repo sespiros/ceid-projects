@@ -19,6 +19,7 @@
 #include "common.h"
 #include <pthread.h>
 #include <time.h>
+#include <signal.h>
 
 typedef struct _order {
 	int				at;
@@ -49,6 +50,8 @@ int _init_proc_(int);
 
 /* Deletes a order_info node from the given list */
 void delete(order_info*);
+
+order_info * insert (int );
 
 void printlist(void);
 
@@ -92,6 +95,28 @@ pthread_cond_t free_deliveries;
  * ======================================================================================
  */
 
+static void sigInt(int sig){
+	
+	int next = list.head;
+
+	while(next!=-1){
+		pthread_join(list.order[next].thread, NULL);
+		next = list.order[next].next;
+	}
+
+
+	pthread_mutex_destroy(&list.lock);
+	pthread_mutex_destroy(&opt.lock);
+	pthread_mutex_destroy(&opt.stack_full);
+
+	pthread_cond_destroy(&list.cond);
+	pthread_cond_destroy(&opt.full);
+	pthread_cond_destroy(&free_bakers);
+	pthread_cond_destroy(&free_deliveries);
+
+	pthread_exit(NULL);
+}
+
 int main(int argc, char **argv){
 
 	/*===================================================================================
@@ -122,7 +147,7 @@ int main(int argc, char **argv){
 
 	list.head = -1;
 	list.tail = -1;
-	list.offset = -1;
+	list.offset = 0;
 	pthread_mutex_init(&list.lock, NULL);
    	pthread_cond_init(&list.cond, NULL);
 
@@ -136,6 +161,11 @@ int main(int argc, char **argv){
 
 	num_bakers = NBAKERS;
 	num_deliveries = NDELIVERY;
+
+	/* sigint only works if the main thread is stuck in accept(no order threads) 
+	 * if other threads are active sigint may be lost, pthread_sigmask is a possible workaround */
+	if (signal(SIGINT, sigInt) == SIG_ERR)
+		fatal("in Ctrl-C");
 	
 	/*-----------------------------------------------------------------------------------
 	 * begin listening to socket a.k.a begin taking orders from clients 
@@ -164,7 +194,6 @@ int main(int argc, char **argv){
 		if (!_init_proc(sockfd))
 			fatal("in initializing client thread");
 
-		
 	}
 
 }
@@ -174,9 +203,7 @@ void *order_handler(void * arg){
 	int i, recv_len, num_pizzas, c;
 	pthread_attr_t attr;
 	pthread_t bakers[NPIZZAS], delivery, delay;
-
-	/* addr is the address of the struct for the specific order */
-	order_info *order = (order_info *)arg;
+	order_info *order;
 
 	/* ------------------------------------------------------------
 	 * holds the client order information in the following way
@@ -188,6 +215,9 @@ void *order_handler(void * arg){
 	 * ------------------------------------------------------------
 	 */
 	char buffer[NPIZZAS+1];
+	
+	int socket = *(int *)arg;
+	free(arg);
 
 	/* ----------------------------------------------------------------------
 	 *                                                       RECEIVE ORDER
@@ -195,8 +225,8 @@ void *order_handler(void * arg){
 	 */
 
 	recv_len = NPIZZAS+2;
-	write(order->socket, "Server: Pizza Ceid, tell me your order!",40);
-	if (read(order->socket,&buffer,recv_len)==0){	 	/* If clients disconnects before sends order */
+	write(socket, "Server: Pizza Ceid, tell me your order!",40);
+	if (read(socket,&buffer,recv_len)==0){	 	/* If clients disconnects before sends order */
 		printf ("Rude client hanged up\n");
 		exit(0);
 	}
@@ -204,10 +234,13 @@ void *order_handler(void * arg){
 	printf("%s============== Received order %d, the order %s ================%s\n",KGRN,getpid(),buffer,KNRM);
 
 	/* DELAYED THREAD */
-	/*  pthread_create(&delay, NULL, delayed_thread, order); */
+	pthread_create(&delay, NULL, delayed_thread, &socket); 
+	pthread_detach(delay);
 
+	/* The order thread does all the initialization instantly and in insert waits for free space in the list (MAX_ORDERS) */
+	order = insert(socket); 
+	
 	/* converts the buffer to int codes */
-  
 	for(i = 0;i<=strlen(buffer)-1;i++){
 		order->pizzas[i] = buffer[i]-'0';
 	}
@@ -217,19 +250,20 @@ void *order_handler(void * arg){
 
 	order->type = buffer[strlen(buffer)-1]-'0'; 
 
-
 	/* BAKER THREAD */	
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
 
 	for (c = num_pizzas-1; c >= 0; c--){
 		
 		pthread_mutex_lock(&free_bakers_lock);
 		
+		/* waiting for condition variables with 'while' instead of 'if' is encouraged due to spurious wakeups */
 		while(num_bakers<=0){
-			debug("Waiting for baker");
+			/*debug("Waiting for baker");*/
 			pthread_cond_wait(&free_bakers,&free_bakers_lock);
-			debug("Woke up");
+			/* debug("Woke up");*/
 		}
 
 		pthread_mutex_unlock(&free_bakers_lock);
@@ -254,6 +288,7 @@ void *order_handler(void * arg){
 
 	pthread_mutex_lock(&free_deliveries_lock);
 		
+	/* waiting for condition variables with 'while' instead of 'if' is encouraged due to spurious wakeups */
 	while(num_deliveries<=0){
 		pthread_cond_wait(&free_deliveries,&free_deliveries_lock);
 	}
@@ -270,29 +305,37 @@ void *order_handler(void * arg){
 
 	pthread_join(delivery, NULL);
 
-	debug("Finished delivering");
+	debug("Finished delivering"); 
 	
-	/* HERE I MUST KILL delay */
+	/*  HERE I MUST KILL delay */
+	pthread_cancel(delay);
 
 	delete(order);
 	
 	write(order->socket,"DONE!\0",6);
 	close(order->socket);
 
-	pthread_exit(NULL);
+	pthread_exit(NULL); 
 }
 
 void *delayed_thread(void *arg){
 	static struct timespec time_to_wait = {0,0};
-	order_info *order = (order_info* ) arg;
+	/*order_info *order = (order_info* ) arg;*/
+	int socket = *(int*)arg;
+
+	int j;
 
 	time_to_wait.tv_sec = time(NULL) + TVERYLONG;
 
-	pthread_mutex_lock(&order->lock);
-	pthread_cond_timedwait(&order->cond, &order->lock, &time_to_wait);	
-	pthread_mutex_unlock(&order->lock);
+	for(j=0;;j++){
+		/*  debug("Setting delay");
+		pthread_mutex_lock(&order->lock);
+		pthread_cond_timedwait(&order->cond, &order->lock, &time_to_wait);	
+		pthread_mutex_unlock(&order->lock);*/
+		sleep(TVERYLONG);
 
-
+		write(socket,"Sorry for the delay you will receive a free cocacola\0",53);	
+	}
 }
 
 void *baker_thread(void *arg){
@@ -300,7 +343,7 @@ void *baker_thread(void *arg){
 	order_info *order = (order_info* ) arg;
 	int type = order->pizzas[order->status];
 
-	time_to_wait.tv_sec = time(NULL) + getPizzaTime[type];
+	time_to_wait.tv_sec = time(NULL) + getPizzaTime[type]; 
 	pthread_mutex_lock(&order->lock);
 	pthread_cond_timedwait(&order->cond, &order->lock, &time_to_wait);	
 	pthread_mutex_unlock(&order->lock);
@@ -313,7 +356,7 @@ void *baker_thread(void *arg){
 	
 	pthread_cond_signal(&free_bakers);
 	
-	pthread_exit(NULL);
+	/* pthread_exit(NULL); */
 }
 
 void *delivery_thread(void *arg){
@@ -336,7 +379,7 @@ void *delivery_thread(void *arg){
 	
 	pthread_cond_signal(&free_deliveries);
 	
-	pthread_exit(NULL);
+	/*  pthread_exit(NULL); */
 
 }
 
@@ -354,7 +397,7 @@ void printstack(){
 void push(int a){
 
 	pthread_mutex_lock(&opt.lock);	
-	
+
 	opt.top++;
 	opt.stack[opt.top] = a;
 
@@ -364,20 +407,23 @@ void push(int a){
 }
 
 int pull(void){
-	int tmp;
+	int ret;
 	
 	pthread_mutex_lock(&opt.lock);
 
+	/* waiting for condition variables with 'while' instead of 'if' is encouraged due to spurious wakeups */
 	while(opt.top  <= -1){
+		debug("waiting");
 		pthread_cond_wait(&opt.full,&opt.lock);
 	}
 	
-	tmp = opt.top;
+	ret = opt.stack[opt.top];
 	opt.top--;
+
 		
 	pthread_mutex_unlock(&opt.lock);
 	
-	return opt.stack[tmp];
+	return ret;
 }
 
 void printlist(){
@@ -392,21 +438,41 @@ void printlist(){
 
 int _init_proc(int sockfd) {
 
-	int offset;
+	pthread_t thr;
+    pthread_attr_t attr;
+	int *socket = malloc(sizeof(int));
+
+	*socket = sockfd;
 
 	/* explicitly make the thread joinable */
-    pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	/* insert order thread in the list */ 
-	pthread_mutex_lock(&list.lock);
+    pthread_create(&thr, &attr, order_handler, socket);
+    pthread_attr_destroy(&attr);
+	
+	pthread_detach(thr);
 
-	if (list.offset >= MAX_ORDERS - 1){
-		pthread_mutex_unlock(&list.lock);
+	return 1;
+}
+
+order_info *insert(int socket){
+
+	int offset;
+	order_info *ret;
+
+	/* insert order thread in the list */ 
+	offset = list.offset;
+
+	printf("list.offset = %d\n",offset);
+	if (offset >= MAX_ORDERS){
+		debug("pulling");
 		offset = pull(); 
+		printstack();
 	}else
-		offset = ++list.offset;
+		list.offset++;
+
+	pthread_mutex_lock(&list.lock);
 
 	if (list.head == -1){		 /*  if list is empty */
 		list.head = offset;
@@ -418,19 +484,20 @@ int _init_proc(int sockfd) {
 	list.tail = offset;
 	list.order[offset].next = -1; 
 
-	pthread_mutex_unlock(&list.lock);
 	
 	list.order[offset].at = offset;
-	list.order[offset].socket = sockfd;
-
+	list.order[offset].socket = socket;
+	
 	/* initialize order locking mechanisms */
 	pthread_mutex_init(&list.order[offset].lock, NULL);
    	pthread_cond_init(&list.order[offset].cond, NULL);
-   
-    pthread_create(&list.order[offset].thread, &attr, order_handler, &list.order[offset]);
-    pthread_attr_destroy(&attr);
 
-	return 1;
+
+	ret = &list.order[offset];
+
+	pthread_mutex_unlock(&list.lock);
+
+	return ret;
 }
 
 void delete(order_info *addr){
@@ -453,6 +520,7 @@ void delete(order_info *addr){
 		list.order[addr->next].prev = list.order[addr->at].prev;
 	
 	push(offset);
+	printstack();
 	pthread_mutex_unlock(&list.lock);
 
 	pthread_mutex_destroy(&addr->lock);

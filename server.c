@@ -45,16 +45,6 @@ typedef struct _order {
 
 }order_info;
 	
-
-/* thr_arg is a type that each order thread uses to pass some parameters
- * to the bakers and the delivery threads */
-typedef struct _info {
-	int type;
-	int baker;
-	int delivery;
-} thr_arg;
-
-
 /* list_info is the type of the double linked list i use implemented on a table 
  * */
 typedef struct _list{
@@ -136,12 +126,6 @@ int num_bakers, num_deliveries;
 pthread_mutex_t baker_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t delivery_lock = PTHREAD_MUTEX_INITIALIZER;
 
-/* A condition variable and its mutex for the sleeping of each baker, same for deliveries */
-pthread_mutex_t bak_lock[NBAKERS];
-pthread_mutex_t del_lock[NDELIVERY];
-pthread_cond_t bak_cond[NBAKERS];
-pthread_cond_t del_cond[NDELIVERY];
-
 /* When a baker is done baking and increments num_bakers signals the free_bakers to wakeup
  * sleeping order threads waiting for bakers, same for deliveries */
 pthread_cond_t free_bakers;
@@ -205,15 +189,6 @@ int main(int argc, char **argv){
 	pthread_cond_init(&free_bakers, NULL);
    	pthread_cond_init(&free_deliveries, NULL);
 
-	for (i=0;i<NBAKERS;i++){
-		pthread_mutex_init(&bak_lock[i], NULL);
-		pthread_cond_init(&bak_cond[i], NULL);
-	}
-	
-	for (i=0;i<NDELIVERY;i++){
-		pthread_mutex_init(&del_lock[i], NULL);
-		pthread_cond_init(&del_cond[i], NULL);
-	}
 
 
 	/*-----------------------------------------------------------------------------------
@@ -253,7 +228,8 @@ int _init_proc(int sockfd) {
 	pthread_t thr;
     pthread_attr_t attr;
 
-	/* Creation of a heap variable socket that passes to the order thread and is freed there */
+	/* Creation of a heap variable socket that passes to the order thread and is freed there 
+	 * so that there is no conflict between the socket THIS order received and the socket of the next orders */
 	int *socket = malloc(sizeof(int));
 
 	*socket = sockfd;
@@ -282,10 +258,6 @@ void *order_handler(void * arg){
 	pthread_t bakers[NPIZZAS], delivery, delay;
 
 	order_info *order;
-
-	/* a struct that is used to pass information to the baker and delivery threads 
-	 * each pizza has info for its type and for the baker/that will bake it */
-	thr_arg info[NPIZZAS];
 
 	/* ------------------------------------------------------------
 	 * holds the client order information in the following way
@@ -358,15 +330,12 @@ void *order_handler(void * arg){
 			/* debug("Woke up");*/
 		}
 
-		/* The pizza 2 has type order->pizzas[2] and it is baked by the baker 9
-		 * this is passed to the baker thread */
-		info[c].type = order->pizzas[c];
-		info[c].baker = --num_bakers;
-
+		/* Reduce the bakers available and unlock socket */
+		num_bakers--;
 		pthread_mutex_unlock(&baker_lock);
 
-		/* Throw a baker thread with info as argument */
-		pthread_create(&bakers[c], &attr, baker_thread, &info[c]);
+		/* Throw a baker thread with pizzatype as argument */
+		pthread_create(&bakers[c], &attr, baker_thread, &order->pizzas[c]);
 
 	}
 
@@ -375,7 +344,7 @@ void *order_handler(void * arg){
 		pthread_join(bakers[i], NULL);
 	}
 
-	debug("Finished baking");
+	/*  debug("Finished baking"); */
 
 	/* DELIVERY THREAD */	
     pthread_attr_init(&attr);
@@ -390,21 +359,18 @@ void *order_handler(void * arg){
 		pthread_cond_wait(&free_deliveries,&delivery_lock);
 	}
 
-	/* This time the info[0] is used to pass to the delivery the type of the ORDER and the delivery boy */
-	info[0].type = order->type;
-	info[0].delivery = --num_deliveries;
-
+	num_deliveries--;
 	pthread_mutex_unlock(&delivery_lock);
 	
-	/* Throw a delivery thread with info as argument */
-	pthread_create(&delivery, &attr, delivery_thread, &info[0]);
+	/* Throw a delivery thread with distance type as argument */
+	pthread_create(&delivery, &attr, delivery_thread, &order->type);
 
 	pthread_attr_destroy(&attr);
 
 	/* Wait/Join the delivery thread*/
 	pthread_join(delivery, NULL);
 
-	debug("Finished delivering"); 
+	/*  debug("Finished delivering"); */
 	
 	/*  After the delivering is finished, we must cancel the delay thread that 
 	 *  counts to TVERYLONG */
@@ -422,22 +388,27 @@ void *order_handler(void * arg){
 /* The baker thread */
 void *baker_thread(void *arg){
 	int index, pizzatype;
-	thr_arg *order = (thr_arg* ) arg;
+
+	/* Each dynamically created baker creates its own condition variable and mutex */
+	pthread_mutex_t mut;
+	pthread_cond_t cond;
+	pizzaType pizzat = *(pizzaType *) arg;
 	struct timespec time_to_wait = {0,0};
 
-	/* The index var will show which baker/mutex/cond will lock */
-	index = order->baker;
-
 	/* The type of the pizza, get its time from the getPizzaTime table from common.h */
-	pizzatype = order->type;
-	time_to_wait.tv_sec = time(NULL) + getPizzaTime[pizzatype]; 
+	time_to_wait.tv_sec = time(NULL) + getPizzaTime[pizzat]; 
 	
-	printf("locking baker %d\n",index);
-	pthread_mutex_lock(&bak_lock[index]);
-	pthread_cond_timedwait(&bak_cond[index], &bak_lock[index], &time_to_wait);	
-	pthread_mutex_unlock(&bak_lock[index]);
+	pthread_mutex_init(&mut,NULL);
+	pthread_cond_init(&cond,NULL);
 
-	debug("done baking");
+	pthread_mutex_lock(&mut);
+	pthread_cond_timedwait(&cond, &mut, &time_to_wait);	
+	pthread_mutex_unlock(&mut);
+
+	pthread_mutex_destroy(&mut);
+	pthread_cond_destroy(&cond);
+
+	/* debug("done baking"); */
 
 	/* Protection of the num_bakers var */
 	pthread_mutex_lock(&baker_lock);
@@ -445,31 +416,36 @@ void *baker_thread(void *arg){
 	pthread_mutex_unlock(&baker_lock);
 	
 	/* After finished baking, signal the free_bakers so other orders
-	 * know that there ar free_bakers now */
+	 * know that there are free_bakers now */
 	pthread_cond_signal(&free_bakers);
 	
-	/* pthread_exit(NULL); */
+	pthread_exit(NULL);
 }
 
 /* The delivery thread */
 void *delivery_thread(void *arg){
-	int index, type;
-	struct timespec time_to_wait = {0,0};
-	thr_arg *order = (thr_arg* ) arg;
+	int index;
 
-	/* The index var will show which delivery/mutex/cond will lock */
-	index = order->delivery;
+	/* Each dynamically created delivery creates its own condition variable and mutex */
+	pthread_mutex_t mut;
+	pthread_cond_t cond;
+	struct timespec time_to_wait = {0,0};
+	distanceType dist = *(distanceType* ) arg;
 
 	/* The distance type, get its time from the getDistanceTime from common.h */
-	type = order->type; 
-	time_to_wait.tv_sec = time(NULL) + getDistanceTime[type];
+	time_to_wait.tv_sec = time(NULL) + getDistanceTime[dist];
 
-	printf("locking delivery %d\n",index);
-	pthread_mutex_lock(&del_lock[index]);
-	pthread_cond_timedwait(&del_cond[index], &del_lock[index], &time_to_wait);	
-	pthread_mutex_unlock(&del_lock[index]);
+	pthread_mutex_init(&mut,NULL);
+	pthread_cond_init(&cond,NULL);
 
-	debug("done delivering");
+	pthread_mutex_lock(&mut);
+	pthread_cond_timedwait(&cond, &mut, &time_to_wait);	
+	pthread_mutex_unlock(&mut);
+
+	pthread_mutex_destroy(&mut);
+	pthread_cond_destroy(&cond);
+
+	/*  debug("done delivering"); */
 
 	/* Protecting num_deliveries */
 	pthread_mutex_lock(&delivery_lock);
@@ -480,7 +456,7 @@ void *delivery_thread(void *arg){
 	 * know that there are free deliveries now */
 	pthread_cond_signal(&free_deliveries);
 	
-	/*  pthread_exit(NULL); */
+	pthread_exit(NULL);
 
 }
 
@@ -524,22 +500,25 @@ order_info *insert(pthread_t thread){
 	int offset;
 	order_info *ret;
 
+	/* protected acces to the list.offset */
 	pthread_mutex_lock(&list.lock);
 
 	/* insert order thread in the list */ 
 	offset = list.offset;
 
-	/*  printf("list.offset = %d\n",offset); */
+	pthread_mutex_unlock(&list.lock);
 
 	/* if list is full then the list.offset var has no more used
 	 * and new orders take its position in the table by pulling free
 	 * positions from a stack */
 	if (offset >= MAX_ORDERS){
-		/*  debug("pulling"); */
+		debug("pulling"); 
 		offset = pull(); 
 		/*  printstack(); */
 	}else
 		list.offset++;
+
+	pthread_mutex_lock(&list.lock);
 
 	/* Insertion in the double linked list */
 	if (list.head == -1){		 /*  if list is empty */

@@ -425,7 +425,10 @@ void *baker_thread(void *arg){
 	thr_arg *order = (thr_arg* ) arg;
 	struct timespec time_to_wait = {0,0};
 
+	/* The index var will show which baker/mutex/cond will lock */
 	index = order->baker;
+
+	/* The type of the pizza, get its time from the getPizzaTime table from common.h */
 	pizzatype = order->type;
 	time_to_wait.tv_sec = time(NULL) + getPizzaTime[pizzatype]; 
 	
@@ -436,12 +439,13 @@ void *baker_thread(void *arg){
 
 	debug("done baking");
 
+	/* Protection of the num_bakers var */
 	pthread_mutex_lock(&baker_lock);
-	
 	num_bakers++;
-
 	pthread_mutex_unlock(&baker_lock);
 	
+	/* After finished baking, signal the free_bakers so other orders
+	 * know that there ar free_bakers now */
 	pthread_cond_signal(&free_bakers);
 	
 	/* pthread_exit(NULL); */
@@ -453,21 +457,27 @@ void *delivery_thread(void *arg){
 	struct timespec time_to_wait = {0,0};
 	thr_arg *order = (thr_arg* ) arg;
 
-	type = order->type; 
+	/* The index var will show which delivery/mutex/cond will lock */
 	index = order->delivery;
-	
+
+	/* The distance type, get its time from the getDistanceTime from common.h */
+	type = order->type; 
 	time_to_wait.tv_sec = time(NULL) + getDistanceTime[type];
 
+	printf("locking delivery %d\n",index);
 	pthread_mutex_lock(&del_lock[index]);
 	pthread_cond_timedwait(&del_cond[index], &del_lock[index], &time_to_wait);	
 	pthread_mutex_unlock(&del_lock[index]);
 
-	pthread_mutex_lock(&delivery_lock);
-	
-	num_deliveries++;
+	debug("done delivering");
 
+	/* Protecting num_deliveries */
+	pthread_mutex_lock(&delivery_lock);
+	num_deliveries++;
 	pthread_mutex_unlock(&delivery_lock);
 	
+	/* After finished delivering, signal the free_deliveries so other orders
+	 * know that there are free deliveries now */
 	pthread_cond_signal(&free_deliveries);
 	
 	/*  pthread_exit(NULL); */
@@ -478,13 +488,26 @@ void *delivery_thread(void *arg){
 void *delayed_thread(void *arg){
 	struct timespec time_to_wait = {0,0};
 	int socket = *(int*)arg;
-
 	int j;
 
-	time_to_wait.tv_sec = time(NULL) + TVERYLONG;
+	pthread_mutex_t mut;
+	pthread_cond_t cond;
 
+	pthread_mutex_init(&mut,NULL);
+	pthread_cond_init(&cond,NULL);
+
+	/* This loop sleep(tverylong) and then sends coca cola 
+	 * to its corresponding client until cancelled by the order thread */
 	for(j=0;;j++){
-		sleep(TVERYLONG);
+		time_to_wait.tv_sec = time(NULL) + TVERYLONG;
+		
+		pthread_mutex_lock(&mut);
+		/* waiting for condition variables with 'while' instead of 'if' is encouraged due to spurious wakeups */
+		while(pthread_cond_timedwait(&cond, &mut, &time_to_wait)!=ETIMEDOUT){
+		}
+		pthread_mutex_unlock(&mut);
+
+		/* sleep(TVERYLONG); */
 		write(socket,"Sorry for the delay you will receive a free cocacola\0",53);	
 	}
 }
@@ -495,7 +518,7 @@ void *delayed_thread(void *arg){
 
 /* ------------------------------     LIST    ----------------------------------------- */
 
-
+/* Tries to insert an order in the list */
 order_info *insert(pthread_t thread){
 
 	int offset;
@@ -506,15 +529,19 @@ order_info *insert(pthread_t thread){
 	/* insert order thread in the list */ 
 	offset = list.offset;
 
-	printf("list.offset = %d\n",offset);
+	/*  printf("list.offset = %d\n",offset); */
+
+	/* if list is full then the list.offset var has no more used
+	 * and new orders take its position in the table by pulling free
+	 * positions from a stack */
 	if (offset >= MAX_ORDERS){
-		debug("pulling");
+		/*  debug("pulling"); */
 		offset = pull(); 
-		/*  printstack();
-		 */
+		/*  printstack(); */
 	}else
 		list.offset++;
 
+	/* Insertion in the double linked list */
 	if (list.head == -1){		 /*  if list is empty */
 		list.head = offset;
 		list.order[offset].prev = -1;
@@ -525,10 +552,12 @@ order_info *insert(pthread_t thread){
 	list.tail = offset;
 	list.order[offset].next = -1; 
 
-	
+	/* at var shows the order position and thread its order_thread */
 	list.order[offset].at = offset;
 	list.order[offset].thread = thread;
 	
+	/* save the returned value before unlocking the mutex
+	 * in order to avoid possible race conditions */
 	ret = &list.order[offset];
 
 	pthread_mutex_unlock(&list.lock);
@@ -536,12 +565,14 @@ order_info *insert(pthread_t thread){
 	return ret;
 }
 
+/* Deletes an order from the list and push the freed position in the stack */
 void delete(order_info *addr){
 	
 	int offset = addr->at;
 
 	pthread_mutex_lock(&list.lock);
 
+	/* Deletion from the double linked list */
 	if (addr->prev != -1){	/* it is not the head */
 		list.order[addr->prev].next = addr->next;
 	}else{					/* it is the head */
@@ -555,14 +586,11 @@ void delete(order_info *addr){
 	if (addr->next != -1) /* it is not the tail */
 		list.order[addr->next].prev = list.order[addr->at].prev;
 	
+	/* Pushes the freed position in the stack of free positions */
 	push(offset);
-	/* printstack();
-	 */
+	/* printstack();*/
+	
 	pthread_mutex_unlock(&list.lock);
-
-	/*pthread_mutex_destroy(&addr->lock);
-	pthread_cond_destroy(&addr->cond);
-	*/
 }
 
 void printlist(){
@@ -577,33 +605,47 @@ void printlist(){
 
 
 /* ------------------------------      STACK    ----------------------------------------- */
+
+/* Pushes in the stack the given free position(index of the list.order table) */
 void push(int a){
 
+	/* The stack is also mutex protected */
 	pthread_mutex_lock(&opt.lock);	
+
+	/* Unlike pull, the push function don't need to check if stack is full
+	 * because the way the orders are handled is at chunks of MAX_ORDERS 
+	 * so there are always free positions for pushing in the stack */
 
 	opt.top++;
 	opt.stack[opt.top] = a;
 
 	pthread_mutex_unlock(&opt.lock);
 	
+	/* When a position has been pushed in the stack, the opt.full is signaled
+	 * to wake (one at a time) orders that are waiting in pull because there are no free positions
+	 * at the moment */
 	pthread_cond_signal(&opt.full);
 }
 
+/* Pull the first free position from the stack (top) */
 int pull(void){
 	int ret;
 	
 	pthread_mutex_lock(&opt.lock);
 
-	/* waiting for condition variables with 'while' instead of 'if' is encouraged due to spurious wakeups */
+	/* If all the list is occupied, there are no free positions in the stack so the order is waiting
+	 * for opt.lock 
+	 *
+	 * waiting for condition variables with 'while' instead of 'if' is encouraged due to spurious wakeups */
 	while(opt.top  <= -1){
 		debug("waiting");
 		pthread_cond_wait(&opt.full,&opt.lock);
 	}
 	
+	/* The returned value is saved before unlocking to avoid race conditions */
 	ret = opt.stack[opt.top];
 	opt.top--;
 
-		
 	pthread_mutex_unlock(&opt.lock);
 	
 	return ret;

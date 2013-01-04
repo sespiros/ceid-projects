@@ -309,7 +309,8 @@ void *order_handler(void * arg){
 	/* The last char of the buffer shows the type of distance near/far */
 	order->type = buffer[strlen(buffer)-1]-'0'; 
 
-	/* BAKER THREAD */	
+	/* ------------------------------------------------------- BAKER THREAD ------------------
+	 * --------------------------------------------------------------------------------------*/	
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
@@ -342,11 +343,13 @@ void *order_handler(void * arg){
 	/* Joining the bakers */
 	for(i=num_pizzas-1;i>=0;i--){
 		pthread_join(bakers[i], NULL);
+		order->status--;
 	}
 
 	/*  debug("Finished baking"); */
 
-	/* DELIVERY THREAD */	
+	/* ------------------------------------------------------- DELIVERY THREAD ---------------
+	 * --------------------------------------------------------------------------------------*/	
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
@@ -387,7 +390,7 @@ void *order_handler(void * arg){
 
 /* The baker thread */
 void *baker_thread(void *arg){
-	int index, pizzatype;
+	int index;
 
 	/* Each dynamically created baker creates its own condition variable and mutex */
 	pthread_mutex_t mut;

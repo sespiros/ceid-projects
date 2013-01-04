@@ -11,7 +11,10 @@ OPTIONS
 
 NOTE
 For easy monitoring of the server process
-	watch -n 0.1 "ps -ejH|grep ' server'"
+	watch -n 0.1 "ps -eLf|grep ' server'"
+
+EXAMPLE
+./run_tests.sh -abv 100
 
 EOF
 }

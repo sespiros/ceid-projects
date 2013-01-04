@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -lpthread -g -pedantic
+CFLAGS = -lpthread -pedantic
 DEPS = common.h 
 
 %.o: %.c $(DEPS)
@@ -14,5 +14,5 @@ client: client.o
 	$(CC) -o $@ $^ $(CFLAGS)
 
 clean:
-	rm *.o
+	rm *.o server client
 

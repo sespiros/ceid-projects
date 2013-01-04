@@ -2,3 +2,8 @@ Session.vim
 *.o
 client
 server
+tags
+server.c.bugpsistwn
+server.c.ftiaks
+server.c2
+

@@ -18,7 +18,7 @@
 #define UNIX_PATH "/tmp/ser_global.str" /* for UNIX domain socket */
 
 /*Size of request queue*/ 
-#define LISTENQ  200
+#define LISTENQ  100
 /* didnt work with small listenq and 4 and 10 orders ERROR CHECK IT */
 
 /* max orders issued for setting the size of shared memory lists*/

@@ -132,38 +132,30 @@ float pspeedy ( Points *points, float z, long *kcenter )
 
 	*kcenter = 1;
 
-    #pragma omp parallel shared(points) private(i,to_open)
-    {
-        /* create center at first point, send it to itself */
-        #pragma omp for schedule(static,10)
-        for ( int k = 0; k < points->num; k++ )    {
-            float distance = dist ( points->p[k],points->p[0],points->dim );
-            points->p[k].cost = distance * points->p[k].weight;
-            points->p[k].assign=0;
-        }
+	/* create center at first point, send it to itself */
+	for ( int k = 0; k < points->num; k++ )    {
+		float distance = dist ( points->p[k],points->p[0],points->dim );
+		points->p[k].cost = distance * points->p[k].weight;
+		points->p[k].assign=0;
+	}
 
-        #pragma omp single
-        for ( i = 1; i < points->num; i++ )  {
-            to_open = ( ( float ) lrand48() / ( float ) INT_MAX ) < ( points->p[i].cost/z );
-            if ( to_open )  {
-                //#pragma omp atomic
-                ( *kcenter ) ++;
-                for ( int k = 0; k < points->num; k++ )  {
-                    float distance = dist ( points->p[i],points->p[k],points->dim );
-                    if ( distance*points->p[k].weight < points->p[k].cost )  {
-                        points->p[k].cost = distance * points->p[k].weight;
-                        points->p[k].assign=i;
-                    }
-                }
-            }
-        }
+	for ( i = 1; i < points->num; i++ )  {
+		to_open = ( ( float ) lrand48() / ( float ) INT_MAX ) < ( points->p[i].cost/z );
+		if ( to_open )  {
+			( *kcenter ) ++;
+			for ( int k = 0; k < points->num; k++ )  {
+				float distance = dist ( points->p[i],points->p[k],points->dim );
+				if ( distance*points->p[k].weight < points->p[k].cost )  {
+					points->p[k].cost = distance * points->p[k].weight;
+					points->p[k].assign=i;
+				}
+			}
+		}
+	}
 
-        #pragma omp for schedule(static,10) reduction(+:costs)
-        for ( int k = 0; k < points->num; k++ )  {
-            costs += points->p[k].cost;
-        }
-
-    }
+	for ( int k = 0; k < points->num; k++ )  {
+		costs += points->p[k].cost;
+	}
 
 	totalcost = costs + z * ( *kcenter );
 
@@ -233,6 +225,9 @@ double pgain ( long x, Points *points, double z, long int *numcenters )
 	//global *lower* fields
 	double* gl_lower = &work_mem[stride];
 
+    #pragma omp parallel for \
+    shared(switch_membership,points,lower,center_table,x) private(i) \
+    reduction(+:cost_of_opening_x)
 	for ( i = 0; i < points->num; i++ ) {
 		float x_cost = dist ( points->p[i], points->p[x], points->dim ) * points->p[i].weight;
 		float current_cost = points->p[i].cost;
@@ -256,6 +251,7 @@ double pgain ( long x, Points *points, double z, long int *numcenters )
 			// would save z by closing; now we have to subtract from the savings
 			// the extra cost of reassigning that median and its members
 			int assign = points->p[i].assign;
+            #pragma omp atomic
 			lower[center_table[assign]] += current_cost - x_cost;
 		}
 	}
@@ -289,6 +285,8 @@ double pgain ( long x, Points *points, double z, long int *numcenters )
 
 	if ( gl_cost_of_opening_x < 0 ) {
 		//  we'd save money by opening x; we'll do it
+        #pragma omp parallel for \
+        shared(points,gl_lower,center_table,switch_membership,x)
 		for ( int i = 0; i < points->num; i++ ) {
 			bool close_center = gl_lower[center_table[points->p[i].assign]] > 0 ;
 			if ( switch_membership[i] || close_center ) {

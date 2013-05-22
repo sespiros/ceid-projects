@@ -143,6 +143,8 @@ float pspeedy ( Points *points, float z, long *kcenter )
 		to_open = ( ( float ) lrand48() / ( float ) INT_MAX ) < ( points->p[i].cost/z );
 		if ( to_open )  {
 			( *kcenter ) ++;
+            #pragma omp parallel for \
+            shared(points)
 			for ( int k = 0; k < points->num; k++ )  {
 				float distance = dist ( points->p[i],points->p[k],points->dim );
 				if ( distance*points->p[k].weight < points->p[k].cost )  {

@@ -110,14 +110,50 @@ void intshuffle ( int *intarray, int length )
 }
 
 /******************************************************************************/
+#ifdef ENABLE_SIMD
+typedef float v4sf __attribute__ ((vector_size(16)));
+
+union f4vector
+{
+    v4sf v;
+    float f[4];
+};
+#endif
 
 /* compute Euclidean distance squared between two points */
 float dist ( Point p1, Point p2, int dim )
 {
-	int i;
+	int i = 0;
 	float result=0.0;
-	for ( i=0; i<dim; i++ )
-		result += ( p1.coord[i] - p2.coord[i] ) * ( p1.coord[i] - p2.coord[i] );
+
+    #ifdef ENABLE_SIMD
+    for (i = 0; i < dim % 4; i++) {
+        result += ( p1.coord[i] - p2.coord[i] ) * ( p1.coord[i] - p2.coord[i] );
+    }
+
+	for ( ; i<dim; i+=4 ) {
+        union f4vector a, b;
+
+        a.f[0] = p1.coord[i];
+        a.f[1] = p1.coord[i+1];
+        a.f[2] = p1.coord[i+2];
+        a.f[3] = p1.coord[i+3];
+
+        b.f[0] = p2.coord[i];
+        b.f[1] = p2.coord[i+1];
+        b.f[2] = p2.coord[i+2];
+        b.f[3] = p2.coord[i+3];
+
+        a.v -= b.v;
+        a.v *= a.v;
+
+        result += a.f[0] + a.f[1] + a.f[2] + a.f[3];
+    #else
+	for ( ; i<dim; i++ ) {
+        result += ( p1.coord[i] - p2.coord[i] ) * ( p1.coord[i] - p2.coord[i] );
+    #endif
+    }
+
 	return ( result );
 }
 

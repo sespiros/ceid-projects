@@ -127,6 +127,10 @@ float dist ( Point p1, Point p2, int dim )
 	float result=0.0;
 
     #ifdef ENABLE_SIMD
+    union f4vector vresult;
+    // zero the accumulator
+    __builtin_ia32_xorps(vresult.v, vresult.v);
+
     for (i = 0; i < dim % 4; i++) {
         result += ( p1.coord[i] - p2.coord[i] ) * ( p1.coord[i] - p2.coord[i] );
     }
@@ -147,12 +151,17 @@ float dist ( Point p1, Point p2, int dim )
         a.v -= b.v;
         a.v *= a.v;
 
-        result += a.f[0] + a.f[1] + a.f[2] + a.f[3];
+        vresult.v += a.v;
+    }
+
+    result += vresult.f[0] + vresult.f[1] + vresult.f[2] + vresult.f[3];
+
     #else
 	for ( ; i<dim; i++ ) {
         result += ( p1.coord[i] - p2.coord[i] ) * ( p1.coord[i] - p2.coord[i] );
-    #endif
     }
+    #endif
+    
 
 	return ( result );
 }

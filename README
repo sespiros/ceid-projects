@@ -1,0 +1,8 @@
+Οδηγίες Μεταγλώττισης
+=====================
+
+make streamcluster: Σειριακή έκδοση
+make omp: Έκδοση με OpenMP
+make simd: Έκδοση με SIMD (χωρίς OpenMP)
+make all: Έκδοση με OpenMP + SIMD
+make extra: Έκδοση με OpenMP + SIMD και περαιτέρω βελτιστοποίηση για τη μηχανή στην οποία θα τρέξει το πρόγραμμα

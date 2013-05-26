@@ -1,5 +1,5 @@
 CCX=g++
-CXXFLAGS=-Wall -Wextra -O0
+CXXFLAGS=-Wall -Wextra -O3
 SIMDFLAGS=-msse -DENABLE_SIMD 
 OMPFLAGS=-fopenmp
 EXTRAFLAGS=-march=native

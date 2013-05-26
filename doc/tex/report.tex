@@ -3,7 +3,7 @@
 \usepackage[margin=0.6in]{geometry}
 \usepackage{xltxtra}
 \usepackage{xgreek}
-\usepackage{listing}
+\usepackage{listings}
 \setmainfont[Mapping=tex-text]{Kerkis}
 \usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
 \title{Παράλληλη επεξεργασία}
@@ -18,8 +18,21 @@
 
 \section{Παραλληλοποίηση}
 \subsection{Με χρήση OpenMP}
--ΑΙΤΙΟΛΟΓΗΣΗ ΠΑΡΑΛΛΗΛΟΠΟΙΗΣΗΣ
--ΜΕΤΡΗΣΕΙΣ
+Σύμφωνα με την προηγούμενη ανάλυση, τα σημεία όπου χρειάζεται χρονοβελτίωση είναι κυρίως οι κλήσεις της \texttt{dist} μέσα στις συναρτήσεις \texttt{pgain} και \texttt{pspeedy}.
+
+Δύο είναι τα σημεία μέσα στην \texttt{pgain} όπου καλείται σε βρόχο \texttt{for} η \texttt{dist}. Εισάγοντας εκεί εντολές \texttt{OpenMP} μειώνεται αρκετά ο χρόνος εκτέλεσης.
+
+Ακόμη, στη συνάρτηση \texttt{pspeedy} καλείται σε ένθετο βρόχο η \texttt{dist}. Εισάγοντας σε αυτό το σημείο παραλληλοποίηση με \texttt{OpenMP} παρατηρείται μια μικρή βελτίωση στο χρόνο.
+
+\begin{center}
+\begin{tabular}{|r|c|l|}
+    \hline
+    Νήματα & Χρόνος Εκτέλεσης (-Ο0) & Χρόνος Εκτέλεσης (-Ο3) \\ \hline
+    1 & 79.8 sec & 28.4 sec \\
+    2 & 43.1 sec & 16.2 sec \\
+    4 & 26.2 sec & 12.4 sec \\ \hline
+\end{tabular}
+\end{center}
 
 \subsection{Με χρήση εντολών SIMD}
 -ΑΙΤΙΟΛΟΓΗΣΗ ΒΕΛΤΙΣΤΟΠΟΙΗΣΗΣ

@@ -9,6 +9,9 @@
 \title{Παράλληλη επεξεργασία}
 \author{Μπαντολας Πέτρος 5028\\Σειμένης Σπύρος 5070\\Καλλιβωκάς Δημήτριος 4993}
 
+\lstset{columns=flexible}
+\lstset{keepspaces=true}
+
 \begin{document}
 \maketitle
 \section{Ανάλυση σειριακής έκδοσης}
@@ -25,18 +28,55 @@
 \includegraphics[scale=0.4]{../scrshots/l1.png}
 \includegraphics[scale=0.4]{../scrshots/l2.png}
 \end{center} 
-Συμπεραίνουμε οτι οι περιοχές που προκαλούν καθυστέρηση είναι αυτές που υπολογίζουν κατ' επανάληψη για όλα τα σημεία την απόσταση τους(dist). Η δομή που αποθηκεύει τα σημεία δεσμεύεται στην αρχή του προγράμματος στο heap μεσω malloc που δεν εγγυάται ότι οι διευθύνσεις φυσικής μνήμης θα είναι γειτονικες μεταξυ τους. Η πολλαπλή προσπέλαση όλων των σημείων σειριακά οδηγεί στα πολλαπλά cache misses. Έτσι η παραλληλοποίηση με openmp βελτιστοποιεί τους υπολογισμούς μειώνοντας τα cache misses.
+Συμπεραίνουμε οτι οι περιοχές που προκαλούν καθυστέρηση είναι αυτές που υπολογίζουν κατ' επανάληψη για όλα τα σημεία την απόσταση τους(dist). Αυτό γίνεται για ολα τα σημεία άρα για μεγάλο αριθμό σημείων αυξάνεται και η πολυπλοκοτητα του προγράμματος. Επίσης η δομή που αποθηκεύει τα σημεία δεσμεύεται στην αρχή του προγράμματος στο heap μεσω malloc που δεν εγγυάται ότι οι διευθύνσεις φυσικής μνήμης θα είναι γειτονικες μεταξυ τους. Η πολλαπλή προσπέλαση όλων των σημείων σειριακά οδηγεί στα
+πολλαπλά cache misses. Έτσι η παραλληλοποίηση με openmp βελτιστοποιεί τους υπολογισμούς μειώνοντας τα cache misses.
 
 \section{Παραλληλοποίηση}
 \subsection{Με χρήση OpenMP}
 Σύμφωνα με την προηγούμενη ανάλυση, τα σημεία όπου χρειάζεται χρονοβελτίωση είναι κυρίως οι κλήσεις της \texttt{dist} μέσα στις συναρτήσεις \texttt{pgain} και \texttt{pspeedy}.
 
 Δύο είναι τα σημεία μέσα στην \texttt{pgain} όπου καλείται σε βρόχο \texttt{for} η \texttt{dist}. Εισάγοντας εκεί εντολές \texttt{OpenMP} μειώνεται αρκετά ο χρόνος εκτέλεσης.
+\begin{lstlisting}
+#pragma omp parallel for \
+shared(switch_membership,points,lower,center_table,x) private(i) \
+reduction(+:cost_of_opening_x) \
+schedule(static)
+for ( i = 0; i < points->num; i++ ) {
+    float x_cost = dist ( points->p[i], points->p[x], points->dim ) * points->p[i].weight;
+    float current_cost = points->p[i].cost;
+\end{lstlisting}
+Εδώ απαιτείται reduction για την μεταβλητή \texttt{cost\_of\_opening\_x} αφού είναι κοινή σε όλα τα νήματα.
+
+\begin{lstlisting}
+int assign = points->p[i].assign;
+#pragma omp atomic
+lower[center_table[assign]] += current_cost - x_cost;
+\end{lstlisting}
+Η εντολή atomic απαιτείται για να αποκλειστούν ενημερώσεις στην ίδια θέση του πίνακα \texttt{lower} απο διαφορετικά νήματα.
+
+\begin{lstlisting}
+#pragma omp parallel for \
+shared(points,gl_lower,center_table,switch_membership,x) \
+schedule(static)
+for ( int i = 0; i < points->num; i++ ) {
+    bool close_center = gl_lower[center_table[points->p[i].assign]] > 0 ;
+    if ( switch_membership[i] || close_center ) {
+\end{lstlisting}
 
 Ακόμη, στη συνάρτηση \texttt{pspeedy} καλείται σε ένθετο βρόχο η \texttt{dist}. Εισάγοντας σε αυτό το σημείο παραλληλοποίηση με \texttt{OpenMP} παρατηρείται μια μικρή βελτίωση στο χρόνο.
 
+\begin{lstlisting}
+#pragma omp parallel for \
+shared(points) \
+schedule(static)
+for ( int k = 0; k < points->num; k++ )  {
+    float distance = dist ( points->p[i],points->p[k],points->dim );
+\end{lstlisting}
+
+Σε όλες τις παραπάνω περιπτώσεις επιλέχθηκε στατικός διαμοιρασμός των επαναλήψεων στα νήματα, αφού ο φόρτος είναι ο ίδιος σε κάθε περίπτωση (καλείται η συνάρτηση \texttt{dist} με σταθερό πλήθος σημείων).
+
 \begin{center}
-\begin{tabular}{|r|c|l|}
+\begin{tabular}{|r|c|c|}
     \hline
     Νήματα & Χρόνος Εκτέλεσης (-Ο0) & Χρόνος Εκτέλεσης (-Ο3) \\ \hline
     1 & 79.8 sec & 28.4 sec \\
@@ -46,12 +86,16 @@
 \end{center}
 
 \subsection{Με χρήση εντολών SIMD}
--ΑΙΤΙΟΛΟΓΗΣΗ ΒΕΛΤΙΣΤΟΠΟΙΗΣΗΣ
--ΜΕΤΡΗΣΕΙΣ
 
-
-
-
+\begin{center}
+\begin{tabular}{|r|c|c|}
+    \hline
+    Νήματα & Χρόνος Εκτέλεσης (-O0) & Χρόνος Εκτέλεσης (-Ο3) \\ \hline
+    1 & 102.6 sec & 18.2 sec \\
+    2 & 54.8 sec & 12.2 sec \\
+    4 & 29.0 sec & 14.0 sec \\ \hline
+\end{tabular}
+\end{center}
 
 
 \end{document}

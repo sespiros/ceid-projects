@@ -189,7 +189,8 @@ float pspeedy ( Points *points, float z, long *kcenter )
 		if ( to_open )  {
 			( *kcenter ) ++;
             #pragma omp parallel for \
-            shared(points)
+            shared(points) \
+            schedule(static)
 			for ( int k = 0; k < points->num; k++ )  {
 				float distance = dist ( points->p[i],points->p[k],points->dim );
 				if ( distance*points->p[k].weight < points->p[k].cost )  {
@@ -274,7 +275,8 @@ double pgain ( long x, Points *points, double z, long int *numcenters )
 
     #pragma omp parallel for \
     shared(switch_membership,points,lower,center_table,x) private(i) \
-    reduction(+:cost_of_opening_x)
+    reduction(+:cost_of_opening_x) \
+    schedule(static)
 	for ( i = 0; i < points->num; i++ ) {
 		float x_cost = dist ( points->p[i], points->p[x], points->dim ) * points->p[i].weight;
 		float current_cost = points->p[i].cost;
@@ -333,7 +335,8 @@ double pgain ( long x, Points *points, double z, long int *numcenters )
 	if ( gl_cost_of_opening_x < 0 ) {
 		//  we'd save money by opening x; we'll do it
         #pragma omp parallel for \
-        shared(points,gl_lower,center_table,switch_membership,x)
+        shared(points,gl_lower,center_table,switch_membership,x) \
+        schedule(static)
 		for ( int i = 0; i < points->num; i++ ) {
 			bool close_center = gl_lower[center_table[points->p[i].assign]] > 0 ;
 			if ( switch_membership[i] || close_center ) {

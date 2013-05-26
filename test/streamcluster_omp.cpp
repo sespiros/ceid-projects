@@ -129,7 +129,7 @@ float dist ( Point p1, Point p2, int dim )
     #ifdef ENABLE_SIMD
     union f4vector vresult;
     // zero the accumulator
-    __builtin_ia32_xorps(vresult.v, vresult.v);
+    vresult.f[0] = vresult.f[1] = vresult.f[2] = vresult.f[3] = 0.0f;
 
     for (i = 0; i < dim % 4; i++) {
         result += ( p1.coord[i] - p2.coord[i] ) * ( p1.coord[i] - p2.coord[i] );
@@ -339,7 +339,7 @@ double pgain ( long x, Points *points, double z, long int *numcenters )
 			if ( switch_membership[i] || close_center ) {
 				// Either i's median (which may be i itself) is closing,
 				// or i is closer to x than to its current median
-				points->p[i].cost = points->p[i].weight * dist ( points->p[i], points->p[x], points->dim );
+                points->p[i].cost = points->p[i].weight * dist ( points->p[i], points->p[x], points->dim );
 				points->p[i].assign = x;
 			}
 		}

@@ -15,7 +15,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     }
 }
 
-#define TILE_SIZE 16
+#define TILE_SIZE 32
 __global__ void matVectorMulOpt(double* mat, double* vec, double *res, sizeInfo size)
 {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -23,14 +23,19 @@ __global__ void matVectorMulOpt(double* mat, double* vec, double *res, sizeInfo 
 
     if (tid < size.rows * size.cols) {
         res[tid] = 0.0;
-        for (int m = 0; m < size.cols / TILE_SIZE; m++) {
+        for (int m = 0; m < size.cols / TILE_SIZE + 1; m++) {
+
+            int tilePos = m * TILE_SIZE + threadIdx.x;
+
             // each thread loads a value to the shared array
-            v[threadIdx.x] = vec[m * TILE_SIZE + threadIdx.x];
+            v[threadIdx.x] = (tilePos >= size.cols) ? 0.0 : vec[tilePos]; // discard out of range indices
             __syncthreads(); // wait for loads to finish
 
             for (int i = 0; i < TILE_SIZE; i++) {
-                res[tid] += mat[tid * size.cols + m * TILE_SIZE + i] * v[i];
+                int matRowPos = m * TILE_SIZE + i;
+                res[tid] += (matRowPos >= size.cols) ? 0.0 : (mat[tid * size.cols + matRowPos] * v[i]); // discard out of range indices
             }
+            __syncthreads();
         }
     }
 }

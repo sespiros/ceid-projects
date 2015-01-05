@@ -5,6 +5,6 @@ typedef struct {
     unsigned int rows, cols;
 } sizeInfo;
 
-int plainKernelSetup(int, int);
+int plainKernelSetup(int, int, bool = false);
 
 #endif

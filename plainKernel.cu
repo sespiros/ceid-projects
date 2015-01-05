@@ -40,7 +40,7 @@ void matVectorMulHost(double *mat, double *vec, double *res, sizeInfo size)
     }
 }
 
-int plainKernelSetup(int rows, int cols)
+int plainKernelSetup(int rows, int cols, bool runCPU)
 {
     double *matrix, *v, *result, *result_cpu;
     double *dev_matrix, *dev_v, *dev_result;
@@ -52,6 +52,8 @@ int plainKernelSetup(int rows, int cols)
 
     sizes.rows = rows;
     sizes.cols = cols;
+
+    std::cout << "Running MV multiplication for a " << rows << "x" << cols << " matrix..." << std::endl;
 
     int matrixSize = rows * cols * sizeof(double);
     int vectorSize = cols * sizeof(double);
@@ -100,8 +102,10 @@ int plainKernelSetup(int rows, int cols)
     gpuErrchk( cudaEventElapsedTime(&msec, start, stop) );
     std::cout << msec << "ms elapsed for kernel." << std::endl;
 
-    // run same multiplication on CPU
-    matVectorMulHost(matrix, v, result_cpu, sizes);
+    if (runCPU) {
+        // run same multiplication on CPU
+        matVectorMulHost(matrix, v, result_cpu, sizes);
+    }
 
     gpuErrchk( cudaFree(dev_matrix) );
     gpuErrchk( cudaFree(dev_v) );

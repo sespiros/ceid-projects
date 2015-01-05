@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "common.h"
-#include "plainKernel.h"
+#include "optimizedKernel.h"
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -15,20 +15,27 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     }
 }
 
-__global__ void matVectorMul(double* mat, double* vec, double *res, sizeInfo size)
+#define TILE_SIZE 16
+__global__ void matVectorMulOpt(double* mat, double* vec, double *res, sizeInfo size)
 {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    double sum = 0.0;
+    __shared__ double v[TILE_SIZE];
 
     if (tid < size.rows * size.cols) {
-        for (int i = 0; i < size.cols; i++) {
-            sum += mat[tid * size.cols + i] * vec[i];
+        res[tid] = 0.0;
+        for (int m = 0; m < size.cols / TILE_SIZE; m++) {
+            // each thread loads a value to the shared array
+            v[threadIdx.x] = vec[m * TILE_SIZE + threadIdx.x];
+            __syncthreads(); // wait for loads to finish
+
+            for (int i = 0; i < TILE_SIZE; i++) {
+                res[tid] += mat[tid * size.cols + m * TILE_SIZE + i] * v[i];
+            }
         }
-        res[tid] = sum;
     }
 }
 
-void matVectorMulHost(double *mat, double *vec, double *res, sizeInfo size)
+void matVectorMulHostOpt(double *mat, double *vec, double *res, sizeInfo size)
 {
     double sum = 0.0;
 
@@ -41,7 +48,7 @@ void matVectorMulHost(double *mat, double *vec, double *res, sizeInfo size)
     }
 }
 
-int plainKernelSetup(int rows, int cols, bool runCPU)
+int optimizedKernelSetup(int rows, int cols, bool runCPU)
 {
     double *matrix, *v, *result, *result_cpu;
     double *dev_matrix, *dev_v, *dev_result;
@@ -91,7 +98,7 @@ int plainKernelSetup(int rows, int cols, bool runCPU)
     gpuErrchk( cudaMemset(dev_result, 0, resultSize) );
 
     gpuErrchk( cudaEventRecord(start) );
-    matVectorMul<<<cols / 16 + 1, 16>>>(dev_matrix, dev_v, dev_result, sizes);
+    matVectorMulOpt<<<cols / 16 + 1, 16>>>(dev_matrix, dev_v, dev_result, sizes);
     gpuErrchk( cudaEventRecord(stop) );
 
     gpuErrchk( cudaPeekAtLastError() );
@@ -105,7 +112,7 @@ int plainKernelSetup(int rows, int cols, bool runCPU)
 
     if (runCPU) {
         // run same multiplication on CPU
-        matVectorMulHost(matrix, v, result_cpu, sizes);
+        matVectorMulHostOpt(matrix, v, result_cpu, sizes);
     }
 
     gpuErrchk( cudaFree(dev_matrix) );

@@ -6,24 +6,10 @@
 // metrics
 #include <sys/time.h>
 
-#define N 2047
-
-timespec diff(timespec start, timespec end)
-{
-    timespec temp;
-    if ((end.tv_nsec-start.tv_nsec)<0) {
-        temp.tv_sec = end.tv_sec-start.tv_sec-1;
-        temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
-    } else {
-        temp.tv_sec = end.tv_sec-start.tv_sec;
-        temp.tv_nsec = end.tv_nsec-start.tv_nsec;
-    }
-    return temp;
-}
+#define N 4096
 
 int main()
 {
-    timespec kernelStart, kernelEnd;
     cublasHandle_t handle;
     cublasStatus_t stat;
     double *a, *v;
@@ -75,10 +61,17 @@ int main()
         printf("set vector fail");
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &kernelStart);
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    cudaEventRecord(start);
     stat = cublasDgemv(handle, CUBLAS_OP_T, N, N, &alpha, dev_a, N, dev_v, 1, &beta, dev_z, 1);
     cudaDeviceSynchronize();
-    clock_gettime(CLOCK_MONOTONIC, &kernelEnd);
+    cudaEventRecord(stop);
+
+    cudaEventSynchronize(stop);
+
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("dgemvv fail");
     }
@@ -100,8 +93,9 @@ int main()
         /*printf("%f ", v[i]);*/
     /*}*/
 
-    timespec elapsed = diff(kernelStart, kernelEnd);
-    printf("Time elapsed: %ds %dns\n", elapsed.tv_sec, elapsed.tv_nsec);
+    float elapsedMs = 0.0f;
+    cudaEventElapsedTime(&elapsedMs, start, stop);
+    printf("Time elapsed: %fms\n", elapsedMs);
 
     cudaFree(dev_a);
     cudaFree(dev_v);

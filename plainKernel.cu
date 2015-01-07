@@ -17,14 +17,14 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 __global__ void matVectorMul(double* mat, double* vec, double *res, sizeInfo size)
 {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    int rowId = threadIdx.x + blockIdx.x * blockDim.x;
     double sum = 0.0;
 
-    if (tid < size.rows * size.cols) {
+    if (rowId < size.rows) {
         for (int i = 0; i < size.cols; i++) {
-            sum += mat[tid * size.cols + i] * vec[i];
+            sum += mat[rowId * size.cols + i] * vec[i];
         }
-        res[tid] = sum;
+        res[rowId] = sum;
     }
 }
 
@@ -91,7 +91,7 @@ int plainKernelSetup(int rows, int cols, bool runCPU)
     gpuErrchk( cudaMemset(dev_result, 0, resultSize) );
 
     gpuErrchk( cudaEventRecord(start) );
-    matVectorMul<<<cols / 16 + 1, 16>>>(dev_matrix, dev_v, dev_result, sizes);
+    matVectorMul<<<rows / 16 + 1, 16>>>(dev_matrix, dev_v, dev_result, sizes);
     gpuErrchk( cudaEventRecord(stop) );
 
     gpuErrchk( cudaPeekAtLastError() );

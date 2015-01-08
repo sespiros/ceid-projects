@@ -15,28 +15,53 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     }
 }
 
-#define TILE_SIZE 32
-__global__ void matVectorMulOpt(double* mat, double* vec, double *res, sizeInfo size)
+// atomicAdd for doubles
+__device__ double atomicAdd(double* address, double val)
 {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned long long int* address_as_ull = (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+
+    do {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed, __double_as_longlong(val + __longlong_as_double(assumed)));
+    } while (assumed != old);
+
+    return __longlong_as_double(old);
+}
+
+#define TILE_SIZE 512
+__global__ void matVectorMulOpt(double* res, double* mat, double* vec, sizeInfo size)
+{
     __shared__ double v[TILE_SIZE];
+    __shared__ int tileElt, xstartPos, ystartPos;
 
-    if (tid < size.rows * size.cols) {
-        res[tid] = 0.0;
-        for (int m = 0; m < size.cols / TILE_SIZE + 1; m++) {
-
-            int tilePos = m * TILE_SIZE + threadIdx.x;
-
-            // each thread loads a value to the shared array
-            v[threadIdx.x] = (tilePos >= size.cols) ? 0.0 : vec[tilePos]; // discard out of range indices
-            __syncthreads(); // wait for loads to finish
-
-            for (int i = 0; i < TILE_SIZE; i++) {
-                int matRowPos = m * TILE_SIZE + i;
-                res[tid] += (matRowPos >= size.cols) ? 0.0 : (mat[tid * size.cols + matRowPos] * v[i]); // discard out of range indices
-            }
-            __syncthreads();
+    if (threadIdx.x == 0) {
+        if ((blockIdx.x + 1) * TILE_SIZE <= size.cols) {
+            tileElt = TILE_SIZE;
+        } else {
+            tileElt = size.cols % TILE_SIZE;
         }
+        xstartPos = blockIdx.x * TILE_SIZE;
+        ystartPos = blockIdx.y * blockDim.x;
+    }
+
+
+    __syncthreads();
+
+    if (threadIdx.x < tileElt) {
+        v[threadIdx.x] = vec[xstartPos + threadIdx.x];
+    }
+
+    __syncthreads();
+
+    double sum = 0.0;
+    int rowIdx = ystartPos + threadIdx.x;
+    if (rowIdx < size.rows) {
+        for (int i = 0; i < tileElt; i++) {
+            // mat is column major
+            sum += mat[rowIdx + (xstartPos + i) * size.rows] * v[i];
+        }
+        atomicAdd(res + rowIdx, sum);
     }
 }
 
@@ -84,10 +109,10 @@ int optimizedKernelSetup(int rows, int cols, bool runCPU)
     gpuErrchk( cudaMalloc(&dev_result, resultSize) );
 
     // randomize matrix elements
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            /*matrix[i * cols + j] = rand() / (RAND_MAX * 1.0) * 2.0 - 1.0;*/
-            matrix[i * cols + j] = ceil(rand() / (RAND_MAX * 1.0) * 10.0);
+    for (int j = 0; j < cols; j++) {
+        for (int i = 0; i < rows; i++) {
+            /*matrix[i * cols + j] = ceil(rand() / (RAND_MAX * 1.0) * 10.0);*/
+            matrix[j * rows + i] = ceil(rand() / (RAND_MAX * 1.0) * 10.0);
         }
     }
 
@@ -102,8 +127,14 @@ int optimizedKernelSetup(int rows, int cols, bool runCPU)
     gpuErrchk( cudaMemcpy(dev_v, v, vectorSize, cudaMemcpyHostToDevice) );
     gpuErrchk( cudaMemset(dev_result, 0, resultSize) );
 
+    // define grid, block sizes
+    dim3 block(1024);
+    dim3 grid(rows / TILE_SIZE + 1, cols / 1024 + 1);
+    std::cout << grid.x << " " << grid.y << '\n';
+
     gpuErrchk( cudaEventRecord(start) );
-    matVectorMulOpt<<<cols / 16 + 1, 16>>>(dev_matrix, dev_v, dev_result, sizes);
+    matVectorMulOpt<<<grid, block>>>(dev_result, dev_matrix, dev_v, sizes);
+
     gpuErrchk( cudaEventRecord(stop) );
 
     gpuErrchk( cudaPeekAtLastError() );

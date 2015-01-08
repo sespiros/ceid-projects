@@ -41,8 +41,8 @@ __global__ void matVectorMulOpt(double* res, double* mat, double* vec, sizeInfo 
         } else {
             tileElt = size.cols % TILE_SIZE;
         }
-        xstartPos = blockIdx.x * TILE_SIZE;
-        ystartPos = blockIdx.y * blockDim.x;
+        xstartPos = blockIdx.x * TILE_SIZE; // column starting point
+        ystartPos = blockIdx.y * blockDim.x; // row starting point
     }
 
 
@@ -129,7 +129,7 @@ int optimizedKernelSetup(int rows, int cols, bool runCPU)
 
     // define grid, block sizes
     dim3 block(1024);
-    dim3 grid(rows / TILE_SIZE + 1, cols / 1024 + 1);
+    dim3 grid(cols / (TILE_SIZE + 1) + 1, rows / (1024 + 1) + 1);
     std::cout << grid.x << " " << grid.y << '\n';
 
     gpuErrchk( cudaEventRecord(start) );

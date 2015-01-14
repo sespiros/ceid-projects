@@ -48,6 +48,10 @@ __global__ void matVectorMulOpt(double* res, double* mat, double* vec, sizeInfo 
 
     __syncthreads();
 
+    // use each thread in block
+    // to copy one element from the vector
+    // to shared memory; limit to number of
+    // elements needed
     if (threadIdx.x < tileElt) {
         v[threadIdx.x] = vec[xstartPos + threadIdx.x];
     }
@@ -128,9 +132,9 @@ int optimizedKernelSetup(int rows, int cols, bool runCPU)
     gpuErrchk( cudaMemset(dev_result, 0, resultSize) );
 
     // define grid, block sizes
-    dim3 block(1024);
-    dim3 grid(cols / (TILE_SIZE + 1) + 1, rows / (1024 + 1) + 1);
-    std::cout << grid.x << " " << grid.y << '\n';
+    int blockSize = 1024;
+    dim3 block(blockSize);
+    dim3 grid(cols / (TILE_SIZE + 1) + 1, rows / (blockSize + 1) + 1);
 
     gpuErrchk( cudaEventRecord(start) );
     matVectorMulOpt<<<grid, block>>>(dev_result, dev_matrix, dev_v, sizes);

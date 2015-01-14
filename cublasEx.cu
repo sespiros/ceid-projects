@@ -6,9 +6,7 @@
 // metrics
 #include <sys/time.h>
 
-#define N 4096
-
-int main()
+int main(int argc, char *argv[])
 {
     cublasHandle_t handle;
     cublasStatus_t stat;
@@ -16,6 +14,16 @@ int main()
     double *dev_a;
     double *dev_v;
     double *dev_z;
+
+    int N = 1024;
+    int matched;
+    if (argc > 1) {
+        matched = sscanf(argv[1], "%d", &N);
+        if (matched < 1) {
+            printf("Usage: %s number\n", argv[0]);
+            return -1;
+        }
+    }
 
     printf("Matrix size: %dx%d\n", N, N);
     a = (double *) malloc (N * N * sizeof(double));

@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "common.h"
-#include "plainKernel.h"
+#include "optimizedKernel.h"
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -15,20 +15,61 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     }
 }
 
-__global__ void matVectorMul(double* mat, double* vec, double *res, sizeInfo size)
+// atomicAdd for doubles
+__device__ double atomicAdd(double* address, double val)
 {
-    int rowId = threadIdx.x + blockIdx.x * blockDim.x;
-    double sum = 0.0;
+    unsigned long long int* address_as_ull = (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
 
-    if (rowId < size.rows) {
-        for (int i = 0; i < size.cols; i++) {
-            sum += mat[rowId * size.cols + i] * vec[i];
+    do {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed, __double_as_longlong(val + __longlong_as_double(assumed)));
+    } while (assumed != old);
+
+    return __longlong_as_double(old);
+}
+
+#define TILE_SIZE 512
+__global__ void matVectorMulOpt(double* res, double* mat, double* vec, sizeInfo size)
+{
+    __shared__ double v[TILE_SIZE];
+    __shared__ int tileElt, xstartPos, ystartPos;
+
+    if (threadIdx.x == 0) {
+        if ((blockIdx.x + 1) * TILE_SIZE <= size.cols) {
+            tileElt = TILE_SIZE;
+        } else {
+            tileElt = size.cols % TILE_SIZE;
         }
-        res[rowId] = sum;
+        xstartPos = blockIdx.x * TILE_SIZE; // column starting point
+        ystartPos = blockIdx.y * blockDim.x; // row starting point
+    }
+
+
+    __syncthreads();
+
+    // use each thread in block
+    // to copy one element from the vector
+    // to shared memory; limit to number of
+    // elements needed
+    if (threadIdx.x < tileElt) {
+        v[threadIdx.x] = vec[xstartPos + threadIdx.x];
+    }
+
+    __syncthreads();
+
+    double sum = 0.0;
+    int rowIdx = ystartPos + threadIdx.x;
+    if (rowIdx < size.rows) {
+        for (int i = 0; i < tileElt; i++) {
+            // mat is column major
+            sum += mat[rowIdx + (xstartPos + i) * size.rows] * v[i];
+        }
+        atomicAdd(res + rowIdx, sum);
     }
 }
 
-void matVectorMulHost(double *mat, double *vec, double *res, sizeInfo size)
+void matVectorMulHostOpt(double *mat, double *vec, double *res, sizeInfo size)
 {
     double sum = 0.0;
 
@@ -41,7 +82,7 @@ void matVectorMulHost(double *mat, double *vec, double *res, sizeInfo size)
     }
 }
 
-int plainKernelSetup(int rows, int cols, bool runCPU)
+int optimizedKernelSetup(int rows, int cols, bool runCPU)
 {
     double *matrix, *v, *result, *result_cpu;
     double *dev_matrix, *dev_v, *dev_result;
@@ -72,10 +113,10 @@ int plainKernelSetup(int rows, int cols, bool runCPU)
     gpuErrchk( cudaMalloc(&dev_result, resultSize) );
 
     // randomize matrix elements
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            /*matrix[i * cols + j] = rand() / (RAND_MAX * 1.0) * 2.0 - 1.0;*/
-            matrix[i * cols + j] = ceil(rand() / (RAND_MAX * 1.0) * 10.0);
+    for (int j = 0; j < cols; j++) {
+        for (int i = 0; i < rows; i++) {
+            /*matrix[i * cols + j] = ceil(rand() / (RAND_MAX * 1.0) * 10.0);*/
+            matrix[j * rows + i] = ceil(rand() / (RAND_MAX * 1.0) * 10.0);
         }
     }
 
@@ -90,8 +131,14 @@ int plainKernelSetup(int rows, int cols, bool runCPU)
     gpuErrchk( cudaMemcpy(dev_v, v, vectorSize, cudaMemcpyHostToDevice) );
     gpuErrchk( cudaMemset(dev_result, 0, resultSize) );
 
+    // define grid, block sizes
+    int blockSize = 1024;
+    dim3 block(blockSize);
+    dim3 grid(cols / (TILE_SIZE + 1) + 1, rows / (blockSize + 1) + 1);
+
     gpuErrchk( cudaEventRecord(start) );
-    matVectorMul<<<rows / 16 + 1, 16>>>(dev_matrix, dev_v, dev_result, sizes);
+    matVectorMulOpt<<<grid, block>>>(dev_result, dev_matrix, dev_v, sizes);
+
     gpuErrchk( cudaEventRecord(stop) );
 
     gpuErrchk( cudaPeekAtLastError() );
@@ -105,7 +152,7 @@ int plainKernelSetup(int rows, int cols, bool runCPU)
 
     if (runCPU) {
         // run same multiplication on CPU
-        matVectorMulHost(matrix, v, result_cpu, sizes);
+        matVectorMulHostOpt(matrix, v, result_cpu, sizes);
     }
 
     gpuErrchk( cudaFree(dev_matrix) );

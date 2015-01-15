@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-//int main(int argc, char *argv[])
 int runCublas(int rows, int cols)
 {
     cublasHandle_t handle;
@@ -15,7 +14,7 @@ int runCublas(int rows, int cols)
     double *dev_v;
     double *dev_z;
 
-    std::cout << "Running MV multiplication in CUBLAS for a " << rows << "x" << cols << " matrix..." << std::endl;
+    std::cout << "\nRunning MV multiplication in CUBLAS for a " << rows << "x" << cols << " matrix..." << std::endl;
 
     a = (double *) malloc (rows * cols * sizeof(double));
     v = (double *) malloc (cols * sizeof(double));
@@ -101,7 +100,7 @@ int runCublas(int rows, int cols)
 
     float elapsedMs = 0.0f;
     cudaEventElapsedTime(&elapsedMs, start, stop);
-    printf("Time elapsed: %fms\n", elapsedMs);
+    std::cout << elapsedMs << "ms elapsed for cuBLAS." << std::endl;
 
     cudaFree(dev_a);
     cudaFree(dev_v);

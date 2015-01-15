@@ -1,40 +1,32 @@
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-// metrics
-#include <sys/time.h>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
 
-int main(int argc, char *argv[])
+//int main(int argc, char *argv[])
+int runCublas(int rows, int cols)
 {
     cublasHandle_t handle;
     cublasStatus_t stat;
-    double *a, *v;
+    double *a, *v, *res;
     double *dev_a;
     double *dev_v;
     double *dev_z;
 
-    int N = 1024;
-    int matched;
-    if (argc > 1) {
-        matched = sscanf(argv[1], "%d", &N);
-        if (matched < 1) {
-            printf("Usage: %s number\n", argv[0]);
-            return -1;
-        }
-    }
+    std::cout << "Running MV multiplication in CUBLAS for a " << rows << "x" << cols << " matrix..." << std::endl;
 
-    printf("Matrix size: %dx%d\n", N, N);
-    a = (double *) malloc (N * N * sizeof(double));
-    v = (double *) malloc (N * sizeof(double));
-    cudaMalloc((void **)&dev_a, N * N * sizeof(double));
-    cudaMalloc((void **)&dev_v, N * sizeof(double));
-    cudaMalloc((void **)&dev_z, N * sizeof(double));
+    a = (double *) malloc (rows * cols * sizeof(double));
+    v = (double *) malloc (cols * sizeof(double));
+    res = (double *) malloc (rows * sizeof(double));
+    cudaMalloc((void **)&dev_a, rows * cols * sizeof(double));
+    cudaMalloc((void **)&dev_v, cols * sizeof(double));
+    cudaMalloc((void **)&dev_z, rows * sizeof(double));
 
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            a[i*N + j] = (i-1) * N + 2*j;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            a[i*cols + j] = (i-1) * cols + 2*j;
         }
     }
 
@@ -46,25 +38,25 @@ int main(int argc, char *argv[])
     double alpha, beta;
     alpha = 1.0;
     beta = 0.0;
-    stat = cublasSetMatrix(N, N, sizeof(double), a, N, dev_a, N);
+    stat = cublasSetMatrix(rows, cols, sizeof(double), a, rows, dev_a, rows);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("set matrix fail");
     }
 
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < cols; i++) {
         v[i] = 1.1f;
     }
 
-    stat = cublasSetVector(N, sizeof(double), v, 1, dev_v, 1);
+    stat = cublasSetVector(cols, sizeof(double), v, 1, dev_v, 1);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("set vector fail");
     }
 
-    for (int i = 0; i < N; i++) {
-        v[i] = 0;
+    for (int i = 0; i < rows; i++) {
+        res[i] = 0;
     }
 
-    stat = cublasSetVector(N, sizeof(double), v, 1, dev_z, 1);
+    stat = cublasSetVector(rows, sizeof(double), res, 1, dev_z, 1);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("set vector fail");
     }
@@ -74,7 +66,13 @@ int main(int argc, char *argv[])
     cudaEventCreate(&stop);
 
     cudaEventRecord(start);
-    stat = cublasDgemv(handle, CUBLAS_OP_T, N, N, &alpha, dev_a, N, dev_v, 1, &beta, dev_z, 1);
+    stat = cublasDgemv(handle, CUBLAS_OP_T, 
+                        rows, cols, 
+                        &alpha, 
+                        dev_a, rows, 
+                        dev_v, 1, 
+                        &beta, 
+                        dev_z, 1);
     cudaDeviceSynchronize();
     cudaEventRecord(stop);
 
@@ -92,7 +90,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");*/
     
-    stat = cublasGetVector(N, sizeof(double), dev_z, 1, v, 1);
+    stat = cublasGetVector(rows, sizeof(double), dev_z, 1, res, 1);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("download fail");
     }
@@ -111,5 +109,7 @@ int main(int argc, char *argv[])
     cublasDestroy(handle);
     free(a);
     free(v);
+    free(res);
+
     return 0;
 }

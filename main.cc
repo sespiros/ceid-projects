@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "cublas.h"
 #include "plainKernel.h"
 
 int main()
@@ -16,7 +17,11 @@ int main()
     };
     int nSizes = sizeof(matrixSizes) / sizeof(int);
     nSizes /= 2;
+
     // call variant 1
+    for (int i = 0; i < nSizes; ++i) {
+        runCublas(matrixSizes[2*i], matrixSizes[2*i+1]);
+    }
 
     // call variant 2
     for (int i = 0; i < nSizes; i += 1) {

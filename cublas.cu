@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-int runCublas(int rows, int cols)
+float runCublas(int rows, int cols)
 {
     cublasHandle_t handle;
     cublasStatus_t stat;
@@ -110,5 +110,5 @@ int runCublas(int rows, int cols)
     free(v);
     free(res);
 
-    return 0;
+    return elapsedMs;
 }

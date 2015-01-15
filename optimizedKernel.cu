@@ -82,7 +82,7 @@ void matVectorMulHostOpt(double *mat, double *vec, double *res, sizeInfo size)
     }
 }
 
-int optimizedKernelSetup(int rows, int cols, bool runCPU)
+float optimizedKernelSetup(int rows, int cols, bool runCPU)
 {
     double *matrix, *v, *result, *result_cpu;
     double *dev_matrix, *dev_v, *dev_result;
@@ -164,5 +164,5 @@ int optimizedKernelSetup(int rows, int cols, bool runCPU)
     free(result);
     free(result_cpu);
 
-    return 0;
+    return msec;
 }

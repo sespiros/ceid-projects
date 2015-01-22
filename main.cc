@@ -34,13 +34,13 @@ int main()
     // call variant 2
     std::cout << KGRN "\n== Running vanilla MV multiplication tests... ==" KNRM << std::endl;
     for (int i = 0; i < nSizes; i += 1) {
-        runtimes[nSizes + i] = plainKernelSetup(matrixSizes[2*i], matrixSizes[2*i+1]);
+        runtimes[nSizes + i] = plainKernelSetup(matrixSizes[2*i], matrixSizes[2*i+1], true);
     }
 
     // call variant 3
     std::cout << KGRN "\n== Running optimized MV multiplication tests... ==" KNRM << std::endl;
     for (int i = 0; i < nSizes; i++) {
-        runtimes[nSizes * 2 + i] = optimizedKernelSetup(matrixSizes[2*i], matrixSizes[2*i+1]);
+        runtimes[nSizes * 2 + i] = optimizedKernelSetup(matrixSizes[2*i], matrixSizes[2*i+1], true);
     }
 
     // show results

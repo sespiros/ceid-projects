@@ -37,7 +37,7 @@ float runCublas(int rows, int cols)
     double alpha, beta;
     alpha = 1.0;
     beta = 0.0;
-    stat = cublasSetMatrix(rows, cols, sizeof(double), a, rows, dev_a, rows);
+    stat = cublasSetMatrix(cols, rows, sizeof(double), a, cols, dev_a, cols);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("set matrix fail");
     }
@@ -66,9 +66,9 @@ float runCublas(int rows, int cols)
 
     cudaEventRecord(start);
     stat = cublasDgemv(handle, CUBLAS_OP_T, 
-                        rows, cols, 
+                        cols, rows, 
                         &alpha, 
-                        dev_a, rows, 
+                        dev_a, cols, 
                         dev_v, 1, 
                         &beta, 
                         dev_z, 1);

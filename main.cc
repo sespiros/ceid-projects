@@ -23,6 +23,7 @@ int main()
     nSizes /= 2;
 
     // call variant 1
+    std::cout << KGRN "\n== Running cublas multiplication tests... ==" KNRM << std::endl;
     for (int i = 0; i < nSizes; ++i) {
         runCublas(matrixSizes[2*i], matrixSizes[2*i+1]);
     }

@@ -15,7 +15,7 @@ int runCublas(int rows, int cols)
     double *dev_v;
     double *dev_z;
 
-    std::cout << "Running MV multiplication in CUBLAS for a " << rows << "x" << cols << " matrix..." << std::endl;
+    std::cout << "\nRunning MV multiplication in CUBLAS for a " << rows << "x" << cols << " matrix..." << std::endl;
 
     a = (double *) malloc (rows * cols * sizeof(double));
     v = (double *) malloc (cols * sizeof(double));

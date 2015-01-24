@@ -1,9 +1,7 @@
 // CUDA runtime
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
-
-// CUDA and CUBLAS functions
-#include <helper_functions.h>
+#include <stdio.h>
 
 #ifndef min
 #define min(a,b) ((a < b) ? a : b)
@@ -54,9 +52,9 @@ void initializeCUDA(int argc, char **argv, int &devID, int &iSizeMultiple, sMatr
         exit(EXIT_FAILURE);
     }
 
-    if (argc >= 1)
+    if (argc >= 2)
     {
-        iSizeMultiple = argv[2];
+        //iSizeMultiple = argv[2];
     }
 
     iSizeMultiple = min(iSizeMultiple, 100);
@@ -129,15 +127,15 @@ int matrixMultiply(int argc, char **argv, int devID, sMatrixSize &matrix_size)
     randomInit(h_B, size_B);
 
     // allocate device memory
-    float *d_A, *d_B, *d_C;
+    double *d_A, *d_B, *d_C;
     unsigned int size_C = matrix_size.uiWC * matrix_size.uiHC;
     unsigned int mem_size_C = sizeof(float) * size_C;
 
     // allocate host memory for the result
-    float *h_C      = (float *) malloc(mem_size_C);
-    float *h_CUBLAS = (float *) malloc(mem_size_C);
+    double *h_C      = (double *) malloc(mem_size_C);
+    double *h_CUBLAS = (double *) malloc(mem_size_C);
 
-    error = cudaMalloc((void **) &d_A, mem_size_A);
+    error = cudaMalloc((void **) &d_A, mem_size_A*sizeof(double));
 
     if (error != cudaSuccess)
     {
@@ -145,7 +143,7 @@ int matrixMultiply(int argc, char **argv, int devID, sMatrixSize &matrix_size)
         exit(EXIT_FAILURE);
     }
 
-    error = cudaMalloc((void **) &d_B, mem_size_B);
+    error = cudaMalloc((void **) &d_B, mem_size_B*sizeof(double));
 
     if (error != cudaSuccess)
     {
@@ -202,10 +200,16 @@ int matrixMultiply(int argc, char **argv, int devID, sMatrixSize &matrix_size)
             exit(EXIT_FAILURE);
         }
 
-        const float alpha = 1.0f;
-        const float beta  = 0.0f;
+        double alpha = 1.0f;
+        double beta  = 0.0f;
         //Perform warmup operation with cublas
-        ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, matrix_size.uiWB, matrix_size.uiHA, matrix_size.uiWA, &alpha, d_B, matrix_size.uiWB, d_A, matrix_size.uiWA, &beta, d_C, matrix_size.uiWA);
+		ret = cublasDgemv(handle, CUBLAS_OP_T, 
+                        matrix_size.uiWA, matrix_size.uiWA, 
+                        &alpha, 
+                        d_A, matrix_size.uiWA, 
+                        d_B, 1, 
+                        &beta, 
+                        d_C, 1);
 
         if (ret != CUBLAS_STATUS_SUCCESS)
         {
@@ -243,7 +247,13 @@ int matrixMultiply(int argc, char **argv, int devID, sMatrixSize &matrix_size)
 
         //note cublas is column primary!
         //need to transpose the order
-        ret = cublasDgemv(handle, CUBLAS_OP_T, matrix_size.uiWA, matrix_size.uiWA, &alpha, d_A, matrix_size.uiWA, d_B, 1, &beta, d_C, 1);
+		ret = cublasDgemv(handle, CUBLAS_OP_T, 
+                        matrix_size.uiWA, matrix_size.uiWA, 
+                        &alpha, 
+                        d_A, matrix_size.uiWA, 
+                        d_B, 1, 
+                        &beta, 
+                        d_C, 1);
 
         if (ret != CUBLAS_STATUS_SUCCESS)
         {
@@ -306,7 +316,6 @@ int matrixMultiply(int argc, char **argv, int devID, sMatrixSize &matrix_size)
     free(h_A);
     free(h_B);
     free(h_C);
-    free(reference);
     cudaFree(d_A);
     cudaFree(d_B);
     cudaFree(d_C);

@@ -1,9 +1,12 @@
+#include <cmath>
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
 
 #include "common.h"
 #include "optimizedKernel.h"
+
+#define EPSILON 0.00001
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -73,16 +76,17 @@ void matVectorMulHostOpt(double *mat, double *vec, double *res, sizeInfo size)
 {
     double sum = 0.0;
 
+    // remember: mat is COLUMN major!
     for (int i = 0; i < size.rows; i++) {
         sum = 0.0;
         for (int j = 0; j < size.cols; j++) {
-            sum += mat[i * size.cols + j] * vec[j];
+            sum += mat[j * size.rows + i] * vec[j];
         }
         res[i] = sum;
     }
 }
 
-int optimizedKernelSetup(int rows, int cols, bool runCPU)
+float optimizedKernelSetup(int rows, int cols, bool runCPU)
 {
     double *matrix, *v, *result, *result_cpu;
     double *dev_matrix, *dev_v, *dev_result;
@@ -134,7 +138,7 @@ int optimizedKernelSetup(int rows, int cols, bool runCPU)
     // define grid, block sizes
     int blockSize = 1024;
     dim3 block(blockSize);
-    dim3 grid(cols / (TILE_SIZE + 1) + 1, rows / (blockSize + 1) + 1);
+    dim3 grid((cols + TILE_SIZE - 1) / TILE_SIZE, (rows + blockSize - 1) / blockSize);
 
     gpuErrchk( cudaEventRecord(start) );
     matVectorMulOpt<<<grid, block>>>(dev_result, dev_matrix, dev_v, sizes);
@@ -153,6 +157,25 @@ int optimizedKernelSetup(int rows, int cols, bool runCPU)
     if (runCPU) {
         // run same multiplication on CPU
         matVectorMulHostOpt(matrix, v, result_cpu, sizes);
+
+        std::cout << "Comparing with CPU results...";
+
+        // run test
+        bool same = true;
+        for (int r = 0; r < rows; r++) {
+            double diff = fabs(result[r] - result_cpu[r]);
+            if (diff >= EPSILON) {
+                same = false;
+                std::cout << "\nResults are wrong. Difference: " << diff << ", offset: " << r << std::endl;
+            }
+
+            if (!same)
+                break;
+        }
+
+        if (same) {
+            std::cout << " PASS" << std::endl;
+        }
     }
 
     gpuErrchk( cudaFree(dev_matrix) );
@@ -164,5 +187,5 @@ int optimizedKernelSetup(int rows, int cols, bool runCPU)
     free(result);
     free(result_cpu);
 
-    return 0;
+    return msec;
 }

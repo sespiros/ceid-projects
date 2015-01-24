@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -41,7 +42,7 @@ void matVectorMulHost(double *mat, double *vec, double *res, sizeInfo size)
     }
 }
 
-int plainKernelSetup(int rows, int cols, bool runCPU)
+float plainKernelSetup(int rows, int cols, bool runCPU)
 {
     double *matrix, *v, *result, *result_cpu;
     double *dev_matrix, *dev_v, *dev_result;
@@ -106,6 +107,25 @@ int plainKernelSetup(int rows, int cols, bool runCPU)
     if (runCPU) {
         // run same multiplication on CPU
         matVectorMulHost(matrix, v, result_cpu, sizes);
+
+        std::cout << "Comparing with CPU results...";
+
+        // compare cpu results with CUDA
+        bool same = true;
+        for (int r = 0; r < rows; r++) {
+            double diff = fabs(result[r] - result_cpu[r]);
+            if (diff >= 0.00001) {
+                same = false;
+                std::cout << "\nResults are wrong. Difference: " << diff << ", offset: " << r << std::endl;
+            }
+
+            if (!same)
+                break;
+        }
+
+        if (same) {
+            std::cout << " PASS" << std::endl;
+        }
     }
 
     gpuErrchk( cudaFree(dev_matrix) );
@@ -117,5 +137,5 @@ int plainKernelSetup(int rows, int cols, bool runCPU)
     free(result);
     free(result_cpu);
 
-    return 0;
+    return msec;
 }

@@ -5,8 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-//int main(int argc, char *argv[])
-int runCublas(int rows, int cols)
+float runCublas(int rows, int cols)
 {
     cublasHandle_t handle;
     cublasStatus_t stat;
@@ -38,7 +37,7 @@ int runCublas(int rows, int cols)
     double alpha, beta;
     alpha = 1.0;
     beta = 0.0;
-    stat = cublasSetMatrix(rows, cols, sizeof(double), a, rows, dev_a, rows);
+    stat = cublasSetMatrix(cols, rows, sizeof(double), a, cols, dev_a, cols);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("set matrix fail");
     }
@@ -67,9 +66,9 @@ int runCublas(int rows, int cols)
 
     cudaEventRecord(start);
     stat = cublasDgemv(handle, CUBLAS_OP_T, 
-                        rows, cols, 
+                        cols, rows, 
                         &alpha, 
-                        dev_a, rows, 
+                        dev_a, cols, 
                         dev_v, 1, 
                         &beta, 
                         dev_z, 1);
@@ -101,7 +100,7 @@ int runCublas(int rows, int cols)
 
     float elapsedMs = 0.0f;
     cudaEventElapsedTime(&elapsedMs, start, stop);
-    printf("Time elapsed: %fms\n", elapsedMs);
+    std::cout << elapsedMs << "ms elapsed for cuBLAS." << std::endl;
 
     cudaFree(dev_a);
     cudaFree(dev_v);
@@ -111,5 +110,5 @@ int runCublas(int rows, int cols)
     free(v);
     free(res);
 
-    return 0;
+    return elapsedMs;
 }

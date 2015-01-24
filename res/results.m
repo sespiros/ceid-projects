@@ -39,3 +39,9 @@ legend('cuBLAS', 'Plain', 'Optimized')
 fontsize=16;
 set([gca; findall(gca, 'Type','text')], 'FontSize', fontsize);
 print(h,'-dpng','-color','times.png')
+
+# calculate speedup
+speedup = plain ./ optimized;
+figure(2)
+plot(1:length(speedup), speedup, 'LineWidth', 3)
+title('Speedup, plain vs optimized')

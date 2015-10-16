@@ -1,0 +1,4 @@
+digraph {
+labelloc="t";
+label="ST";
+"(10,0,0)"->"(3,7,0)" [color = black][label="(0, 1)"]

@@ -1,0 +1,13 @@
+﻿//Grammi 1 se leitourgia eksodou
+
+mw 0 0xFFFFF400 0x02 Γενικού Σκοπού 	PIO_PER
+mw 0 0xFFFFF410 0x02 ΄Εξοδος 		PIO_OER
+mw 0 0xFFFFF430 0x02 Υψηλό δυναμικό 	PIO_SODR
+mw 0 0xFFFFF434 0x02 Χαμηλό δυναμικό 	PIO_CODR
+
+//Eleghos grammis 0
+
+mw 0 0xFFFFF400 0x01 Γενικού Σκοπού 			PIO_PER
+mw 0 0xFFFFF414 0x01 Είσοδος 				PIO_ODR
+mw 0 0xFFFFF464 0x01 Ενεργοποίηση Pullup 		PIO_PUER
+md 0 0xFFFFF43C 1    Ανάγνωση δυναμικού εισόδου 	PIO_PDSR

@@ -1,0 +1,703 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>db &mdash; db-project 1.2.4 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="top" title="db-project 1.2.4 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">db-project 1.2.4 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for db</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. moduleauthor:: Spyros Seimenis &lt;seimenis@ceid.upatras.gr&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">btree</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="c"># if this set to True adds verbosity in the output of the program !!very usefull!!</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="c"># default json line size</span>
+<span class="n">SIZE_SMALL</span> <span class="o">=</span> <span class="mi">300</span>
+<span class="n">SIZE_BIG</span> <span class="o">=</span> <span class="mi">1000</span>
+
+<span class="c"># It is used as an enum for fast processing</span>
+<span class="n">_attribute</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ID&#39;</span><span class="p">,</span><span class="s">&#39;surname&#39;</span><span class="p">,</span><span class="s">&#39;name&#39;</span><span class="p">,</span><span class="s">&#39;year&#39;</span><span class="p">,</span><span class="s">&#39;age&#39;</span><span class="p">]</span>
+
+<span class="c"># creation</span>
+<div class="viewcode-block" id="createDatabase"><a class="viewcode-back" href="../index.html#db.createDatabase">[docs]</a><span class="k">def</span> <span class="nf">createDatabase</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function for generating an example record file used for testing</span>
+
+<span class="sd">    :param name: the name of the database</span>
+<span class="sd">    :type name: str.</span>
+<span class="sd">    :param size: the number of records in the record file</span>
+<span class="sd">    :type size: integer</span>
+
+<span class="sd">    It is used to generate random IDs, surnames, names, year and age in order to create a test database,</span>
+<span class="sd">    every record is a dictionary that first is jsoned and then dumped into the file</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        The databases files have .db extension</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">years</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">2050</span><span class="p">)]</span>
+    <span class="n">age</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">60</span><span class="p">)]</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;forrest&#39;</span><span class="p">,</span> <span class="s">&#39;kostas&#39;</span><span class="p">,</span> <span class="s">&#39;spiros&#39;</span><span class="p">,</span> <span class="s">&#39;dimitris&#39;</span><span class="p">,</span>
+             <span class="s">&#39;agathwn&#39;</span><span class="p">,</span> <span class="s">&#39;marcello&#39;</span><span class="p">,</span> <span class="s">&#39;markos&#39;</span><span class="p">,</span> <span class="s">&#39;sotiris&#39;</span><span class="p">,</span>
+             <span class="s">&#39;petros&#39;</span><span class="p">,</span> <span class="s">&#39;nikos&#39;</span><span class="p">,</span> <span class="s">&#39;pelopidas&#39;</span><span class="p">,</span> <span class="s">&#39;loukas&#39;</span><span class="p">,</span> <span class="s">&#39;john&#39;</span><span class="p">,</span>
+              <span class="s">&#39;ntinos&#39;</span><span class="p">,</span> <span class="s">&#39;makis&#39;</span><span class="p">,</span> <span class="s">&#39;marinos&#39;</span><span class="p">,</span> <span class="s">&#39;root&#39;</span><span class="p">,</span> <span class="s">&#39;mitsos&#39;</span><span class="p">,</span>
+              <span class="s">&#39;giannis&#39;</span><span class="p">,</span> <span class="s">&#39;vagelis&#39;</span><span class="p">,</span> <span class="s">&#39;pietros&#39;</span><span class="p">,</span><span class="s">&#39;spyro&#39;</span><span class="p">,</span><span class="s">&#39;flkj&#39;</span><span class="p">,</span> <span class="s">&#39;richard&#39;</span><span class="p">,</span><span class="s">&#39;linus&#39;</span><span class="p">]</span>
+
+    <span class="n">surnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;souloumelitis&#39;</span><span class="p">,</span> <span class="s">&#39;tsakalos&#39;</span><span class="p">,</span> <span class="s">&#39;lamarinas&#39;</span><span class="p">,</span> <span class="s">&#39;zathuras&#39;</span><span class="p">,</span>
+                <span class="s">&#39;pelopiou&#39;</span><span class="p">,</span> <span class="s">&#39;maderas&#39;</span><span class="p">,</span> <span class="s">&#39;gump&#39;</span><span class="p">,</span> <span class="s">&#39;robocopios&#39;</span><span class="p">,</span>
+                <span class="s">&#39;danezos&#39;</span><span class="p">,</span> <span class="s">&#39;aggelou&#39;</span><span class="p">,</span> <span class="s">&#39;papakonstantinou&#39;</span><span class="p">,</span> <span class="s">&#39;venizelos&#39;</span><span class="p">,</span>
+                <span class="s">&#39;snow&#39;</span><span class="p">,</span><span class="s">&#39;ROOT&#39;</span><span class="p">,</span><span class="s">&#39;lanister&#39;</span><span class="p">,</span><span class="s">&#39;asdf&#39;</span><span class="p">,</span><span class="s">&#39;surnamer&#39;</span><span class="p">,</span><span class="s">&#39;maragos&#39;</span><span class="p">,</span>
+                <span class="s">&#39;kalyvas&#39;</span><span class="p">,</span><span class="s">&#39;derek&#39;</span><span class="p">,</span><span class="s">&#39;dales&#39;</span><span class="p">,</span><span class="s">&#39;lemos&#39;</span><span class="p">,</span><span class="s">&#39;otinanai&#39;</span><span class="p">,</span><span class="s">&#39;stallman&#39;</span><span class="p">,</span><span class="s">&#39;torvalds&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">id_generator</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">chars</span><span class="o">=</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">))</span>
+
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">record</span><span class="p">[</span><span class="s">&#39;ID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+        <span class="n">record</span><span class="p">[</span><span class="s">&#39;surname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">surnames</span><span class="p">)</span>
+        <span class="n">record</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+        <span class="n">record</span><span class="p">[</span><span class="s">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">years</span><span class="p">)</span>
+        <span class="n">record</span><span class="p">[</span><span class="s">&#39;age&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">age</span><span class="p">)</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="createIndex"><a class="viewcode-back" href="../index.html#db.createIndex">[docs]</a><span class="k">def</span> <span class="nf">createIndex</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">attr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Middle function that creates index based on the attribute given</span>
+
+<span class="sd">    :param name: name of the database</span>
+<span class="sd">    :type name: string</span>
+<span class="sd">    :param filename: name of the index</span>
+<span class="sd">    :type filename: string</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        The index files have .json extension and their names follows the following rule {attribute}_{dbname}.json</span>
+<span class="sd">        ,also an index&#39;s first line contains the number of the node that is root, namely the line number of this node</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">attr</span><span class="o">==</span><span class="s">&#39;ID&#39;</span><span class="p">:</span>
+        <span class="n">createPrimaryIndex</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">createSecondaryIndex</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">attr</span><span class="p">)</span>
+    <span class="c"># resets the nodeCounter in btree.py because the creation of the index has</span>
+    <span class="c"># finished</span>
+    <span class="n">btree</span><span class="o">.</span><span class="n">nodeCounter</span> <span class="o">=</span> <span class="mi">0</span>
+</div>
+<div class="viewcode-block" id="createPrimaryIndex"><a class="viewcode-back" href="../index.html#db.createPrimaryIndex">[docs]</a><span class="k">def</span> <span class="nf">createPrimaryIndex</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function that creates primary key indexes</span>
+
+<span class="sd">    :param name: name of the database</span>
+<span class="sd">    :type name: string</span>
+<span class="sd">    :param filename: name of the index</span>
+<span class="sd">    :type filename: string</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w+&#39;</span><span class="p">)</span>
+
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">BTreeNode</span><span class="p">(</span><span class="n">btree</span><span class="o">.</span><span class="n">TREE_TYPE</span><span class="p">)</span>   <span class="c"># B-tree initialization of root</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;1   </span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="c"># checks for deleted records</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;-&#39;</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span>
+        <span class="c"># loads the record</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="c"># constructs the key</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s">&#39;ID&#39;</span><span class="p">],</span> <span class="n">counter</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span> <span class="k">print</span> <span class="p">(</span><span class="s">&#39; Pushing key &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">end</span>  <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">B_tree_insert</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+        <span class="n">counter</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">4</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)))</span><span class="o">*</span><span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="createSecondaryIndex"><a class="viewcode-back" href="../index.html#db.createSecondaryIndex">[docs]</a><span class="k">def</span> <span class="nf">createSecondaryIndex</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">attr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function that creates secondary key indexes based on the given attribute(not primary key)</span>
+
+<span class="sd">    :param name: name of the database</span>
+<span class="sd">    :type name: string</span>
+<span class="sd">    :param filename: name of the index</span>
+<span class="sd">    :type filename: string</span>
+<span class="sd">    :param attr: the attribute (surname, name, year, age)</span>
+<span class="sd">    :param type: string</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w+&#39;</span><span class="p">)</span>
+
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">BTreeNode</span><span class="p">(</span><span class="n">btree</span><span class="o">.</span><span class="n">TREE_TYPE</span><span class="p">)</span>   <span class="c"># B-tree initialization of root</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;1   </span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;-&#39;</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">nodekey</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="n">attr</span><span class="p">],</span> <span class="n">counter</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>  <span class="k">print</span> <span class="p">(</span><span class="s">&#39;Pushing key &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nodekey</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">end</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">checkInsert</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">nodekey</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+        <span class="n">counter</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">4</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)))</span><span class="o">*</span><span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="c"># insertion</span></div>
+<div class="viewcode-block" id="insertInDatabase"><a class="viewcode-back" href="../index.html#db.insertInDatabase">[docs]</a><span class="k">def</span> <span class="nf">insertInDatabase</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Inserts a given record in the given database</span>
+
+<span class="sd">    :param record: the record</span>
+<span class="sd">    :type record: dictionary</span>
+<span class="sd">    :param filename: the database&#39;s filename</span>
+<span class="sd">    :type filename: string</span>
+<span class="sd">    :raises: ValueError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r+&#39;</span><span class="p">)</span>
+    <span class="n">numlines</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">dmap</span> <span class="o">=</span> <span class="p">[</span><span class="n">record</span><span class="p">[</span><span class="s">&#39;ID&#39;</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">file</span><span class="p">:</span>
+        <span class="n">numlines</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="s">&#39;ID&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">dmap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+    <span class="c"># check if record&#39;s ID matches any existing ID in record file(duplicate</span>
+    <span class="c"># primary key)</span>
+    <span class="n">dmap</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">dmap</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numlines</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dmap</span><span class="p">):</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Inserting record with ID:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s">&#39;ID&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39; in database </span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">numlines</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span><span class="s">&#39;Error: trying to insert duplicate primary key in database &#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="insertInIndex"><a class="viewcode-back" href="../index.html#db.insertInIndex">[docs]</a><span class="k">def</span> <span class="nf">insertInIndex</span><span class="p">(</span><span class="n">nodekey</span><span class="p">,</span> <span class="n">indexname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Inserts a key into an index</span>
+
+<span class="sd">    :param nodekey: the nodekey to insert in the database</span>
+<span class="sd">    :type nodekey: list</span>
+<span class="sd">    :param indexname: filename of the index</span>
+<span class="sd">    :type indexname: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span><span class="s">&#39;r+&#39;</span><span class="p">)</span>
+
+    <span class="c"># Initializes the nodeCounter for use with the specified index</span>
+    <span class="n">numlines</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">file</span><span class="p">:</span>
+        <span class="n">numlines</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">btree</span><span class="o">.</span><span class="n">nodeCounter</span> <span class="o">=</span> <span class="n">numlines</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">())</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span><span class="k">print</span> <span class="p">(</span><span class="s">&#39;Pushing key &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nodekey</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">checkInsert</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">nodekey</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="n">btree</span><span class="o">.</span><span class="n">nodeCounter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">4</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)))</span><span class="o">*</span><span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="checkInsert"><a class="viewcode-back" href="../index.html#db.checkInsert">[docs]</a><span class="k">def</span> <span class="nf">checkInsert</span><span class="p">(</span> <span class="n">tr</span><span class="p">,</span> <span class="n">nodekey</span><span class="p">,</span> <span class="nb">file</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wrapper for :func:`btree.B_tree_insert`</span>
+
+<span class="sd">    :param tr: The root of the btree we want to insert to</span>
+<span class="sd">    :type tr: :class:`btree.BTreeNode`</span>
+<span class="sd">    :param nodekey: the nodekey we want to insert</span>
+<span class="sd">    :type nodekey: list</span>
+<span class="sd">    :param file: The file descriptor of the index</span>
+<span class="sd">    :type file: file</span>
+
+<span class="sd">    If the nodekey found in the index:</span>
+
+<span class="sd">    * If index is for primary key checks for duplicate and throws an error</span>
+<span class="sd">    * If index is for secondary key instead of inserting a new nodekey appends the</span>
+<span class="sd">      record in the existing key</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">B_tree_search</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">nodekey</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">res</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">B_tree_insert</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">nodekey</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span> <span class="k">print</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">Found collision for &#39;</span><span class="p">,</span> <span class="n">nodekey</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">file</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;ID&#39;</span><span class="p">:</span>
+            <span class="k">print</span> <span class="p">(</span><span class="s">&#39;Error: trying to insert duplicate primary key &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nodekey</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39; in index &#39;</span> <span class="o">+</span> <span class="nb">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_offset</span> <span class="o">=</span> <span class="n">nodekey</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_offset</span><span class="p">)</span>
+            <span class="n">disk_write</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tr</span>
+
+<span class="c"># deletion</span></div>
+<div class="viewcode-block" id="deleteFromIndex"><a class="viewcode-back" href="../index.html#db.deleteFromIndex">[docs]</a><span class="k">def</span> <span class="nf">deleteFromIndex</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span> <span class="n">keyP</span><span class="p">,</span> <span class="n">keyS</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Deletes a record from an index</span>
+
+<span class="sd">    :param indexname: the index&#39;s filename</span>
+<span class="sd">    :type indexname: string</span>
+<span class="sd">    :param keyP: A primary key</span>
+<span class="sd">    :type keyP: integer</span>
+<span class="sd">    :param keyS: A secondary key</span>
+<span class="sd">    :type keyS: string/integer</span>
+
+<span class="sd">    If the index is a primary key index it just deletes the record with the primary keyP</span>
+<span class="sd">    If the index is a secondary key index:</span>
+
+<span class="sd">    * searches in the btree the keyS using :func:`db.find`</span>
+<span class="sd">    * if found uses :func:`db.retrieve` to retrieve the records that the nodekey contains</span>
+<span class="sd">      else prints a message that the given keyS didn&#39;t found in the index</span>
+<span class="sd">    * if found checks the records to find matching records with the given keyP</span>
+<span class="sd">      then if the nodekey has only one record deletes the nodekey completely,</span>
+<span class="sd">      if the nodekey has multiple records with the keyS deletes only the one matching the keyP</span>
+<span class="sd">      if none of the records matches keyP prints error message</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span><span class="s">&#39;r+&#39;</span><span class="p">)</span>
+
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">())</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">indexname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">&#39;ID&#39;</span><span class="p">:</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">B_tree_delete</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">keyP</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">4</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)))</span><span class="o">*</span><span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">find</span><span class="p">(</span><span class="n">keyS</span><span class="p">,</span> <span class="nb">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">retrieve</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">indexname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.db&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">keyP</span> <span class="o">==</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">])[</span><span class="s">&#39;ID&#39;</span><span class="p">]:</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">tr</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">B_tree_delete</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">keyS</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+                        <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">4</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">)))</span><span class="o">*</span><span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">fileD</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">indexname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.db&#39;</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">fileD</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                        <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">while</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                            <span class="n">jsoned</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="n">jsoned</span><span class="p">[</span><span class="s">&#39;ID&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">keyP</span><span class="p">:</span>
+                                <span class="k">break</span>
+                            <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+                        <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                        <span class="n">disk_write</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+                <span class="k">print</span> <span class="p">(</span><span class="s">&#39;The key </span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">keyS</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s"> exists but does not match any record in index &#39;</span> <span class="o">+</span> <span class="nb">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="delete"><a class="viewcode-back" href="../index.html#db.delete">[docs]</a><span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Given a primary key and an database file deletes the key from the database and all the indexes</span>
+
+<span class="sd">    :param key: the ID of the user to be deleted</span>
+<span class="sd">    :type key: integer</span>
+<span class="sd">    :param filename: the name of the database file</span>
+<span class="sd">    :type filename: string</span>
+
+<span class="sd">    First searches the record file(database) for the given primary key and deletes it from the database</span>
+<span class="sd">    Then it uses :func:`db.deleteFromIndex` to delete the key from all the indexes that this database has</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="s">&#39;r+&#39;</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span><span class="k">break</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;-&#39;</span><span class="p">:</span><span class="k">continue</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">record</span><span class="p">[</span><span class="s">&#39;ID&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">key</span><span class="p">:</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="n">indexname</span> <span class="o">=</span> <span class="n">_attribute</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">indexname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">deleteFromIndex</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">record</span><span class="p">[</span><span class="n">_attribute</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+            <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="c"># the new implementation of deleteFromIndex uses the record file for</span>
+        <span class="c"># the process. Because of that the record is deleted from the record</span>
+        <span class="c"># file after the deleteFromIndex has finished</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="s">&#39;-&#39;</span><span class="o">*</span><span class="mi">30</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pad</span><span class="p">)</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Primary key &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; not found or has already deleted&#39;</span><span class="p">)</span>
+
+<span class="c"># disk access</span></div>
+<div class="viewcode-block" id="disk_write"><a class="viewcode-back" href="../index.html#db.disk_write">[docs]</a><span class="k">def</span> <span class="nf">disk_write</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function for writing a b-tree node into a file</span>
+
+<span class="sd">    :param object: a btree node</span>
+<span class="sd">    :type object: :class:`btree.BTreeNode`</span>
+<span class="sd">    :param file: the file to write to</span>
+<span class="sd">    :type file: :class: file</span>
+
+<span class="sd">    It is used between the processing of an index to gain</span>
+<span class="sd">    write access of the given index. It uses the json module</span>
+<span class="sd">    to write the given object into the file.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        It uses constant json size of 200 for ID primary key index</span>
+<span class="sd">        and 500 for secondary key index. It may fail if node is too big</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">file</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;ID&#39;</span><span class="p">:</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">SIZE_SMALL</span> 
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">SIZE_BIG</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span> <span class="nb">file</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">+</span> <span class="nb">object</span><span class="o">.</span><span class="n">num</span><span class="o">*</span><span class="n">size</span> <span class="p">)</span>
+    <span class="n">dumped</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">object</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">dumped</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">size</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">dumped</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="disk_read"><a class="viewcode-back" href="../index.html#db.disk_read">[docs]</a><span class="k">def</span> <span class="nf">disk_read</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function for reading a b-tree node into a file</span>
+
+<span class="sd">    :param block: a btree node number of line in the index</span>
+<span class="sd">    :type block: integer</span>
+<span class="sd">    :param file: the file to write to</span>
+<span class="sd">    :type file: class _io.TextIOWrapper</span>
+<span class="sd">    :rtype: :class:`btree.BTreeNode`</span>
+
+<span class="sd">    It is used between the processing of an index to gain</span>
+<span class="sd">    read access of the given index. It fins the line in the index file</span>
+<span class="sd">    then uses json to recreate a BTreeNode and return it</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        It uses constant json size of 200 for ID primary key index</span>
+<span class="sd">        and 500 for secondary key index. It may fail if node is too big</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">file</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;ID&#39;</span><span class="p">:</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">SIZE_SMALL</span> 
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">SIZE_BIG</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span> <span class="nb">file</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">+</span> <span class="n">block</span><span class="o">*</span><span class="n">size</span> <span class="p">)</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+       <span class="k">print</span> <span class="p">(</span><span class="n">l</span><span class="p">)</span>
+    <span class="nb">object</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">BTreeNode</span><span class="p">(</span><span class="n">jsontemp</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">object</span><span class="o">.</span><span class="n">__dict__</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="k">except</span> <span class="ne">UnboundLocalError</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span><span class="s">&quot;Error: Node size exceeds max limit of json node in the file&quot;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">exit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">object</span>
+
+<span class="c"># searching</span></div>
+<div class="viewcode-block" id="find"><a class="viewcode-back" href="../index.html#db.find">[docs]</a><span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">indexname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Finds a record in an index given a key</span>
+
+<span class="sd">    :param key: The key to look for</span>
+<span class="sd">    :type key: integer/string</span>
+<span class="sd">    :param indexname: filename of the index</span>
+<span class="sd">    :type indexname: string</span>
+<span class="sd">    :rtype: tuple that contains a node and an index that points to a key in this node</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        the difference between a key and a nodekey is that the key is a single value (integer or string) that is used to traverse the tree.</span>
+<span class="sd">        the nodekey is a struct-like object (list) that contains the key and the offset of the certain key in the record file. Each node has nodekeys</span>
+<span class="sd">        but it is traversed using the keys in the nodekeys</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">())</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">btree</span><span class="o">.</span><span class="n">B_tree_search</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">res</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Error: Key </span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s"> not found in index &#39;</span> <span class="o">+</span> <span class="n">indexname</span><span class="p">)</span>
+
+    <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">res</span>
+</div>
+<div class="viewcode-block" id="findRange"><a class="viewcode-back" href="../index.html#db.findRange">[docs]</a><span class="k">def</span> <span class="nf">findRange</span><span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">,</span>  <span class="n">indexname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Finds records in an index, in the range of two keys</span>
+
+<span class="sd">    :param key1: The key down border</span>
+<span class="sd">    :type key1: integer/string</span>
+<span class="sd">    :param key2: The key up border</span>
+<span class="sd">    :type key2: integer/string</span>
+<span class="sd">    :param indexname: filename of the index</span>
+<span class="sd">    :type indexname: string</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># recursive function. Generates a list with the nodekeys that are between</span>
+    <span class="c"># the two given keys</span>
+    <span class="k">def</span> <span class="nf">_traverse</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">keys</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">tr</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">key1</span> <span class="ow">and</span> <span class="n">tr</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">key2</span><span class="p">:</span>
+                <span class="nb">list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">tr</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tr</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">_traverse</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span><span class="s">&#39;r+&#39;</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">())</span>
+
+    <span class="c"># Swaps the keys if the key2 is smaller than key1</span>
+    <span class="p">(</span><span class="n">MIN</span><span class="p">,</span> <span class="n">MAX</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">key1</span><span class="o">&gt;</span><span class="n">key2</span><span class="p">):</span> <span class="p">(</span><span class="n">MIN</span><span class="p">,</span> <span class="n">MAX</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">key2</span><span class="p">,</span> <span class="n">key1</span><span class="p">)</span>
+
+    <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_traverse</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">MIN</span><span class="p">,</span> <span class="n">MAX</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">list</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Keys in range </span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">MIN</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">MAX</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s"> not found.&#39;</span><span class="p">)</span>
+
+    <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">list</span>
+
+<span class="c"># misc</span></div>
+<div class="viewcode-block" id="makeRecord"><a class="viewcode-back" href="../index.html#db.makeRecord">[docs]</a><span class="k">def</span> <span class="nf">makeRecord</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function for creating record dictionary given a properly formatted string</span>
+
+<span class="sd">    :param line: properly formatted string</span>
+<span class="sd">    :type line: str.</span>
+<span class="sd">    :return record: the generated record</span>
+<span class="sd">    :type record: dictionary</span>
+
+<span class="sd">    Example of its function</span>
+
+<span class="sd">    &gt;&gt;&gt; makeRecord(&#39;5070 spyros seimenis 2 20&#39;)</span>
+<span class="sd">    {&#39;age&#39;: 20, &#39;year&#39;: 2, &#39;surname&#39;: &#39;spyros&#39;, &#39;ID&#39;: 5070, &#39;name&#39;: &#39;seimenis&#39;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_size</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">2</span> <span class="p">}</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">record</span><span class="p">[</span><span class="s">&#39;ID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="n">_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">record</span><span class="p">[</span><span class="s">&#39;surname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">][:</span><span class="n">_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">record</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">][:</span><span class="n">_size</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+    <span class="n">record</span><span class="p">[</span><span class="s">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">3</span><span class="p">][:</span><span class="n">_size</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+    <span class="n">record</span><span class="p">[</span><span class="s">&#39;age&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">4</span><span class="p">][:</span><span class="n">_size</span><span class="p">[</span><span class="mi">4</span><span class="p">]])</span>
+
+    <span class="k">return</span> <span class="n">record</span>
+</div>
+<div class="viewcode-block" id="retrieve"><a class="viewcode-back" href="../index.html#db.retrieve">[docs]</a><span class="k">def</span> <span class="nf">retrieve</span><span class="p">(</span><span class="n">nodekey</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function for retrieving the lines from the database that a key of Btreenode is pointing</span>
+
+<span class="sd">    :param nodekey: a key of the class.BtreeNode</span>
+<span class="sd">    :type nodekey: list</span>
+<span class="sd">    :param filename: the file to write to</span>
+<span class="sd">    :type filename: str.</span>
+<span class="sd">    :return lines: The lines from the database that the given key is pointing</span>
+<span class="sd">    :type lines: list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">nodekey</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="p">[</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">li</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">):</span><span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">li</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">li</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="tree_print"><a class="viewcode-back" href="../index.html#db.tree_print">[docs]</a><span class="k">def</span> <span class="nf">tree_print</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Helper function that prints the b-tree that an index contains</span>
+
+<span class="sd">    :param filename: the index&#39;s name</span>
+<span class="sd">    :type filename: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># recursive function</span>
+    <span class="k">def</span> <span class="nf">_recPrint</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span> <span class="n">deep</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">deep</span><span class="p">):</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">|&#39;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--&gt;&#39;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">tr</span><span class="o">.</span><span class="k">print</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tr</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">_recPrint</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span> <span class="n">deep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="s">&#39;r+&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">())</span>
+    <span class="n">_recPrint</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="printRecords"><a class="viewcode-back" href="../index.html#db.printRecords">[docs]</a><span class="k">def</span> <span class="nf">printRecords</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Helper function that formats a list of jsoned records into records(dictionaries) and prints them</span>
+
+<span class="sd">    :param list: list with jsoned records (from the record file)</span>
+<span class="sd">    :type list: list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">jsoned</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_attribute</span><span class="p">:</span>
+           <span class="k">print</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">jsoned</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">()</span>
+
+<span class="c"># experimental</span></div>
+<div class="viewcode-block" id="optimize"><a class="viewcode-back" href="../index.html#db.optimize">[docs]</a><span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This function is experimentally used to optimize/rebalance an index after creation</span>
+
+<span class="sd">    :param filename: index&#39;s filename</span>
+<span class="sd">    :type filename: string</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">        Experimental function, currently not working properly</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># recursice function</span>
+    <span class="k">def</span> <span class="nf">_optimize</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">leng</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span>
+            <span class="n">tr</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="nb">file</span><span class="p">)</span>
+            <span class="n">tr</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span><span class="o">==</span><span class="n">leng</span><span class="p">:</span><span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="p">(</span><span class="mi">4</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span><span class="o">*</span><span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">tr</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">file</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tr</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">left</span><span class="o">.</span><span class="n">leaf</span><span class="p">:</span>
+                <span class="n">_optimize</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+
+    <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r+&#39;</span><span class="p">)</span>
+
+    <span class="n">numlines</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">file</span><span class="p">:</span>
+        <span class="n">numlines</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">btree</span><span class="o">.</span><span class="n">nodeCounter</span> <span class="o">=</span> <span class="n">numlines</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">readline</span><span class="p">())</span>
+    <span class="n">tr</span> <span class="o">=</span> <span class="n">disk_read</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="n">_optimize</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="nb">file</span><span class="p">)</span>
+    <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">db-project 1.2.4 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Spyros Seimenis.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

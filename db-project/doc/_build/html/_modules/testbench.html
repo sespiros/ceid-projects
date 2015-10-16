@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>testbench &mdash; db-project 1.2.4 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="top" title="db-project 1.2.4 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">db-project 1.2.4 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for testbench</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. moduleauthor:: Spyros Seimenis &lt;seimenis@ceid.upatras.gr&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">db</span>
+<span class="kn">import</span> <span class="nn">btree</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<div class="viewcode-block" id="full_testbench"><a class="viewcode-back" href="../index.html#testbench.full_testbench">[docs]</a><span class="k">def</span> <span class="nf">full_testbench</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">amount</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This testbench tests the full functionality of the b-tree database and its relying functions</span>
+
+<span class="sd">    :param name: Name of the database</span>
+<span class="sd">    :type name: string</span>
+<span class="sd">    :param amount: Amount of records that will be created in database</span>
+<span class="sd">    :type amount: integer</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This function is fully commented in the source. click [source] on the right</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">database</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.db&#39;</span>
+
+    <span class="c"># CreateDatabase</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">createDatabase</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="n">amount</span><span class="p">)</span>
+
+    <span class="c"># For the time i use padding to store the nodes</span>
+    <span class="c"># in the file although its a bad technique</span>
+    <span class="c"># here i set the db.SIZE_SMALL and db.SIZE_BIG according to</span>
+    <span class="c"># the amount of records in the database</span>
+    <span class="c"># db.SIZE_SMALL = 200 + amount//1000</span>
+    <span class="c"># db.SIZE_BIG = 1000 + amount</span>
+
+    <span class="c"># CreatePrimaryIndex and CreateSecondary Index</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">_attribute</span><span class="p">:</span>
+        <span class="n">indexname</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">createIndex</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="n">indexname</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+    <span class="c"># Insert record in database</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">makeRecord</span><span class="p">(</span><span class="s">&quot;10070 seimenis souloumenis 50 80&quot;</span><span class="p">)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">insertInDatabase</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">database</span><span class="p">)</span>
+
+    <span class="c"># Insert record in database with duplicate primary key</span>
+    <span class="n">record_error</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">makeRecord</span><span class="p">(</span><span class="s">&quot;20 error error 2 20&quot;</span><span class="p">)</span>
+    <span class="n">num_error</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">insertInDatabase</span><span class="p">(</span><span class="n">record_error</span><span class="p">,</span> <span class="n">database</span><span class="p">)</span>                   <span class="c"># ERROR 1</span>
+
+    <span class="c"># Insert</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">_attribute</span><span class="p">:</span>
+            <span class="n">indexname</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">insertInIndex</span><span class="p">([</span><span class="n">record</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">num</span><span class="p">],</span> <span class="n">indexname</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">insertInIndex</span><span class="p">([</span><span class="n">record_error</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">num_error</span><span class="p">],</span> <span class="n">indexname</span><span class="p">)</span>
+
+    <span class="c"># All of the following function can be called in order to test their</span>
+    <span class="c"># functionality</span>
+
+    <span class="c"># Test function for finding in Primary and Secondary key indexes</span>
+    <span class="k">def</span> <span class="nf">test_find</span><span class="p">():</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">makeRecord</span><span class="p">(</span><span class="s">&quot;20 ROOT ROOT 2000 24&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">_attribute</span><span class="p">:</span>
+            <span class="n">indexname</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">query</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">indexname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">database</span><span class="p">)</span>
+                <span class="k">print</span> <span class="p">(</span><span class="s">&#39;Records found in &#39;</span> <span class="o">+</span> <span class="n">indexname</span><span class="p">)</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">printRecords</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="c"># Test function for finding in Primary and Secondary key indexes with range find</span>
+    <span class="k">def</span> <span class="nf">test_rangefind</span><span class="p">():</span>
+        <span class="n">range_query</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;ID&#39;</span><span class="p">:(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span>
+                       <span class="s">&#39;surname&#39;</span><span class="p">:(</span><span class="s">&#39;pelopiou&#39;</span><span class="p">,</span> <span class="s">&#39;ROOT&#39;</span><span class="p">),</span>
+                       <span class="s">&#39;name&#39;</span><span class="p">:(</span><span class="s">&#39;john&#39;</span><span class="p">,</span> <span class="s">&#39;sotiris&#39;</span><span class="p">),</span>
+                       <span class="s">&#39;year&#39;</span><span class="p">:(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">2005</span><span class="p">),</span>
+                       <span class="s">&#39;age&#39;</span><span class="p">:(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">)}</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">_attribute</span><span class="p">:</span>
+            <span class="n">indexname</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+            <span class="n">key1</span> <span class="o">=</span> <span class="n">range_query</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">key2</span> <span class="o">=</span> <span class="n">range_query</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">findRange</span><span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">,</span> <span class="n">indexname</span><span class="p">)</span>
+
+            <span class="p">(</span><span class="n">MIN</span><span class="p">,</span> <span class="n">MAX</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">key1</span><span class="o">&gt;</span><span class="n">key2</span><span class="p">):</span> <span class="p">(</span><span class="n">MIN</span><span class="p">,</span> <span class="n">MAX</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">key2</span><span class="p">,</span> <span class="n">key1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">list</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">print</span> <span class="p">(</span><span class="s">&#39;--------------RECORDS FOUND IN &#39;</span> <span class="o">+</span> <span class="n">indexname</span> <span class="o">+</span> <span class="s">&#39; IN RANGE </span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">MIN</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">, </span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">MAX</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">--------------&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">:</span>
+                    <span class="n">lines</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">database</span><span class="p">)</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">printRecords</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="c"># Test function for deleting in Primary and Secondary key indexes</span>
+    <span class="k">def</span> <span class="nf">test_delete</span><span class="p">():</span>
+        <span class="c"># Deletes a record from the primary index</span>
+        <span class="n">indexname</span> <span class="o">=</span> <span class="s">&#39;ID&#39;</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">deleteFromIndex</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">deleteFromIndex</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>          <span class="c"># this does not exist   # ERROR 2</span>
+
+        <span class="c"># Deletes a record from the secondary index</span>
+        <span class="n">indexname</span> <span class="o">=</span> <span class="s">&#39;name&#39;</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">deleteFromIndex</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;seimenis&#39;</span><span class="p">)</span> <span class="c"># this does not exist   # ERROR 3</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">deleteFromIndex</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span> <span class="mi">5070</span><span class="p">,</span> <span class="s">&#39;souloumeni&#39;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">deleteFromIndex</span><span class="p">(</span><span class="n">indexname</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&#39;hadfadd&#39;</span><span class="p">)</span>
+
+        <span class="c"># deletes completely the primary key from all the indexes of the given database</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">5070</span><span class="p">,</span> <span class="n">database</span><span class="p">)</span>
+
+    <span class="c">#test_find()</span>
+    <span class="c">#test_rangefind()</span>
+    <span class="c">#test_delete()</span>
+
+    <span class="n">print_all</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="print_all"><a class="viewcode-back" href="../index.html#testbench.print_all">[docs]</a><span class="k">def</span> <span class="nf">print_all</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given an database prints all the indexes created on this database&quot;&quot;&quot;</span>
+    <span class="c">#Printing</span>
+    <span class="k">print</span> <span class="p">(</span><span class="s">&#39;-----------------------------------------------------------------------------------&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">_attribute</span><span class="p">:</span>
+        <span class="n">indexname</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+        <span class="k">print</span> <span class="p">(</span><span class="s">&#39;INDEX &#39;</span> <span class="o">+</span> <span class="n">indexname</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">tree_print</span><span class="p">(</span><span class="n">indexname</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="timingProfile"><a class="viewcode-back" href="../index.html#testbench.timingProfile">[docs]</a><span class="k">def</span> <span class="nf">timingProfile</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; It is a test function that shows the difference between the linear search in a db file</span>
+<span class="sd">        and btree search.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the test i use a search on a secondary key index because it is the most general case</span>
+<span class="sd">            the function can test the times between all the indexes too..</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            To have a more accurate timing it is preferred to use externally the cProfile python module for profiling</span>
+<span class="sd">            usage: python -m cProfile testbench.py</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">treefind</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">indexname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">database</span><span class="p">)</span>
+            <span class="k">print</span> <span class="p">(</span><span class="s">&#39;Records found in &#39;</span> <span class="o">+</span> <span class="n">indexname</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">printRecords</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">normalfind</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+        <span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">file</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span><span class="o">==</span><span class="n">value</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">printRecords</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="c"># Initialization</span>
+    <span class="c">#db.createDatabase(database,9000)</span>
+    <span class="c">#db.createIndex(database, indexname, attribute)</span>
+
+    <span class="n">database</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.db&#39;</span>
+    <span class="n">attribute</span> <span class="o">=</span> <span class="s">&#39;surname&#39;</span>   <span class="c"># set it for the preferred attribute</span>
+    <span class="n">indexname</span> <span class="o">=</span> <span class="n">attribute</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+    <span class="n">searchval</span> <span class="o">=</span> <span class="s">&#39;stallman&#39;</span> <span class="c"># set it for the preferred key to search</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">normalfind</span><span class="p">(</span><span class="n">searchval</span><span class="p">,</span> <span class="n">attribute</span><span class="p">)</span>
+    <span class="n">normalTime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">treefind</span><span class="p">(</span><span class="n">searchval</span><span class="p">)</span>
+    <span class="n">btreeTime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">btreeTime</span> <span class="o">&lt;</span> <span class="n">normalTime</span><span class="p">):</span>
+        <span class="k">print</span> <span class="p">(</span><span class="s">&#39;Btree is &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">normalTime</span><span class="o">/</span><span class="n">btreeTime</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; times faster!!&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span><span class="s">&#39;Normal search is faster.......secret: never happens :P&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../index.html#testbench.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; The main function that is called for testbench and profiling</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">        There is a malfunction because i use db.createDatabase to create my test database files.</span>
+<span class="sd">        When i produce a very large file(ex 10000), i have only 30 names so it is normal for the creation</span>
+<span class="sd">        of the secondary key indexes to have VERY large nodes that exceeds tha db.SIZE_BIG.</span>
+<span class="sd">        For the time i set it manually</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">SIZE_SMALL</span> <span class="o">=</span> <span class="mi">300</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">SIZE_BIG</span> <span class="o">=</span> <span class="mi">20000</span>
+    <span class="c">#full_testbench(&#39;test&#39;, 10000)</span>
+    <span class="n">timingProfile</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">db-project 1.2.4 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Spyros Seimenis.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

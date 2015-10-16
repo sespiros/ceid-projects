@@ -1,0 +1,5 @@
+*.json
+*.db
+__pycache__/
+//Corrupted git log
+git.old

@@ -1,0 +1,150 @@
+Fri Nov 11 22:49:21 GTBST 2011
+Stroustrup, pg. 405-406: Ενημέρωσα constructors σύμφωνα με το πρότυπο της C++. Επίσης πλεον η global_count δουλεύει.
+
+Mon Nov 14 23:37:48 GTBST 2011
+Αρχική μορφή του Ocean, νέα μέθοδος getType του Organism, μικρές αλλαγές στο test.cpp για να δείξουν τις αλλαγές. Ερώτημα: global_count deprecated?
+
+Sun Dec 25 23:31:59 GTBST 2011
+Tried to encapsulate graphics initialization, but multiple includes FUCKING EVERYWHERE wouldn't allow me. screens.h should be deprecated.
+
+Mon Dec 26 19:29:32 GTBST 2011
+I [Petros] created a static const map to connect fish types with their generation weights; the map creation itself is defined in organism's private createWeightMap()
+one can tinker with the fish weights there. The rest is implemented in the Ocean class, as genRandType() & createAndAddRandFish().
+One could also transfer genRandType() to the Helper class.
+
+Tue Dec 27 20:39:90 GTBST 2011 <--EASTER EGG
+I [Spiros] changed the blue texture to match the view dimension and 16*25 objects,the resolution of 1024*600 does not match actual background dimensions.
+Ocean::kill also delete the Organism from fishMap.
+Modified TODO file, easier to read. We add whatever need to be done even the simple ones...
+Bug found after commit 41b8aa
+
+Wed Dec 28 16:27:57 GTBST 2011
+"It's funny, how a single line can introduce such a serious bug."
+
+Thu Dec 29 02:40:57 GTBST 2011
+Fixed Ocean::initMap implementation, added collide, a temporary move old one is deprecated now...
+Added some todos..αυτά
+
+Fri Dec 30 04:53:20 GTBST 2011
+Changed fish and fishMap into the ultimate fishMap std::map, updated all the methods to use the new format.
+Notice how fast it is...everything works..check TODO for next goals..
+
+Sat Dec 31 19:35:45 GTBST 2011
+I [Petros]:
+        * Implemented a more sophisticated eating mechanism using bitfields (see member Organism::eatField) and the corresponding checking method (canEat). Do mess around with each organism's eating habits.
+        * Fixed an endless loop bug (0x02) found in Ocean::collide. That is, each organism shall choose a random direction from a two-dimensional array named Helper::dir[8][2] for eight rounds; after that, the organism is discarded.
+        * fishMap's iterator is now incremented (in Ocean::update) immediately after being evaluated for Ocean::collide(Organism*). That accounts for invalidation after erasing a map's pair (in Ocean::kill). There shouldn't be any issues implementing a bearing mechanism.
+        * Added an Organism::kill() method that decrements each Organism's count after dying. Another method to increment count might be needed.
+
+Tue Jan 3 01:43:31 GTBST 2012
+I [Petros]:
+        * Introduced a pollution system (position[x, y], radius). A static vector<Pollution *> holds the current pollution sources; each source has a lifespan (4th default constructor parameter). No sprites for the moment, just a logging routine. Deletion now should deallocate the pointers to pollution objects, yet we could check for memory leaks.
+        * Ocean::update now also runs tickPollution()
+        * Ocean::populate now checks for object existence before adding a new one at the same spot.
+
+Tue Jan 3 02:23:03 GTBST 2012
+I [Spiros]:
+        *Deleted screenmanager implementation, caused segfaults in linux.
+        *Fixed random generation in Ocean::collide, in Ocean::Cpp. (Possible memory leak fixed).
+
+
+Tue Jan 3 19:02:06 GTBST 2012
+I [Petros]:
+        * Added a draw method for the pollution. Use Pollution::bind(sf::RenderWindow*) to first bind the render window, draw each pollution source, the unbind with Pollution::bind(0)
+        * typedef for std::map<int, Organism*>::iterator
+
+Wed Jan 4 18:10:56 GTBST 2012
+I [Spiros]:
+        * Fixes in pause.h and run.h and retextures.
+        * Added methods for computing and drawing stats for categories.
+        * Added some additional logic (deaths, Consume per week, age, turns)
+        * Added Log Box clickable.
+
+Wed Jan 4 20:10:56 GTBST 2012
+I [Spiros]:
+        * Added new pollution texture.
+        * Optimizations in constructors and Organism Images.
+
+Wed Jan 4 22:48:50 GTBST 2012
+I [Spiros]:
+        * Added two different world sizes
+        * Clickable play/pause
+        * Controlled Zoom only 2 times
+        * Move View with arrows **CHECK TODO**
+
+Thu Jan 5 01:05:06 GTBST 2012
+I [Petros]:
+        * Fixed coords in Helper (x for width, y for height)
+        * Packed Pollution and changed the spreading algorithm
+
+Thu Jan 5 20:38:32 GTBST 2012
+I [Petros]:
+        * Implemented Dewitter's game loop in dewittersrun.h. Uncomment screentest.cpp to test. However, on my laptop, render runs at ~27 FPS (~60 FPS without the App.Display() line). Y U SO SLOW?
+
+Mon Jan 9 04:39:90 GTBST 2012
+I [Spiros]:
+        * Fixed Dimensions of all screens.
+        * Added method to get organism coordinates
+        * "Fixed" 25 fps "bug"....LAWLZ check pause screen diff.....nuff said
+
+Mon Jan 9 05:43:45 GTBST 2012
+I [Spiros]:
+        * Added a clever implementation of interpolation...obvious but we couldn't see...speed 37 we can change that..
+        *Changed textures of small and big background
+
+Mon Jan 9 18:43:45 GTBST 2012
+I [Spiros]:
+        * Added new pixel-perfect textures!!!
+        * Added stats per Organism
+
+Mon Jan 9 20:38:45 GTBST 2012
+I [Spiros]:
+        * Added Follow Camera
+        * Added Log mechanism (non scrolling yet, not sure if needed)
+
+Wed Jan 11 01:00:60 GTBST 2012
+I [Spiros]:
+        * Made the world larger
+        * Fixed stats box allignment
+        * Added general stats in Ocean::stats
+        * Implemented better followcam (yet it needs to be centered )
+
+Wed Jan 11 06:00:45 GTBST 2012
+I [Spiros]:
+        * Added new stats display
+        * Added mouse-over tooltips and debug information in run
+
+Wed Jan 11 20:21:45 GTBST 2012
+I [Spiros]:
+        * Misc enhancements in run and its debug information.
+        * Slight retexture in interface
+        * bug in selection texture in run no opacity(i know what it is)
+        * Implemented drag to add organism
+
+Wed Jan 11 23:08:45 GTBST 2012
+I [Spiros]:
+        * Implemented Ocean::breed
+        * Added more log information
+        * Minor bug fixes
+
+Thu Jan 12 20:46:42 GTBST 2012
+I [Petros]:
+	* Fixed frame rates in pause, run
+	* Fixed narwhal eating habits
+	* There is a bug when the user quickly pauses the simulation; the interpolation is left incomplete and positions get messy
+
+Wed Jan 11 03:24:56 GTBST 2012
+I [Spiros]:
+        * Added new features in run and pause screen, speed slider and buttons.
+        * Added about screen
+        * Fixed tooltips bug
+
+Sun Jan 15 18:17:56 GTBST 2012
+I [Spiros]:
+        * Added much better logic
+            -changed eatfiels
+            -improved weightmap
+            -breedlimit adds swarm effect
+        * Added help screen
+        * Added more intuitive control
+        * GYARADOS EVOLVE!!!

@@ -9,7 +9,7 @@
  */
 #define _STACKOP_
 /* if _DEBUG_ is defined the output of the server will be veeeeery verbose */
-//#define _DEBUG_
+/*#define _DEBUG_ */
 
 #include <sys/types.h>		/* Type definitions */
 #include <stdio.h> 			/* standard I/O */
@@ -26,7 +26,7 @@
 
 #ifndef _DEBUG_
 	/*Size of request queue*/ 
-	#define LISTENQ  50
+	#define LISTENQ  200
 
 	/* max orders issued for setting the size of shared memory lists*/
 	#define MAX_ORDERS LISTENQ
@@ -35,25 +35,25 @@
 	#define NPIZZAS   3
 	#define NBAKERS   10
 	#define NDELIVERY 10
-	#define TVERYLONG 500					/* in milliseconds */
+	#define TVERYLONG 20000					/* 500 in milliseconds */
 	
 	/* definitions of standard times */ 
-	int getPizzaTime[]={100,120,150}; 		/* in milliseconds */
-	int getDistanceTime[]={50,100};			/* in milliseconds */
+	int getPizzaTime[]={1000,2000,3000}; 		/* 100,120,150 in milliseconds */
+	int getDistanceTime[]={3000,5000};			/* 50,100 in milliseconds */
 
 #else /* debug values */
 
-	#define LISTENQ  5
+	#define LISTENQ  200
 
 	#define MAX_ORDERS LISTENQ
 
 	#define NPIZZAS   3
 	#define NBAKERS   10
 	#define NDELIVERY 10
-	#define TVERYLONG 3000					/* in milliseconds */
+	#define TVERYLONG 20000					/* in milliseconds */
 
-	int getPizzaTime[]={2000,2000,2000}; 	/* in milliseconds */
-	int getDistanceTime[]={50,100};			/* in milliseconds */
+	int getPizzaTime[]={1000,2000,3000}; 	/* in milliseconds */
+	int getDistanceTime[]={3000,5000};			/* in milliseconds */
 #endif
 
 /* typedef pizzaType and distanceType for reference */

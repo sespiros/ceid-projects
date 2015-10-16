@@ -319,7 +319,7 @@ int main(int argc, char **argv){
 			/* Server gets order from client */
 			int recv_len = (NPIZZAS+2);
 			write(sockfd, "Server: Pizza Ceid, tell me your order!",40);
-			if (read(sockfd,&buffer,recv_len)==0){		/* If clients disconnects before sends order */
+			if (read(sockfd,&buffer,recv_len)==0){	 	/* If clients disconnects before sends order */
 				printf ("Rude client hanged up\n");
 				exit(0);
 			}
@@ -333,7 +333,7 @@ int main(int argc, char **argv){
 			/* converts the buffer to int codes */
 			int i = 0;
 			pizzaType pizzas[NPIZZAS];
-			for(i;i<strlen(buffer)-1;i++){
+			for(i;i<strlen(buffer )-1;i++){
 				pizzas[i] = buffer[i]-'0';
 			}
 
@@ -351,14 +351,14 @@ int main(int argc, char **argv){
 			
 			/* Begin loop for pizzas to bake */
 			for (c=0;c<num_pizzas;c++){
-				/* pending->sem_res is initialized with the number of bakers 
+				/* pending->sem_res  is initialized with the number of bakers 
 				 * it is reduced and throw a baker process	(bug #16 fixed)*/
 				sem_wait(pending->sem_res);
-				/* ----------------------------------------------------------------------
+				/* ------------ ----------------------------------------------------------
 				 *                                                       BAKER PROCESS
 				 * ----------------------------------------------------------------------
 				 */
-				switch(fork()) {
+				switch(fork())  {
 					case -1:
 						fatal ("in fork");
 					case 0: 	/* Baker process */
@@ -369,7 +369,7 @@ int main(int argc, char **argv){
 						if (s == -1 && errno !=EINTR)
 							fatal("in nanosleep");
 
-						/* Reduction of status of order (until 0) 
+						/* Redu ction of status of order (until 0) 
 						 * pending->sem is the mutex that locks and unlocks the access in the pending list */
 						sem_wait(pending->sem);
 						addr->status-=1;

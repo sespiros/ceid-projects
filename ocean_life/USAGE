@@ -1,0 +1,8 @@
+[Ocean]
+	CONCEPT: All of Ocean's members are static; it keeps track of the current population by its public member count; all Organism members
+	are being stored in a vector<Organism *> (@see Ocean.cpp); currently there are only three methods: a creator, a KILLER, and a simple
+	logger.
+
+	* create(Organism *): adds an Organism address to the list
+	* kill(int idx): deletes the Organism with index idx from the list; there is no need to find that idx, since it
+		will be available when the main update loop executes

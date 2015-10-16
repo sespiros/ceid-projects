@@ -1,0 +1,9 @@
+ocean_life.pro
+ocean_life.pro.user*
+Makefile
+Makefile.Debug
+Makefile.Release
+*.o
+debug/
+release/
+*.autosave

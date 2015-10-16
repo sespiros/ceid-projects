@@ -1,0 +1,161 @@
+%xelatex
+\documentclass[a4paper,11pt]{article}
+\usepackage[a4paper]{geometry}
+\usepackage{xltxtra}
+\usepackage{xgreek}
+\usepackage{listings}
+\setmainfont[Mapping=tex-text]{Kerkis}
+\title{Παράλληλη επεξεργασία}
+\author{Μπαντολας Πέτρος 5028\\Σειμένης Σπύρος 5070}
+\date{}
+
+\lstset{
+    basicstyle=\footnotesize\ttfamily
+}
+
+\begin{document}
+\maketitle
+\section{Ανάλυση σειριακής έκδοσης}
+
+\begin{itshape}
+    Σε όλες τις μετρήσεις χρησιμοποιήθηκαν οι παράμετροι για την μικρή είσοδο του προγράμματος, δηλαδή
+\end{itshape}
+\begin{lstlisting}
+            10 20 256 32768 32768 1000 none output_small.txt
+\end{lstlisting}
+
+Ο παρακάτω πίνακας αναγράφει τους χρόνους εκτέλεσης του Streamcluster χωρίς καμία τεχνική βελτίωσης.
+
+\begin{center}
+\begin{tabular}{|r|l|}
+    \hline
+    Επίπεδο Βελτιστοποίησης & Χρόνος Εκτέλεσης \\ \hline
+    O0 & 77.5 sec \\
+    O3 & 27.91 sec \\ \hline
+\end{tabular}
+\end{center}
+
+Η συμπεριφορά της σειριακής εκδοσης αναλύθηκε με την χρήση του εργαλείου scalasca.
+\begin{center}
+\includegraphics[scale=0.5]{../scrshots/time.png}
+\end{center} 
+Όπως φαινεται και στην εικόνα, οι συναρτήσεις με τον μεγαλύτερο χρόνο εκτέλεσης ειναι η pspeedy και η pgain.\\
+Συγκεκριμένα ο μεγαλύτερος χρόνος και των δύο είναι κατα τις κλήσεις τους στην συνάρτηση dist.
+\subsection*{pgain}
+Παρακάτω φαίνονται τα L1, L2, TLB cache misses της σειριακής έκδοσης όπου επι το πλείστον οφείλονται στην pgain.
+\begin{center}
+\includegraphics[width=\textwidth]{../scrshots/l1.png}
+\end{center} 
+\includegraphics[width=\textwidth]{../scrshots/l2.png}
+\includegraphics[width=\textwidth]{../scrshots/tlb.png}
+Συμπεραίνουμε οτι οι περιοχές που προκαλούν καθυστέρηση είναι αυτές που υπολογίζουν κατ' επανάληψη για όλα τα σημεία την απόσταση τους (dist). Αυτό γίνεται για ολα τα σημεία, άρα για μεγάλο αριθμό σημείων αυξάνεται και η πολυπλοκοτητα του προγράμματος. Επίσης η δομή που αποθηκεύει τα σημεία δεσμεύεται στην αρχή του προγράμματος στο heap μεσω malloc που δεν εγγυάται ότι οι διευθύνσεις φυσικής μνήμης θα είναι γειτονικες μεταξυ τους. Η πολλαπλή προσπέλαση όλων των σημείων σειριακά οδηγεί στα πολλαπλά cache misses τα οποία επι το πλείστον ειναι cache misses για δεδομένα και οχι για εντολες. Έτσι η παραλληλοποίηση με OpenMP βελτιστοποιεί τους υπολογισμούς και μειώνει τα cache misses.
+
+\section{Χρονοβελτίωση}
+\subsection{Με χρήση OpenMP}
+Σύμφωνα με την προηγούμενη ανάλυση, τα σημεία όπου χρειάζεται χρονοβελτίωση είναι κυρίως οι κλήσεις της \texttt{dist} μέσα στις συναρτήσεις \texttt{pgain} και \texttt{pspeedy}.
+
+Δύο είναι τα σημεία μέσα στην \texttt{pgain} όπου καλείται σε βρόχο \texttt{for} η \texttt{dist}. Εισάγοντας εκεί εντολές \texttt{OpenMP} μειώνεται αρκετά ο χρόνος εκτέλεσης.
+\begin{lstlisting}
+#pragma omp parallel for \
+shared(switch_membership,points,lower,center_table,x) private(i) \
+reduction(+:cost_of_opening_x) \
+schedule(static)
+for ( i = 0; i < points->num; i++ ) {
+    float x_cost = dist ( points->p[i], points->p[x], points->dim ) * points->p[i].weight;
+    float current_cost = points->p[i].cost;
+\end{lstlisting}
+Εδώ απαιτείται reduction για την μεταβλητή \texttt{cost\_of\_opening\_x} αφού είναι κοινή σε όλα τα νήματα.
+
+\begin{lstlisting}
+int assign = points->p[i].assign;
+#pragma omp atomic
+lower[center_table[assign]] += current_cost - x_cost;
+\end{lstlisting}
+Η εντολή atomic απαιτείται για να αποκλειστούν ενημερώσεις στην ίδια θέση του πίνακα \texttt{lower} απο διαφορετικά νήματα.
+
+\begin{lstlisting}
+#pragma omp parallel for \
+shared(points,gl_lower,center_table,switch_membership,x) \
+schedule(static)
+for ( int i = 0; i < points->num; i++ ) {
+    bool close_center = gl_lower[center_table[points->p[i].assign]] > 0 ;
+    if ( switch_membership[i] || close_center ) {
+\end{lstlisting}
+
+Ακόμη, στη συνάρτηση \texttt{pspeedy} καλείται σε ένθετο βρόχο η \texttt{dist}. Εισάγοντας σε αυτό το σημείο παραλληλοποίηση με \texttt{OpenMP} παρατηρείται μια μικρή βελτίωση στο χρόνο.
+
+\begin{lstlisting}
+#pragma omp parallel for \
+shared(points) \
+schedule(static)
+for ( int k = 0; k < points->num; k++ )  {
+    float distance = dist ( points->p[i],points->p[k],points->dim );
+\end{lstlisting}
+
+Σε όλες τις παραπάνω περιπτώσεις επιλέχθηκε στατικός διαμοιρασμός των επαναλήψεων στα νήματα, αφού ο φόρτος είναι ο ίδιος σε κάθε περίπτωση (καλείται η συνάρτηση \texttt{dist} με σταθερό πλήθος σημείων).
+Προτού επιχειρηθεί η παραλληλοποίηση του προγράμματος εξετάστηκε η λειτουργία του ώστε να μην επιλεχθούν "τυφλά" τα σημεία που μπορούν να παραλληλοποιηθούν, όπως για παράδειγμα όλα τα loops.
+Έτσι οι παραλληλοποιήσεις που επιλέχθηκαν αρκούν για να επιτύχουν μέγιστη απόδοση απο την παραλληλοποίηση αφού γίνονται στα σημεία που δημιουργούν τον μεγαλύτερο "φόρτο" στο πρόγραμμα.
+Ο παρακάτω πίνακας αναγράφει τους χρόνους εκτέλεσης του Streamcluster με χρήση OpenMP.
+
+\begin{center}
+\begin{tabular}{|r|c|c|}
+    \hline
+    Νήματα & Χρόνος Εκτέλεσης (-Ο0) & Χρόνος Εκτέλεσης (-Ο3) \\ \hline
+    1 & 79.8 sec & 28.4 sec \\
+    2 & 43.1 sec & 16.2 sec \\
+    4 & 26.2 sec & 12.4 sec \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection{Με χρήση εντολών SIMD}
+Λαμβάνοντας υπόψη την ανάλυση της σειριακής έκδοσης του προγράμματος και οι δύο συναρτήσεις σπαταλούν τον μεγαλύτερο χρόνο στην συνάρτηση dist η οποία υπολογίζει την απόσταση δυο σημείων πολλαπλών διαστάσεων.\\
+Ο χρόνος στον οποίο η dist υπολογίζει την απόσταση δυο σημείων μπορεί να βελτιωθεί χρησιμοποιώντας εντολές simd.\\
+Αρχικά υπολογίζονταν η διαφορά μεταξύ των δύο σημείων σειριακά για κάθε διάστασή τους. Πλέον οι τιμές κάθε διάστασης των σημείων φορτώνονται ανα 4 ως διάνυσμα σε καταχωρητές των 128 bit του επεξεργαστή, οι αφαιρέσεις και πολλαπλασιασμοί που χρειάζονται γίνονται ανά 4 και έτσι επιταχύνεται η διαδικασία.
+Σε αυτό το σημείο επίσης παρατηρήθηκε ότι συγκεκριμένα οι πράξεις ανάθεσης, αφαίρεσης και πολλαπλασιασμού που πραγματοποιούνται στα δεδομένα, δεν είναι αναγκαίο να γραφτούν ρητά μέσα στο πρόγραμμα με τις έντολες simd που παρέχει ο gcc αφού ο compiler είναι ικανός να αναγνωρίσει τον τύπο δεδομένων και να κάνει μόνος του την εναλλαγή. Αυτό επαληθεύτηκε παρατηρώντας τις εντολές σε assembly που παράγονταν κάθε φορά.
+
+Ο παρακάτω πίνακας αναγράφει τους χρόνους εκτέλεσης του Streamcluster με χρήση OpenMP και εντολές SIMD.
+
+\begin{center}
+\begin{tabular}{|r|c|c|}
+    \hline
+    Νήματα & Χρόνος Εκτέλεσης (-O0) & Χρόνος Εκτέλεσης (-Ο3) \\ \hline
+    1 & 102.6 sec & 18.2 sec \\
+    2 & 54.8 sec & 12.2 sec \\
+    4 & 29.0 sec & 14.0 sec \\ \hline
+\end{tabular}
+\end{center}
+\pagebreak
+\section{Συμπεράσματα}
+Στο παρακάτω διάγραμμα απεικονίζεται συνοπτικά o χρόνος του προγράμματος για τις διαφορετικες υλοποιήσεις και μεγεθη εισοδου.
+\begin{center}
+\includegraphics[width=0.9\textwidth]{../scrshots/results1.png}
+\end{center} 
+\begin{center}
+\includegraphics[width=0.9\textwidth]{../scrshots/results2.png}
+\end{center} 
+\begin{center}
+\includegraphics[width=0.9\textwidth]{../scrshots/results3.png}
+\end{center} 
+
+Οι χρονοβελτιώσεις υπολογίζονται για καθε περίπτωση ώς εξής:
+$$ {serial time with O0}/{omp time/simd O0} $$
+για τις υλοποιήσεις με Ο0 και αντίστοιχα
+$$ {serial time with O3}/{omp time/simd O3} $$
+για τις υλοποιήσεις με Ο3.
+\begin{center}
+\includegraphics[width=0.9\textwidth]{../scrshots/speedup1.png}
+\end{center} 
+\begin{center}
+\includegraphics[width=0.9\textwidth]{../scrshots/speedup2.png}
+\end{center} 
+\begin{center}
+\includegraphics[width=0.9\textwidth]{../scrshots/speedup3.png}
+\end{center} 
+
+Παρατηρείται ότι στις περιπτώσεις χωρίς βελτιστοποίηση compiler η έκδοση με SIMD είναι πιο αργή σε σχέση με την έκδοση μόνο με OpenMP. Αν και δεν φαίνεται λογικό εκ πρώτης όψεως, η χειρότερη απόδοση του SIMD οφείλεται στο ότι έχουν αφαιρεθεί οι βελτιστοποιήσεις του compiler. Σε πραγματικές συνθήκες δεν θα συνέβαινε ποτέ αυτό.
+
+Όταν οι βελτιστοποιήσεις του compiler είναι ενεργές, προσθέτοντας SIMD εντολές στην έκδοση με OpenMP επιτυγχάνεται περαιτέρω μείωση του χρόνου.
+
+Απο τα συγκριτικά στις γραφικές παραστάσεις για τις χρονοβελτιώσεις παρατηρείται ότι οι χρονοβελτιώσεις για Ο0 είναι υψηλότερες απο αυτές με Ο3 ενεργό. 
+
+\end{document}

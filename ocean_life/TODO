@@ -1,0 +1,57 @@
+DONE|   *change Ocean::kill instead idx to use a pointer to organism
+DONE|   *change Ocean::move so before setting new x,y check Ocean::fishMap :
+            -if conlict:
+                _call checker function
+                    (*skype*)
+            -if not sets new x,y
+DONE|   *change blue sea texture to match view resolution
+DONE|   *optimize textures dimensions in general
+DONE|   *limit zoom
+DONE|         and move
+DONE|   *decide about the world size
+            -standard size and just zoom in
+            -VAST WORLD see only a part and we may choose what to draw
+DONE|   *clock and render timing
+****|   *implement user actions
+            -fishnet
+                _retexture
+                _behavior
+                _placing & interface in general
+DONE|       -pollution
+                _retexture
+                _behavior
+                _placing & interface in general
+            -adding Organisms
+                _possible drag&drop?
+DONE|   *add stats
+DONE|   *implement dynamic(*skype*) stats tab in the top-right corner
+DONE|   *fix pause screen
+DONE|   *add a checkedSprite version of every class
+DONE|   *add general itiles and jtiles as in getWorldScreenMapping
+DONE|   *fix occasional bug
+            http://www.qtforum.org/article/31803/passing-pointer-of-object-into-function-crashes.html
+            edit: SERIOUS BUG IN COMMIT 41b8a...we should check the code after this commit
+            ammend: after debugging it seems that createAndAddRandFish causes sometimes sigsegv.
+DUH!|   *find a way to publish TODO file without commits........:P
+DONE|   *Complete Ocean.cpp in comments
+DONE|   *Optimize rand selection
+DONE|   *THE FUCKING INTERPOLATION FTW!!!! CREDITS TO DEADMAU5!!!!!!!!!
+****|	*Which Organism members should be protected? Which private?
+****|	*Check for memory leaks, maybe use a Boost pointer container?
+DONE|   *Fix rand implementation not to produce 0,0 as dx,dy
+DONE|   *Limit pollution sources with clocks <-- Explain
+****|   *add pollution shader (possible post-fx fisheye with colorize) check sfml samples <- no you check
+DONE|   *clickable icons next to stats show category spesific information
+DERP|   *Possible drag view..
+DONE|   *In Big world view the dimensions are not correct yet
+DONE|   *Amount of zoom must be common between run and pause..fix <- no you fix
+****|	*Separate event code from the main loop
+DONE|   *add about screen
+DONE|   *Add organism whenever we want
+****|   *Interpolate in the same manner pollution...add position of pollution in class pollution and change them instead of sprite's position in tick...etc
+DONE|   *Major Recolor in textures
+DONE|   *Fix a new bug in small world view when rightmost column = 0 caused of view dimensions
+DONE|   *Fix selection texture in run
+****|   *Fix centered followcam
+****|   *In run when zoom=2 and lock camera on..debug information not showing properly..priority LOWEST(TODO FORMAT IDEA)
+****|   *<add todo> <- no you add

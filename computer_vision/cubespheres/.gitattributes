@@ -1,2 +1,2 @@
-glm/* linguist-vendored
-opengl-wrappers/* linguist-vendored
+glm/* linguist-vendored=false
+opengl-wrappers/* linguist-vendored=false

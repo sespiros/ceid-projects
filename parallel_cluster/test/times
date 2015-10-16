@@ -1,0 +1,26 @@
+serial
+Time elapsed was 104.289143 seconds
+omp_o0_1thread
+Time elapsed was 111.550818 seconds
+omp_o0_2threads
+Time elapsed was 78.300578 seconds
+omp_o0_4threads
+Time elapsed was 83.274305 seconds
+omp_o3_1thread
+Time elapsed was 26.720580 seconds
+omp_o3_2threads
+Time elapsed was 22.133635 seconds
+omp_o3_4threads
+Time elapsed was 15.075372 seconds
+simd_o0_1thread
+Time elapsed was 108.483110 seconds
+simd_o0_2threads
+Time elapsed was 79.788847 seconds
+simd_o0_4threads
+Time elapsed was 55.872358 seconds
+simd_o3_1thread
+Time elapsed was 24.006407 seconds
+simd_o3_2threads
+Time elapsed was 21.113502 seconds
+simd_o3_4threads
+Time elapsed was 18.417418 seconds
